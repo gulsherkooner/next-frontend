@@ -1,7 +1,9 @@
+// Import cookie utilities
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { setCookie, getCookie, deleteCookie } from '../../utils/cookie';
 
 export const fetchUserData = createAsyncThunk('auth/fetchUserData', async (_, { getState, dispatch, rejectWithValue }) => {
-  let accessToken = getState().auth.accessToken || sessionStorage.getItem('accessToken');
+  let accessToken = getState().auth.accessToken || getCookie('accessToken');
   if (!accessToken) {
     return rejectWithValue('No access token available');
   }
@@ -15,6 +17,7 @@ export const fetchUserData = createAsyncThunk('auth/fetchUserData', async (_, { 
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
       },
+      credentials: 'include', // Include cookies for refreshToken
     });
     const data = await response.json();
     if (!response.ok) {
@@ -42,9 +45,16 @@ const authSlice = createSlice({
       state.refreshToken = action.payload.refreshToken || null;
       state.status = 'succeeded';
       state.error = null;
+      if (action.payload.accessToken) {
+        setCookie('accessToken', action.payload.accessToken, { secure: false, sameSite: 'Strict', maxAge: 3600 });
+      }
+      if (action.payload.refreshToken) {
+        setCookie('refreshToken', action.payload.refreshToken, { secure: false, sameSite: 'Strict', maxAge: 7 * 24 * 60 * 60 });
+      }
     },
     updateAccessToken: (state, action) => {
       state.accessToken = action.payload;
+      setCookie('accessToken', action.payload, { secure: false, sameSite: 'Strict', maxAge: 3600 });
     },
     clearCredentials: (state) => {
       state.user = null;
@@ -52,6 +62,8 @@ const authSlice = createSlice({
       state.refreshToken = null;
       state.status = 'idle';
       state.error = null;
+      deleteCookie('accessToken');
+      deleteCookie('refreshToken');
     },
   },
   extraReducers: (builder) => {

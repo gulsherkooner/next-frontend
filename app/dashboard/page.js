@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserData, updateAccessToken, clearCredentials } from '../features/auth/authSlice';
+import { getCookie, deleteCookie } from '../utils/cookie'; // Import cookie utils
 
 export default function DashboardPage() {
   const { user, accessToken, status: authStatus, error: authError } = useSelector((state) => state.auth);
@@ -13,13 +14,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const checkToken = async () => {
-      let currentAccessToken = accessToken || sessionStorage.getItem('accessToken');
+      let currentAccessToken = accessToken || getCookie('accessToken');
 
       if (!currentAccessToken) {
-        const refreshToken = document.cookie
-          .split('; ')
-          .find((row) => row.startsWith('refreshToken='))
-          ?.split('=')[1];
+        const refreshToken = getCookie('refreshToken');
 
         if (refreshToken) {
           try {
@@ -28,11 +26,11 @@ export default function DashboardPage() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ refreshToken }),
+              credentials: 'include',
             });
 
             const data = await res.json();
             if (res.ok) {
-              sessionStorage.setItem('accessToken', data.accessToken);
               dispatch(updateAccessToken(data.accessToken));
               currentAccessToken = data.accessToken;
             } else {
@@ -66,8 +64,8 @@ export default function DashboardPage() {
   }, [user, accessToken, dispatch, router]);
 
   const handleLogout = () => {
-    sessionStorage.removeItem('accessToken');
-    document.cookie = 'refreshToken=; Max-Age=0; Path=/';
+    deleteCookie('accessToken');
+    deleteCookie('refreshToken');
     dispatch(clearCredentials());
     router.push('/login');
   };
@@ -86,7 +84,7 @@ export default function DashboardPage() {
       <div>
         <p><strong>User ID:</strong> {user.user_id}</p>
         <p><strong>Username:</strong> {user.username}</p>
-        <p><strong>Name:</strong> {user.name || 'N/A'}</p> {/* Changed from display_name */}
+        <p><strong>Name:</strong> {user.name || 'N/A'}</p>
         <p><strong>Bio:</strong> {user.bio || 'N/A'}</p>
         {user.profile_img_url && (
           <p>

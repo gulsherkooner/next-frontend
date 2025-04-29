@@ -22,10 +22,9 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
         credentials: 'include',
       });
-
+  
       const data = await res.json();
       if (res.ok) {
-        sessionStorage.setItem('accessToken', data.accessToken);
         dispatch(setCredentials({
           user: data.user,
           accessToken: data.accessToken,
@@ -75,7 +74,7 @@ export default function LoginPage() {
         </button>
       </form>
       <p style={{ marginTop: '15px' }}>
-        Don&apos;t have an account? <a href="/register">Register</a>
+        Don&apos;t have an account? <a href="/signup">Register</a>
       </p>
     </div>
   );
