@@ -21,8 +21,8 @@ export default function LoginPage() {
     setShowPassword(!showPassword);
   };
 
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  console.log("prefersDark:", prefersDark);
+  // const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  // console.log("prefersDark:", prefersDark);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
