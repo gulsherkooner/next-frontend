@@ -87,7 +87,7 @@ export default function Home() {
 
           <ReelCarousel />
 
-          {status === "loading" ? <div>Loading...</div>}
+          {status === "loading" && <div>Loading...</div>}
           {posts.map((post) => (
             <Post key={post.post_id} {...post} />
           ))}

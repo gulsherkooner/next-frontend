@@ -45,7 +45,7 @@ export default function LoginPage() {
             refreshToken: data.refreshToken,
           })
         );
-        router.push("/dashboard");
+        router.push("/");
       } else {
         setError(data.error || "Login failed");
       }

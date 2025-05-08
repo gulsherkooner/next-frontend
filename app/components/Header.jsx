@@ -2,9 +2,11 @@ import React from "react";
 import { Search, Home, Bell, Mail, User, Wallet, Menu } from "lucide-react";
 import Link from "next/link";
 import { useIsMobile } from "../hooks/use-mobile";
+import { useRouter } from "next/router";
 
 const Header = ({ setMenu, menu }) => {
   const isMobile = useIsMobile();
+  const router = useRouter();
   
   const handleMenu = () => {
     setMenu(!menu);
@@ -80,7 +82,7 @@ const Header = ({ setMenu, menu }) => {
           )}
           
           {!isMobile && (
-            <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+            <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center" onClick={()=>router.push('/login')}>
               <User size={20} className="text-gray-900" />
             </button>
           )}
