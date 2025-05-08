@@ -17,7 +17,7 @@ import {
   UserRoundCheck,
 } from "lucide-react";
 import { useDispatch } from "react-redux";
-import { createPost } from "../features/posts/postsSlice";
+import { createPost, fetchPublicPosts } from "../features/posts/postsSlice";
 
 const CreateVideo = ({ openVideoDialog, setOpenVideoDialog }) => {
   const [postTitle, setPostTitle] = useState("");
@@ -51,7 +51,7 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog }) => {
   };
 
   const handleVideoSubmit = async () => {
-    setLoading(true)
+    setLoading(true);
     setError(null);
     // Process tags - remove # and filter empty tags
     const processedTags = postTags
@@ -66,16 +66,19 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog }) => {
         title: postTitle,
         description: postDescription,
         post_type: "video",
-        media: [{
-          media_type: "video",
-          media_name: postFile.name,
-          media_content: base64Content,
-        }],
+        media: [
+          {
+            media_type: "video",
+            media_name: postFile.name,
+            media_content: base64Content,
+          },
+        ],
         post_tags: processedTags,
         visibility: postVisibility,
       };
       try {
         await dispatch(createPost(postData)).unwrap();
+        dispatch(fetchPublicPosts());
         setLoading(false);
         setPostTitle("");
         setPostDescription("");
@@ -102,8 +105,9 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog }) => {
             <X size={18} />
           </button>
 
-          {error && (
-            <div className="mb-3 text-red-500 text-sm">{error}</div>
+          {error && <div className="mb-3 text-red-500 text-sm">{error}</div>}
+          {loading && (
+            <div className="mb-3 text-gray-500 text-sm">Loading...</div>
           )}
 
           <div className="flex items-center mb-3">
