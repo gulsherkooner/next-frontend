@@ -1,6 +1,6 @@
 // Import cookie utilities
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { setCookie, getCookie, deleteCookie } from '../../utils/cookie';
+import { setCookie, getCookie, deleteCookie } from '../../lib/utils/cookie';
 
 export const fetchUserData = createAsyncThunk('auth/fetchUserData', async (_, { getState, dispatch, rejectWithValue }) => {
   let accessToken = getState().auth.accessToken || getCookie('accessToken');
@@ -46,7 +46,7 @@ const authSlice = createSlice({
       state.status = 'succeeded';
       state.error = null;
       if (action.payload.accessToken) {
-        setCookie('accessToken', action.payload.accessToken, { secure: false, sameSite: 'Strict', maxAge: 3600 });
+        setCookie('accessToken', action.payload.accessToken, { secure: false, sameSite: 'Strict', maxAge: 24 * 60 * 60 });
       }
       if (action.payload.refreshToken) {
         setCookie('refreshToken', action.payload.refreshToken, { secure: false, sameSite: 'Strict', maxAge: 7 * 24 * 60 * 60 });

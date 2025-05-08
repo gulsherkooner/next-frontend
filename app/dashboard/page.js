@@ -4,11 +4,15 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserData, updateAccessToken, clearCredentials } from '../features/auth/authSlice';
-import { getCookie, deleteCookie } from '../utils/cookie'; // Import cookie utils
+import { fetchPosts, createPost, updatePost, deletePost } from '../features/posts/postsSlice';
+import { getCookie, deleteCookie } from '../lib/utils/cookie';
 
 export default function DashboardPage() {
   const { user, accessToken, status: authStatus, error: authError } = useSelector((state) => state.auth);
+  const { posts, status: postsStatus, error: postsError } = useSelector((state) => state.posts);
   const [error, setError] = useState('');
+  const [isPostFormOpen, setIsPostFormOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState(null);
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -18,7 +22,6 @@ export default function DashboardPage() {
 
       if (!currentAccessToken) {
         const refreshToken = getCookie('refreshToken');
-
         if (refreshToken) {
           try {
             const apiGatewayUrl = process.env.NEXT_PUBLIC_API_GATEWAY_URL || 'http://localhost:3001';
@@ -28,7 +31,6 @@ export default function DashboardPage() {
               body: JSON.stringify({ refreshToken }),
               credentials: 'include',
             });
-
             const data = await res.json();
             if (res.ok) {
               dispatch(updateAccessToken(data.accessToken));
@@ -58,10 +60,45 @@ export default function DashboardPage() {
       if (!user && currentAccessToken) {
         dispatch(fetchUserData());
       }
+
+      // Fetch posts after authentication is confirmed
+      if (currentAccessToken) {
+        dispatch(fetchPosts());
+      }
     };
 
     checkToken();
   }, [user, accessToken, dispatch, router]);
+
+  const handleCreatePost = async (postData) => {
+    try {
+      await dispatch(createPost(postData)).unwrap();
+      setIsPostFormOpen(false);
+    } catch (err) {
+      console.error('Create post error:', err);
+      setError('Failed to create post');
+    }
+  };
+
+  const handleUpdatePost = async (postId, postData) => {
+    try {
+      await dispatch(updatePost({ postId, postData })).unwrap();
+      setIsPostFormOpen(false);
+      setEditingPost(null);
+    } catch (err) {
+      console.error('Update post error:', err);
+      setError('Failed to update post');
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    try {
+      await dispatch(deletePost(postId)).unwrap();
+    } catch (err) {
+      console.error('Delete post error:', err);
+      setError('Failed to delete post');
+    }
+  };
 
   const handleLogout = () => {
     deleteCookie('accessToken');
@@ -70,7 +107,7 @@ export default function DashboardPage() {
     router.push('/login');
   };
 
-  if (authStatus === 'loading') {
+  if (authStatus === 'loading' || postsStatus === 'loading') {
     return <p>Loading...</p>;
   }
 
@@ -96,13 +133,125 @@ export default function DashboardPage() {
         <p><strong>Created At:</strong> {new Date(user.created_at).toLocaleString()}</p>
         <p><strong>Updated At:</strong> {new Date(user.updated_at).toLocaleString()}</p>
       </div>
-      {(error || authError) && <p style={{ color: 'red' }}>{error || authError}</p>}
+      {(error || authError || postsError) && <p style={{ color: 'red' }}>{error || authError || postsError}</p>}
+      <button
+        onClick={() => setIsPostFormOpen(true)}
+        style={{ padding: '10px 20px', marginTop: '20px' }}
+      >
+        Create Post
+      </button>
+      {isPostFormOpen && (
+        <PostForm
+          post={editingPost}
+          onSubmit={editingPost ? (data) => handleUpdatePost(editingPost.post_id, data) : handleCreatePost}
+          onClose={() => {
+            setIsPostFormOpen(false);
+            setEditingPost(null);
+          }}
+        />
+      )}
+      <div style={{ marginTop: '20px' }}>
+        <h2>Posts</h2>
+        {posts.map((post) => (
+          <div key={post.post_id} style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '10px' }}>
+            <h3>{post.title}</h3>
+            <p>{post.description}</p>
+            <button onClick={() => {
+              setEditingPost(post);
+              setIsPostFormOpen(true);
+            }}>Edit</button>
+            <button onClick={() => handleDeletePost(post.post_id)}>Delete</button>
+          </div>
+        ))}
+      </div>
       <button
         onClick={handleLogout}
         style={{ padding: '10px 20px', marginTop: '20px' }}
       >
         Logout
       </button>
+    </div>
+  );
+}
+
+function PostForm({ post, onSubmit, onClose }) {
+  const [formData, setFormData] = useState({
+    title: post ? post.title : '',
+    description: post ? post.description : '',
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000,
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        padding: '20px',
+        borderRadius: '8px',
+        width: '400px',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+      }}>
+        <h2 style={{ marginBottom: '20px' }}>{post ? 'Edit Post' : 'Create Post'}</h2>
+        <div>
+          <div style={{ marginBottom: '15px' }}>
+            <label htmlFor="title">Title:</label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+              required
+            />
+          </div>
+          <div style={{ marginBottom: '15px' }}>
+            <label htmlFor="description">Description:</label>
+            <textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              style={{ width: '100%', padding: '8px', marginTop: '5px', height: '100px' }}
+              required
+            />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              onClick={onClose}
+              style={{ padding: '10px 20px', marginRight: '10px' }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleFormSubmit}
+              style={{ padding: '10px 20px' }}
+            >
+              {post ? 'Update' : 'Create'}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

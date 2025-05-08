@@ -23,6 +23,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/page.jsx", "app/layout.jsx", "next.config.js", "app/services/auth-service/user.model.js", "app/services/auth-service/index.js", "app/lib/mongodb.js", "app/lib/jwt.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/page.jsx", "app/layout.jsx", "next.config.js", "app/services/auth-service/user.model.js", "app/services/auth-service/index.js", "app/lib/mongodb.js", "app/lib/jwt.js", "app/hooks/use-mobile.jsx"],
   "exclude": ["node_modules"]
 }
