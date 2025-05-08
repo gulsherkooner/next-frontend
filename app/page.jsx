@@ -25,9 +25,6 @@ export default function Home() {
     dispatch(fetchPublicPosts());
   }, [dispatch]);
 
-  if (status === 'loading') return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-
   // Sample data for trending profiles
   const trendingProfiles = [
     { username: "Username 1", followers: "21k" },
@@ -90,6 +87,7 @@ export default function Home() {
 
           <ReelCarousel />
 
+          {status === "loading" ? <div>Loading...</div>}
           {posts.map((post) => (
             <Post key={post.post_id} {...post} />
           ))}

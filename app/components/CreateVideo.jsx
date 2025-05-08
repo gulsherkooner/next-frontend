@@ -27,6 +27,7 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog }) => {
   const [postFile, setPostFile] = useState(null);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -50,6 +51,7 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog }) => {
   };
 
   const handleVideoSubmit = async () => {
+    setLoading(true)
     setError(null);
     // Process tags - remove # and filter empty tags
     const processedTags = postTags
@@ -72,9 +74,9 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog }) => {
         post_tags: processedTags,
         visibility: postVisibility,
       };
-      console.log("Video post data:", postData);
       try {
         await dispatch(createPost(postData)).unwrap();
+        setLoading(false);
         setPostTitle("");
         setPostDescription("");
         setPostTags("");
