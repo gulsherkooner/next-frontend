@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserData, updateAccessToken, clearCredentials } from '../features/auth/authSlice';
@@ -126,8 +127,7 @@ export default function DashboardPage() {
         {user.profile_img_url && (
           <p>
             <strong>Profile Image:</strong>
-            <br />
-            <img src={user.profile_img_url} alt="Profile" style={{ maxWidth: '100px', marginTop: '10px' }} />
+            <Image src={user.profile_img_url} alt="Profile" width={100} height={100} style={{ marginTop: '10px' }} />
           </p>
         )}
         <p><strong>Created At:</strong> {new Date(user.created_at).toLocaleString()}</p>

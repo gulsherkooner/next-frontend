@@ -2,7 +2,7 @@ import React from "react";
 import { Search, Home, Bell, Mail, User, Wallet, Menu } from "lucide-react";
 import Link from "next/link";
 import { useIsMobile } from "../hooks/use-mobile";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 const Header = ({ setMenu, menu }) => {
   const isMobile = useIsMobile();
