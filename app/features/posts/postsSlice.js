@@ -122,6 +122,29 @@ export const deletePost = createAsyncThunk('posts/deletePost', async (postId, { 
   }
 });
 
+export const fetchUserPosts = createAsyncThunk('posts/fetchUserPosts', async (user_id, { getState, rejectWithValue }) => {
+  const accessToken = getState().auth.accessToken || getCookie('accessToken');
+  if (!accessToken) {
+    return rejectWithValue('No access token available');
+  }
+  try {
+    const apiGatewayUrl = process.env.NEXT_PUBLIC_API_GATEWAY_URL || 'http://localhost:3001';
+    const response = await fetch(`${apiGatewayUrl}/posts/user/${user_id}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch user posts');
+    }
+    return data.posts;
+  } catch (error) {
+    return rejectWithValue(error.message);
+  }
+});
+
 // Create the posts slice
 const postsSlice = createSlice({
   name: 'posts',
@@ -184,6 +207,18 @@ const postsSlice = createSlice({
         state.error = null;
       })
       .addCase(deletePost.rejected, (state, action) => {
+        state.error = action.payload;
+      })
+      .addCase(fetchUserPosts.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchUserPosts.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.posts = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchUserPosts.rejected, (state, action) => {
+        state.status = 'failed';
         state.error = action.payload;
       });
   }
