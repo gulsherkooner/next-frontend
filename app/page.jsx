@@ -20,6 +20,8 @@ export default function Home() {
   const [menu, setMenu] = useState(false);
   const { posts, status, error } = useSelector(state => state.posts);
   const dispatch = useDispatch();
+  const data = useSelector(state => state);
+  console.log(data)
 
   useEffect(() => {
     dispatch(fetchPublicPosts());
