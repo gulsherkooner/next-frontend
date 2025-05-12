@@ -7,7 +7,7 @@ const ReelCarousel = () => {
   // Normally we would fetch these from an API
   const reels = [
     { id: 1, imageUrl: `${img}` },
-    { id: 2, videoUrl: `https://videos.pexels.com/video-files/31565670/13452401_1440_2560_60fps.mp4` },
+    { id: 2, videoUrl: `${img}` },
     { id: 3, imageUrl: `` },
     { id: 4, imageUrl: `${img}` },
     { id: 5, imageUrl: `` },
@@ -20,7 +20,7 @@ const ReelCarousel = () => {
 
   const containerRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [canScrollRight, setCanScrollRight] = useState(true);  
 
   const scroll = (direction) => {
     if (!containerRef.current) return;
