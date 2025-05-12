@@ -33,7 +33,7 @@ const Post = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <div className="w-10 h-10 bg-gray-200 rounded-full flex-shrink-0">
-              {user.profile_img_url && (
+              {user?.profile_img_url && (
                 <img
                   src={user.profile_img_url}
                   alt="Profile"
