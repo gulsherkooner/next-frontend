@@ -35,14 +35,14 @@ const Post = ({
             <div className="w-10 h-10 bg-gray-200 rounded-full flex-shrink-0">
               {user?.profile_img_url && (
                 <img
-                  src={user.profile_img_url}
+                  src={user?.profile_img_url}
                   alt="Profile"
                   className="w-full h-full rounded-full object-cover"
                 />
               )}
             </div>
             <div className="ml-3">
-              <div className="font-medium">{user.username}</div>
+              <div className="font-medium">{user?.username}</div>
               <div className="text-gray-500 text-xs">{getTimeAgo(created_at)}</div>
             </div>
           </div>
