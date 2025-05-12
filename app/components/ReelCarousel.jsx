@@ -7,7 +7,7 @@ const ReelCarousel = () => {
   // Normally we would fetch these from an API
   const reels = [
     { id: 1, imageUrl: `${img}` },
-    { id: 2, videoUrl: `${img}` },
+    { id: 2, imageUrl: `${img}` },
     { id: 3, imageUrl: `` },
     { id: 4, imageUrl: `${img}` },
     { id: 5, imageUrl: `` },
