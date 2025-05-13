@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useRouter } from "next/navigation";
 
-const Header = ({ setMenu, menu }) => {
+const Header = ({ setMenu, menu, home, setHome }) => {
   const isMobile = useIsMobile();
   const router = useRouter();
   
@@ -39,10 +39,10 @@ const Header = ({ setMenu, menu }) => {
         
         {/* Center icon (Home) */}
         {!isMobile && (
-          <div className="flex absolute left-1/2 transform -translate-x-1/2">
+          <div className="flex absolute left-1/2 transform -translate-x-1/2" onClick={()=>setHome(true)}>
             <Link 
               href="/" 
-              className="w-14 h-14 flex items-center justify-center text-gray-900 hover:text-gray-800 border-b-2 border-black"
+              className={`w-14 h-14 flex items-center justify-center text-gray-900 hover:text-gray-800 ${home ? "border-b-2 border-gray-900" : "border-transparent"}`}
             >
               <Home size={24} />
             </Link>
@@ -80,9 +80,9 @@ const Header = ({ setMenu, menu }) => {
               <Menu size={20} className="text-gray-900" />
             </button>
           )}
-          
+          {/* router.push('/login') */}
           {!isMobile && (
-            <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center" onClick={()=>router.push('/login')}>
+            <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center" onClick={()=>setHome(false)}>
               <User size={20} className="text-gray-900" />
             </button>
           )}

@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import { Image, ChevronLeft, ChevronRight } from "lucide-react";
+import { useIsMobile } from "../hooks/use-mobile";
 
 const Story = ({ username, imageUrl, isViewed = false }) => {
   return (
@@ -51,6 +52,7 @@ const StoryBar = () => {
   const containerRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const isMobile = useIsMobile();
 
   const scroll = (direction) => {
     if (!containerRef.current) return;
@@ -87,9 +89,9 @@ const StoryBar = () => {
   };
 
   return (
-    <div className="py-4 rounded-lg mb-4 overflow-hidden relative">
+    <div className="py-0 rounded-lg mb-4 overflow-hidden relative">
       <div
-        className="flex space-x-4 overflow-x-auto scrollbar-hide pb-1 no-scrollbar"
+        className="flex space-x-4 overflow-x-auto pb-1 no-scrollbar"
         ref={containerRef}
         onScroll={checkScrollPosition}
       >
@@ -103,21 +105,25 @@ const StoryBar = () => {
         ))}
       </div>
       {/* Navigation buttons - only visible when there is content to scroll to */}
-      {canScrollLeft && (
-        <button
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center"
-          onClick={() => scroll("left")}
-        >
-          <ChevronLeft size={18} />
-        </button>
-      )}
-      {canScrollRight && (
-        <button
-          className="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center"
-          onClick={() => scroll("right")}
-        >
-          <ChevronRight size={18} />
-        </button>
+      {!isMobile && (
+        <>
+          {canScrollLeft && (
+            <button
+              className="absolute left-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center"
+              onClick={() => scroll("left")}
+            >
+              <ChevronLeft size={18} />
+            </button>
+          )}
+          {canScrollRight && (
+            <button
+              className="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center"
+              onClick={() => scroll("right")}
+            >
+              <ChevronRight size={18} />
+            </button>
+          )}
+        </>
       )}
     </div>
   );

@@ -6,7 +6,7 @@ import {
   Bookmark,
   MoreHorizontal,
 } from "lucide-react";
-import getTimeAgo  from "../lib/utils/getTimeAgo";
+import getTimeAgo  from "../../lib/utils/getTimeAgo";
 
 const Post = ({
   created_at,

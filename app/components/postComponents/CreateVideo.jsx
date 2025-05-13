@@ -17,19 +17,19 @@ import {
   UserRoundCheck,
 } from "lucide-react";
 import { useDispatch } from "react-redux";
-import { createPost } from "../features/posts/postsSlice";
+import { createPost, fetchPublicPosts } from "../../features/posts/postsSlice";
 
-const CreateImage = ({ openImageDialog, setOpenImageDialog }) => {
+const CreateVideo = ({ openVideoDialog, setOpenVideoDialog }) => {
   const [postTitle, setPostTitle] = useState("");
   const [postDescription, setPostDescription] = useState("");
   const [postTags, setPostTags] = useState("");
   const [postVisibility, setPostVisibility] = useState("public");
-  const [postFiles, setPostFiles] = useState([]);
+  const [postFile, setPostFile] = useState(null);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
-  console.log(postFiles)
 
   const capitalizeFirstLetter = (val) => {
     return String(val).charAt(0).toUpperCase() + String(val).slice(1);
@@ -41,8 +41,9 @@ const CreateImage = ({ openImageDialog, setOpenImageDialog }) => {
   };
 
   const handleFileChange = (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setPostFiles([...postFiles, ...Array.from(e.target.files)]);
+    if (e.target.files && e.target.files[0]) {
+      // console.log("VideoFile:",e.target.files[0])
+      setPostFile(e.target.files[0]);
     }
   };
 
@@ -50,66 +51,69 @@ const CreateImage = ({ openImageDialog, setOpenImageDialog }) => {
     setIsSelectOpen(!isSelectOpen);
   };
 
-  const handleImageSubmit = async () => {
-    setError(null);
-    // Process tags - remove # and filter empty tags
-    const processedTags = postTags
-      .split(" ")
-      .map((tag) => (tag.startsWith("#") ? tag.substring(1) : tag))
-      .filter((tag) => tag.trim() !== "");
+  const handleVideoSubmit = async () => {
+  setError(null);
 
-    const mediaPromises = postFiles.map((file) => {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const base64Content = reader.result.split(",")[1];
-          resolve({
-            media_type: "image",
-            media_name: file.name,
-            media_content: base64Content,
-          });
-        };
-        reader.readAsDataURL(file);
+  // Process tags - remove # and filter empty tags
+  const processedTags = postTags
+    .split(" ")
+    .map((tag) => (tag.startsWith("#") ? tag.substring(1) : tag))
+    .filter((tag) => tag.trim() !== "");
+
+  // Convert video file to base64
+  const mediaPromise = new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64Content = reader.result.split(",")[1];
+      resolve({
+        media_type: "video",
+        media_name: postFile.name,
+        media_content: base64Content,
       });
-    });
-
-    const media = await Promise.all(mediaPromises);
-    const postData = {
-      title: postTitle,
-      description: postDescription,
-      post_type: media.length > 1 ? "carousel" : "image",
-      media,
-      post_tags: processedTags,
-      visibility: postVisibility,
     };
-    console.log("Image post data:", postData);
-    try {
-      await dispatch(createPost(postData)).unwrap();
-      setPostTitle("");
-      setPostDescription("");
-      setPostTags("");
-      setPostVisibility("public");
-      setPostFiles([]);
-      setOpenImageDialog(false);
-    } catch (err) {
-      console.error("Create post error:", err);
-      setError(err.message || "Failed to create post");
-    }
+    reader.readAsDataURL(postFile);
+  });
+
+  const media = await mediaPromise;
+  const postData = {
+    title: postTitle,
+    description: postDescription,
+    post_type: "video",
+    media: [media],
+    post_tags: processedTags,
+    visibility: postVisibility,
   };
 
+  try {
+    await dispatch(createPost(postData)).unwrap();
+    dispatch(fetchPublicPosts());
+    setPostTitle("");
+    setPostDescription("");
+    setPostTags("");
+    setPostVisibility("public");
+    setPostFile(null);
+    setOpenVideoDialog(false);
+  } catch (err) {
+    console.error("Create post error:", err);
+    setError(err.message || "Failed to create post");
+  }
+};
+
+
   return (
-    openImageDialog && (
+    openVideoDialog && (
       <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg p-4 w-full max-w-lg relative">
           <button
-            onClick={() => setOpenImageDialog(false)}
+            onClick={() => setOpenVideoDialog(false)}
             className="absolute right-2 top-2 p-1 hover:bg-gray-200 rounded-full"
           >
             <X size={18} />
           </button>
 
-          {error && (
-            <div className="mb-3 text-red-500 text-sm">{error}</div>
+          {error && <div className="mb-3 text-red-500 text-sm">{error}</div>}
+          {loading && (
+            <div className="mb-3 text-gray-500 text-sm">Loading...</div>
           )}
 
           <div className="flex items-center mb-3">
@@ -180,7 +184,7 @@ const CreateImage = ({ openImageDialog, setOpenImageDialog }) => {
 
             {/* Description Input */}
             <textarea
-              placeholder="Tell people about your images..."
+              placeholder="Tell people about your video..."
               value={postDescription}
               onChange={(e) => setPostDescription(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm resize-none focus:outline-none focus:border-gray-500"
@@ -196,62 +200,60 @@ const CreateImage = ({ openImageDialog, setOpenImageDialog }) => {
             />
           </div>
 
-          {/* Image Upload Area */}
+          {/* Video Upload Area */}
           <div className="border border-gray-300 rounded-lg p-1 bg-gray-200 my-3">
-            {postFiles.length > 0 && (
-              <div className="p-3 bg-gray-100 rounded">
-                {postFiles.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between mb-2">
-                    <div className="flex items-center">
-                      <FileText className="h-5 w-5 mr-2 text-gray-600" />
-                      <span className="text-sm truncate max-w-[220px]">
-                        {file.name}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      className="text-red-500 hover:text-red-700"
-                      onClick={() => setPostFiles(postFiles.filter((_, i) => i !== index))}
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            <label className="cursor-pointer">
-              <div className="flex flex-col items-center justify-center py-12 px-4 bg-gray-200 rounded-md">
-                <div className="bg-white p-3 rounded-full mb-3">
-                  <Plus className="h-5 w-5" />
+            {postFile ? (
+              <div className="flex items-center justify-between p-3 bg-gray-100 rounded">
+                <div className="flex items-center">
+                  <FileText className="h-5 w-5 mr-2 text-gray-600" />
+                  <span className="text-sm truncate max-w-[220px]">
+                    {postFile.name}
+                  </span>
                 </div>
-                <h3 className="font-medium text-sm">Drag and drop images</h3>
-                <p className="text-gray-600 text-xs">or select from computer</p>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
+                <button
+                  type="button"
+                  className="text-red-500 hover:text-red-700"
+                  onClick={() => setPostFile(null)}
+                >
+                  <X size={18} />
+                </button>
               </div>
-            </label>
+            ) : (
+              <label className="cursor-pointer">
+                <div className="flex flex-col items-center justify-center py-12 px-4 bg-gray-200 rounded-md">
+                  <div className="bg-white p-3 rounded-full mb-3">
+                    <Plus className="h-5 w-5" />
+                  </div>
+                  <h3 className="font-medium text-sm">Drag and drop videos</h3>
+                  <p className="text-gray-600 text-xs">
+                    or select from computer
+                  </p>
+                  <input
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                </div>
+              </label>
+            )}
           </div>
 
           <div className="flex justify-end">
             <button
               type="button"
               className="bg-gray-300 text-gray-700 px-4 py-1.5 rounded-md text-sm font-medium"
-              onClick={() => setOpenImageDialog(false)}
+              onClick={() => setOpenVideoDialog(false)}
             >
               Cancel
             </button>
             <button
               type="button"
               className="bg-gray-800 text-white px-4 py-1.5 rounded-md text-sm font-medium ml-2"
-              onClick={handleImageSubmit}
-              disabled={!postTitle.trim() || postFiles.length === 0}
+              onClick={handleVideoSubmit}
+              disabled={!postTitle.trim() || !postFile}
             >
-              Post Images
+              Post Video
             </button>
           </div>
         </div>
@@ -260,4 +262,4 @@ const CreateImage = ({ openImageDialog, setOpenImageDialog }) => {
   );
 };
 
-export default CreateImage;
+export default CreateVideo;
