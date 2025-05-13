@@ -20,8 +20,10 @@ import {
   updateProfileImage,
 } from "../../features/auth/authSlice";
 import { getCookie } from "@/app/lib/utils/cookie";
+import { useRouter } from "next/navigation";
 
 const ProfileInfo = () => {
+  const router = useRouter();
   useEffect(() => {
     const fetchData = async () => {
       const accessToken = getCookie("accessToken");
