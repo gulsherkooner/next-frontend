@@ -23,6 +23,7 @@ import { getCookie } from "@/app/lib/utils/cookie";
 import { useRouter } from "next/navigation";
 
 const ProfileInfo = () => {
+  const [error, setError] = useState("");
   const router = useRouter();
   useEffect(() => {
     const fetchData = async () => {
