@@ -1,6 +1,10 @@
 'use client';
+export const dynamic = "force-dynamic";
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+// ... rest of your code
+
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import MobileNav from "../components/MobileNav";
