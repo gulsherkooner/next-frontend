@@ -53,12 +53,12 @@ export default function DatingPage() {
       <Header />
       <Sidebar />
 
-      <div className="pt-16 px-4 flex flex-col lg:flex-row justify-center gap-6 ">
-        {/* Main contentpt-16 md:pl-56 flex md:flex-row */}
-        <main
-          className={`flex-1 max-w-full md:max-w-sm xl:max-w-2xl 2xl:max-w-2xl mx-auto p-2 sm:p-4 `}
-        >
-          <Suspense>
+      <Suspense>
+        <div className="pt-16 px-4 flex flex-col lg:flex-row justify-center gap-6 ">
+          {/* Main contentpt-16 md:pl-56 flex md:flex-row */}
+          <main
+            className={`flex-1 max-w-full md:max-w-sm xl:max-w-2xl 2xl:max-w-2xl mx-auto p-2 sm:p-4 `}
+          >
             {from === "task" ? (
               <TaskCompletedBox
                 genderFilter={filters.gender}
@@ -80,38 +80,38 @@ export default function DatingPage() {
             ) : (
               <CreateProfileBox onComplete={handleProfileComplete} />
             )}
-          </Suspense>
-        </main>
+          </main>
 
-        {/* FiltersBox - responsive positioning */}
-        {!isMobile && (
-          <aside className="hidden lg:block w-56 fixed right-0 h-[calc(100vh-160px)] overflow-y-auto border-r border-gray-200 top-14">
-            {from === "task" || profileCompleted ? <WalletCard /> : <></>}
-            <FiltersBox
-              gender={filters.gender}
-              setGender={(val) => setFilters({ ...filters, gender: val })}
-              ageRange={filters.ageRange}
-              setAgeRange={(val) => setFilters({ ...filters, ageRange: val })}
-              distance={filters.distance}
-              setDistance={(val) => setFilters({ ...filters, distance: val })}
-              selectedLocations={filters.locations}
-              setSelectedLocations={(val) =>
-                setFilters({ ...filters, locations: val })
-              }
-              selectedLanguages={filters.languages}
-              setSelectedLanguages={(val) =>
-                setFilters({ ...filters, languages: val })
-              }
-              lookingFor={filters.lookingFor}
-              setLookingFor={(val) =>
-                setFilters({ ...filters, lookingFor: val })
-              }
-              likes={filters.likes}
-              setLikes={(val) => setFilters({ ...filters, likes: val })}
-            />
-          </aside>
-        )}
-      </div>
+          {/* FiltersBox - responsive positioning */}
+          {!isMobile && (
+            <aside className="hidden lg:block w-56 fixed right-0 h-[calc(100vh-160px)] overflow-y-auto border-r border-gray-200 top-14">
+              {from === "task" || profileCompleted ? <WalletCard /> : <></>}
+              <FiltersBox
+                gender={filters.gender}
+                setGender={(val) => setFilters({ ...filters, gender: val })}
+                ageRange={filters.ageRange}
+                setAgeRange={(val) => setFilters({ ...filters, ageRange: val })}
+                distance={filters.distance}
+                setDistance={(val) => setFilters({ ...filters, distance: val })}
+                selectedLocations={filters.locations}
+                setSelectedLocations={(val) =>
+                  setFilters({ ...filters, locations: val })
+                }
+                selectedLanguages={filters.languages}
+                setSelectedLanguages={(val) =>
+                  setFilters({ ...filters, languages: val })
+                }
+                lookingFor={filters.lookingFor}
+                setLookingFor={(val) =>
+                  setFilters({ ...filters, lookingFor: val })
+                }
+                likes={filters.likes}
+                setLikes={(val) => setFilters({ ...filters, likes: val })}
+              />
+            </aside>
+          )}
+        </div>
+      </Suspense>
 
       <MobileNav />
     </div>
