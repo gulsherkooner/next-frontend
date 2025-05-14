@@ -29,7 +29,6 @@ const CreateImage = ({ openImageDialog, setOpenImageDialog }) => {
   const [error, setError] = useState(null);
 
   const dispatch = useDispatch();
-  console.log(postFiles)
 
   const capitalizeFirstLetter = (val) => {
     return String(val).charAt(0).toUpperCase() + String(val).slice(1);

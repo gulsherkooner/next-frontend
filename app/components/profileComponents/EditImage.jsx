@@ -7,6 +7,7 @@ const EditImage = ({
   imgBox,
   setImgBox,
   onSave,
+  w,h
 }) => {
   const [postFile, setPostFile] = useState({
     blob: null,
@@ -21,7 +22,6 @@ const EditImage = ({
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [croppedImage, setCroppedImage] = useState(null);
 
-  console.log("imageFile:", postFile);
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -78,7 +78,7 @@ const EditImage = ({
                 image={previewSrc}
                 crop={crop}
                 zoom={zoom}
-                aspect={1}
+                aspect={w / h}
                 onCropChange={setCrop}
                 onCropComplete={onCropComplete}
                 onZoomChange={setZoom}
