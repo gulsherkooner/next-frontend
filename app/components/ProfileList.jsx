@@ -32,7 +32,7 @@ const ProfileList = ({
   distanceFilter,
   locationFilters = [],
   languageFilters = [],
-  lookingForFilters = [],
+  lookingForFilters,
   likesFilters = [],
 }) => {
   const profiles = [
@@ -163,15 +163,13 @@ const ProfileList = ({
       return false;
     }
 
-    // Looking For filter
-    if (lookingForFilters.length > 0 &&
-      !lookingForFilters.some(option =>
-        profile.tags.some(tag =>
-          tag.toLowerCase().includes(option.toLowerCase().split(" ")[0])
-        )
-      )) {
+    if (lookingForFilters && lookingForFilters !== "Any" && !profile.tags?.includes(lookingForFilters)) {
       return false;
     }
+
+
+    // Looking For filter
+
 
     // Likes filter
     if (likesFilters.length > 0 &&
@@ -193,21 +191,21 @@ const ProfileList = ({
         {genderFilter && genderFilter !== "Both" && (
           <div className="bg-gray-100 px-3 py-1 rounded-full text-sm flex items-center border">
             {genderFilter}
-            <span className="ml-2 text-gray-400 cursor-pointer">&times;</span>
+            {/* <span className="ml-2 text-gray-400 cursor-pointer">&times;</span> */}
           </div>
         )}
 
         {ageRangeFilter && (
           <div className="bg-gray-100 px-3 py-1 rounded-full text-sm flex items-center border">
             Age: {ageRangeFilter[0]}-{ageRangeFilter[1]}
-            <span className="ml-2 text-gray-400 cursor-pointer">&times;</span>
+            {/* <span className="ml-2 text-gray-400 cursor-pointer">&times;</span> */}
           </div>
         )}
 
         {locationFilters.map((filter, idx) => (
           <div key={idx} className="bg-gray-100 px-3 py-1 rounded-full text-sm flex items-center border">
             {filter}
-            <span className="ml-2 text-gray-400 cursor-pointer">&times;</span>
+            {/* <span className="ml-2 text-gray-400 cursor-pointer">&times;</span> */}
           </div>
         ))}
       </div>

@@ -35,7 +35,6 @@ const FiltersBox = ({
     const locations = ["Jersey city", "New york", "Newark", "Stamford"];
     const languages = ["English", "French", "Spanish", "Mandarin"];
     const likesOptions = ["Hiking", "Reading", "Art", "Music", "Traveling"];
-    const lookingForOptions = ["Serious Relationship", "Casual Dating", "Any"];
 
     // Filtered suggestions
     const [filteredLocations, setFilteredLocations] = useState(locations);
@@ -77,7 +76,7 @@ const FiltersBox = ({
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-extrabold">Filters</h2>
-                <a href="#" className="text-sm inline-flex items-center text-gray-700 font-medium hover:underline">
+                <a href="/dating/profile" className="text-sm inline-flex items-center text-gray-700 font-medium hover:underline">
                     <Pencil className="w-4 h-4 mr-1 text-gray-500" />
                     View profile
                 </a>
@@ -356,22 +355,25 @@ const FiltersBox = ({
                     ))}
                 </div>
             </div>
-
+            
             {/* Looking For Checkboxes */}
             <div>
-                <label className="font-bold block mb-2">Looking for</label>
-                {lookingForOptions.map((option) => (
-                    <label key={option} className="block mb-1">
-                        <input
-                            type="checkbox"
-                            checked={lookingFor.includes(option)}
-                            onChange={() => toggleMultiSelect(option, lookingFor, setLookingFor)}
-                            className="mr-2"
-                        />
-                        {option}
-                    </label>
-                ))}
+                <label className="font-bold block mb-2">Looking For</label>
+                <div className="space-y-1">
+                    {["Serious Relationship", "Casual Dating", "Any"].map((g) => (
+                        <label key={g} className="flex items-center space-x-2">
+                            <input
+                                type="radio"
+                                value={g}
+                                checked={lookingFor === g}
+                                onChange={() => setLookingFor(g)}
+                            />
+                            <span>{g}</span>
+                        </label>
+                    ))}
+                </div>
             </div>
+
 
             {/* Likes Search with Suggestions */}
             <div className="relative">

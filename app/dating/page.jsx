@@ -5,7 +5,7 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import MobileNav from "../components/MobileNav";
 import { useIsMobile } from "../hooks/use-mobile";
-import CreateProfileBox from "../components/CreateProfileBox";
+import CreateProfileBox from "../components/CreateDatingProfile";
 import FiltersBox from "../components/FiltersBox";
 import TaskCompletedBox from "../components/ProfileList";
 import WalletCard from '../components/WalletCard';
@@ -52,10 +52,9 @@ export default function DatingPage() {
       <Header />
       <Sidebar />
 
-      <div className="pt-16 px-4 flex flex-col lg:flex-row justify-center gap-6">
-        {/* Main content */}
-        <main className={`w-full max-w-md sm:max-w-xl md:max-w-xl lg:max-w-2xl xl:max-w-3xl md:ml-64 
-          ${!isMobile && 'lg:max-w-[calc(100%-22rem)]'}`}>
+      <div className="pt-16 px-4 flex flex-col lg:flex-row justify-center gap-6 ">
+        {/* Main contentpt-16 md:pl-56 flex md:flex-row */}
+        <main className={`flex-1 max-w-full md:max-w-sm xl:max-w-2xl 2xl:max-w-2xl mx-auto p-2 sm:p-4 `}>
           {from === 'task' ? (
             <TaskCompletedBox
               genderFilter={filters.gender}
@@ -81,7 +80,7 @@ export default function DatingPage() {
 
         {/* FiltersBox - responsive positioning */}
         {!isMobile && (
-          <aside className="hidden lg:block w-72 xl:w-80 shrink-0">
+          <aside className="hidden lg:block w-56 fixed right-0 h-[calc(100vh-160px)] overflow-y-auto border-r border-gray-200 top-14">
             {from === 'task' || profileCompleted ? <WalletCard /> : <></>}
             <FiltersBox
               gender={filters.gender}
@@ -102,7 +101,7 @@ export default function DatingPage() {
           </aside>
         )}
       </div>
-
+        
       <MobileNav />
     </div>
   );

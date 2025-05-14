@@ -24,7 +24,7 @@ const FirstNameForm = ({ firstName, setFirstName, onValidation }) => {
                 className="bg-white w-full p-2 rounded-xl border border-gray-300 mb-1"
             />
             {!firstName.trim() && (
-                <p className="text-red-500 text-sm mb-3">First name is required</p>
+                <p className="text-blue-500 text-sm mb-3">First name is required</p>
             )}
             {firstName.length > 50 && (
                 <p className="text-red-500 text-sm mb-3">First name must be less than 50 characters</p>
@@ -62,7 +62,7 @@ const GenderStep = ({ gender, setGender, onValidation }) => {
                 ))}
             </div>
             {gender.length === 0 && (
-                <p className="text-red-500 text-sm mb-3">Please select your gender</p>
+                <p className="text-blue-500 text-sm mb-3">Please select your gender</p>
             )}
         </div>
     );
@@ -97,7 +97,7 @@ const InterestStep = ({ interestedIn, setInterestedIn, onValidation }) => {
                 ))}
             </div>
             {interestedIn.length === 0 && (
-                <p className="text-red-500 text-sm mb-3">Please select who you are interested in</p>
+                <p className="text-blue-500 text-sm mb-3">Please select who you are interested in</p>
             )}
         </div>
     );
@@ -142,7 +142,7 @@ const LookingForStep = ({ lookingFor, setLookingFor, onValidation }) => {
                 ))}
             </div>
             {lookingFor.length === 0 && (
-                <p className="text-red-500 text-sm mb-3">Please select at least one option</p>
+                <p className="text-blue-500 text-sm mb-3">Please select at least one option</p>
             )}
         </div>
     );
@@ -244,7 +244,7 @@ const BasicsForm = ({ age, setAge, height, setHeight, drinkFreq = [], setDrinkFr
                     </label>
                 ))}
                 {drinkFreq.length === 0 && (
-                    <p className="text-red-500 text-sm mb-3">Please select at least one option</p>
+                    <p className="text-blue-500 text-sm mb-3">Please select at least one option</p>
                 )}
             </fieldset>
 
@@ -262,7 +262,7 @@ const BasicsForm = ({ age, setAge, height, setHeight, drinkFreq = [], setDrinkFr
                     </label>
                 ))}
                 {smokeFreq.length === 0 && (
-                    <p className="text-red-500 text-sm mb-3">Please select at least one option</p>
+                    <p className="text-blue-500 text-sm mb-3">Please select at least one option</p>
                 )}
             </fieldset>
         </div>
@@ -408,7 +408,7 @@ const BasicsStepTwo = ({
                     </label>
                 ))}
                 {safeWorkoutOptions.length === 0 && (
-                    <p className="text-red-500 text-sm mb-3">Please select at least one option</p>
+                    <p className="text-blue-500 text-sm mb-3">Please select at least one option</p>
                 )}
             </fieldset>
 
@@ -465,7 +465,7 @@ const BasicsStepTwo = ({
                     ))}
                 </div>
                 {safeLocations.length === 0 && (
-                    <p className="text-red-500 text-sm mb-3">Please add at least one location</p>
+                    <p className="text-blue-500 text-sm mb-3">Please add at least one location</p>
                 )}
             </div>
 
@@ -524,7 +524,7 @@ const BasicsStepTwo = ({
                     ))}
                 </div>
                 {safeProfessions.length === 0 && (
-                    <p className="text-red-500 text-sm mb-3">Please add at least one profession or education</p>
+                    <p className="text-blue-500 text-sm mb-3">Please add at least one profession or education</p>
                 )}
             </div>
         </div>
@@ -643,7 +643,7 @@ const BasicsStepThree = ({ languages, setLanguages, describeSelf, setDescribeSel
                     ))}
                 </div>
                 {languages.length === 0 && (
-                    <p className="text-red-500 text-sm mb-3">Please add at least one language</p>
+                    <p className="text-blue-500 text-sm mb-3">Please add at least one language</p>
                 )}
             </div>
 
@@ -661,7 +661,7 @@ const BasicsStepThree = ({ languages, setLanguages, describeSelf, setDescribeSel
                 />
                 <p className="text-xs text-gray-500 text-right">{describeSelf.length}/200</p>
                 {describeSelf.trim().length < 20 && (
-                    <p className="text-red-500 text-sm mb-3">Description should be at least 20 characters</p>
+                    <p className="text-blue-500 text-sm mb-3">Description should be at least 20 characters</p>
                 )}
             </div>
 
@@ -679,7 +679,7 @@ const BasicsStepThree = ({ languages, setLanguages, describeSelf, setDescribeSel
                 />
                 <p className="text-xs text-gray-500 text-right">{idealDate.length}/200</p>
                 {idealDate.trim().length < 20 && (
-                    <p className="text-red-500 text-sm mb-3">Description should be at least 20 characters</p>
+                    <p className="text-blue-500 text-sm mb-3">Description should be at least 20 characters</p>
                 )}
             </div>
 
@@ -697,7 +697,7 @@ const BasicsStepThree = ({ languages, setLanguages, describeSelf, setDescribeSel
                 />
                 <p className="text-xs text-gray-500 text-right">{greatPartner.length}/200</p>
                 {greatPartner.trim().length < 20 && (
-                    <p className="text-red-500 text-sm mb-3">Description should be at least 20 characters</p>
+                    <p className="text-blue-500 text-sm mb-3">Description should be at least 20 characters</p>
                 )}
             </div>
         </div>
@@ -795,7 +795,7 @@ const LikesForm = ({ likes, setLikes, onValidation }) => {
             </p>
             <p className="text-sm font-bold mb-4">Pick at least 5 to continue! ({likes.length}/5 selected)</p>
             {likes.length < 5 && (
-                <p className="text-red-500 text-sm mb-3">Please select at least 5 likes</p>
+                <p className="text-blue-500 text-sm mb-3">Please select at least 5 likes</p>
             )}
 
             {Object.entries(categories).map(([category, tags]) => (
@@ -863,7 +863,7 @@ const MultiStepForm = ({ onComplete }) => {
                 try {
                     // Example: await submitFormToBackend(formData);
                     console.log('Form submitted successfully:', formData);
-
+                    localStorage.setItem("userProfile", JSON.stringify(formData));
                     // Call onComplete only after successful submission
                     if (onComplete) onComplete();
 
