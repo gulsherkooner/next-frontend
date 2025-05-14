@@ -17,7 +17,7 @@ import {
   UserRoundCheck,
 } from "lucide-react";
 import { useDispatch } from "react-redux";
-import { createPost, fetchPublicPosts } from "../features/posts/postsSlice";
+import { createPost, fetchPublicPosts } from "../../features/posts/postsSlice";
 
 const CreateVideo = ({ openVideoDialog, setOpenVideoDialog }) => {
   const [postTitle, setPostTitle] = useState("");
@@ -42,6 +42,7 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog }) => {
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
+      // console.log("VideoFile:",e.target.files[0])
       setPostFile(e.target.files[0]);
     }
   };

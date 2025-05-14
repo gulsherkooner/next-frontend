@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useIsMobile } from "../hooks/use-mobile";
 
 const ReelCarousel = () => {
   const img =
@@ -21,6 +22,7 @@ const ReelCarousel = () => {
   const containerRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const isMobile = useIsMobile();
 
   const scroll = (direction) => {
     if (!containerRef.current) return;
@@ -95,21 +97,25 @@ const ReelCarousel = () => {
         </div>
 
         {/* Navigation buttons */}
-        {canScrollLeft && (
-          <button
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center"
-            onClick={() => scroll("left")}
-          >
-            <ChevronLeft size={18} />
-          </button>
-        )}
-        {canScrollRight && (
-          <button
-            className="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center"
-            onClick={() => scroll("right")}
-          >
-            <ChevronRight size={18} />
-          </button>
+        {!isMobile && (
+          <>
+            {canScrollLeft && (
+              <button
+                className="absolute left-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center"
+                onClick={() => scroll("left")}
+              >
+                <ChevronLeft size={18} />
+              </button>
+            )}
+            {canScrollRight && (
+              <button
+                className="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center"
+                onClick={() => scroll("right")}
+              >
+                <ChevronRight size={18} />
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

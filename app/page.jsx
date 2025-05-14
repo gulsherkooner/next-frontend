@@ -3,8 +3,8 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
-import CreatePost from "./components/CreatePost";
-import Post from "./components/Post";
+import CreatePost from "./components/postComponents/CreatePost";
+import Post from "./components/postComponents/Post";
 import ProfileSuggestion from "./components/ProfileSuggestion";
 import ReelCarousel from "./components/ReelCarousel";
 import SponsoredProducts from "./components/SponsoredProducts";
@@ -14,11 +14,14 @@ import { useIsMobile } from "../app/hooks/use-mobile";
 import StoryBar from "./components/StoryBar";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPublicPosts } from "./features/posts/postsSlice";
+import ProfileInfo from "./components/profileComponents/ProfileInfo";
+import ProfileContent from "./components/profileComponents/ProfileContent";
+import { fetchUserData } from "./features/auth/authSlice";
 
 export default function Home() {
   const isMobile = useIsMobile();
   const [menu, setMenu] = useState(false);
-  const { posts, status, error } = useSelector(state => state.posts);
+  const { posts, status, error } = useSelector((state) => state.posts);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -74,43 +77,53 @@ export default function Home() {
   //   },
   // ];
 
+  const [home, setHome] = useState(true);
+
   return (
     <div className="bg-gray-100 min-h-screen pb-14 md:pb-0 w-full">
-      <Header setMenu = {setMenu} menu={menu} />
-      <Sidebar setMenu = {setMenu} menu={menu} />
+      <Header setMenu={setMenu} menu={menu} setHome={setHome} home={home} />
+      <Sidebar setMenu={setMenu} menu={menu} />
 
-      <div className="pt-16 md:pl-56 flex md:flex-row">
-        {/* Main content column */}
-        <div className="flex-1 max-w-full md:max-w-xl xl:max-w-2xl 2xl:max-w-2xl mx-auto p-2 sm:p-4">
-          <StoryBar />
-          <CreatePost />
+      {home ? (
+        <div className="pt-14 md:pl-56 flex md:flex-row">
+          {/* Main content column */}
+          <div className="flex-1 max-w-full md:max-w-xl xl:max-w-2xl 2xl:max-w-2xl mx-auto p-2 sm:p-4">
+            <StoryBar />
+            <CreatePost />
 
-          <ReelCarousel />
+            <ReelCarousel />
 
-          {status === "loading" && <div>Loading...</div>}
-          {posts.map((post) => (
-            <Post key={post.post_id} {...post} />
-          ))}
+            {status === "loading" && <div>Loading...</div>}
+            {posts.map((post) => (
+              <Post key={post.post_id} {...post} />
+            ))}
 
-          <SponsoredProducts />
+            <SponsoredProducts />
 
-          <SponsoredBrand />
-        </div>
-
-        {/* Right sidebar - only visible on larger screens */}
-        {!isMobile && (
-          <div className="hidden lg:block w-80 p-4">
-            <ProfileSuggestion
-              title="Trending Profiles"
-              profiles={trendingProfiles}
-            />
-            <ProfileSuggestion
-              title="Suggested for you"
-              profiles={suggestedProfiles}
-            />
+            <SponsoredBrand />
           </div>
-        )}
-      </div>
+
+          {/* Right sidebar - only visible on larger screens */}
+          {!isMobile && (
+            <div className="hidden lg:block w-80 p-4">
+              <ProfileSuggestion
+                title="Trending Profiles"
+                profiles={trendingProfiles}
+              />
+
+              <ProfileSuggestion
+                title="Suggested for you"
+                profiles={suggestedProfiles}
+              />
+            </div>
+          )}
+        </div>
+      ) : (
+        <main className="pt-14 pr-2 md:pl-58 md:flex-row flex-1">
+          <ProfileInfo />
+          <ProfileContent />
+        </main>
+      )}
 
       <MobileNav />
     </div>

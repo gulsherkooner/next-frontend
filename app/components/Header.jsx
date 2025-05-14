@@ -6,7 +6,7 @@ import { useIsMobile } from "../hooks/use-mobile";
 import { useRouter } from "next/navigation";
 import { usePathname } from 'next/navigation';
 
-const Header = ({ setMenu, menu }) => {
+const Header = ({ setMenu, menu, home, setHome }) => {
   const isMobile = useIsMobile();
   const router = useRouter();
   const pathname = usePathname();

@@ -17,7 +17,7 @@ import {
   UserRoundCheck,
 } from "lucide-react";
 import { useDispatch } from "react-redux";
-import { createPost } from "../features/posts/postsSlice";
+import { createPost } from "../../features/posts/postsSlice";
 
 const CreateImage = ({ openImageDialog, setOpenImageDialog }) => {
   const [postTitle, setPostTitle] = useState("");
