@@ -91,7 +91,7 @@ const Header = ({ setMenu, menu, home, setHome }) => {
           )}
 
           {!isMobile && (
-            <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center" onClick={() => router.push('/login')}>
+            <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center" onClick={() =>setHome(false)}>
               <User size={20} className="text-gray-900" />
             </button>
           )}
