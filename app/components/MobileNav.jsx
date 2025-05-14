@@ -29,11 +29,10 @@ const MobileNav = () => {
         {/* <span className="text-xs mt-0.5">Search</span> */}
       </Link>
       <Link
-        href="/"
+        href="/dating"
         className="flex flex-col items-center justify-center text-gray-900 w-1/5"
       >
         <Heart size={27} />
-        {/* <span className="text-xs mt-0.5">Create</span> */}
       </Link>
       <Link
         href="/"

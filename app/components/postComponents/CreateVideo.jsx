@@ -52,53 +52,48 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog }) => {
   };
 
   const handleVideoSubmit = async () => {
-  setError(null);
+    setLoading(true);
+    setError(null);
+    // Process tags - remove # and filter empty tags
+    const processedTags = postTags
+      .split(" ")
+      .map((tag) => (tag.startsWith("#") ? tag.substring(1) : tag))
+      .filter((tag) => tag.trim() !== "");
 
-  // Process tags - remove # and filter empty tags
-  const processedTags = postTags
-    .split(" ")
-    .map((tag) => (tag.startsWith("#") ? tag.substring(1) : tag))
-    .filter((tag) => tag.trim() !== "");
-
-  // Convert video file to base64
-  const mediaPromise = new Promise((resolve) => {
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       const base64Content = reader.result.split(",")[1];
-      resolve({
-        media_type: "video",
-        media_name: postFile.name,
-        media_content: base64Content,
-      });
+      const postData = {
+        title: postTitle,
+        description: postDescription,
+        post_type: "video",
+        media: [
+          {
+            media_type: "video",
+            media_name: postFile.name,
+            media_content: base64Content,
+          },
+        ],
+        post_tags: processedTags,
+        visibility: postVisibility,
+      };
+      try {
+        await dispatch(createPost(postData)).unwrap();
+        dispatch(fetchPublicPosts());
+        setLoading(false);
+        setPostTitle("");
+        setPostDescription("");
+        setPostTags("");
+        setPostVisibility("public");
+        setPostFile(null);
+        setOpenVideoDialog(false);
+      } catch (err) {
+        console.error("Create post error:", err);
+        setError(err.message || "Failed to create post");
+      }
     };
     reader.readAsDataURL(postFile);
-  });
-
-  const media = await mediaPromise;
-  const postData = {
-    title: postTitle,
-    description: postDescription,
-    post_type: "video",
-    media: [media],
-    post_tags: processedTags,
-    visibility: postVisibility,
   };
-
-  try {
-    await dispatch(createPost(postData)).unwrap();
-    dispatch(fetchPublicPosts());
-    setPostTitle("");
-    setPostDescription("");
-    setPostTags("");
-    setPostVisibility("public");
-    setPostFile(null);
-    setOpenVideoDialog(false);
-  } catch (err) {
-    console.error("Create post error:", err);
-    setError(err.message || "Failed to create post");
-  }
-};
-
 
   return (
     openVideoDialog && (
