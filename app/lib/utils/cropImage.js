@@ -1,6 +1,5 @@
 export default function getCroppedImg(imageSrc, croppedAreaPixels, setCroppedImage) {
   return new Promise((resolve, reject) => {
-    console.log("croppedAreaPixels:", croppedAreaPixels);
     const image = new Image();
     image.src = imageSrc;
     image.onload = () => {

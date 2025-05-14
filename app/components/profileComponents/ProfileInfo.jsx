@@ -58,8 +58,6 @@ const ProfileInfo = () => {
           console.error("Login error:", err);
           setError("An unexpected error occurred");
         }
-      } else {
-        dispatch(fetchUserData());
       }
     };
     fetchData();
@@ -69,44 +67,80 @@ const ProfileInfo = () => {
   const dispatch = useDispatch();
   const data = useSelector((state) => state.auth?.user);
   const [userData, setUserData] = useState({
-    email: data?.email || "",
-    username: data?.username || "",
-    name: data?.name || "",
-    bio: data?.bio || "",
-    profile_img_url: data?.profile_img_url || "",
-    banner_img_url: data?.banner_img_url || "",
+    email: data?.email,
+    username: data?.username,
+    name: data?.name,
+    bio: data?.bio,
+    profile_img_url: data?.profile_img_url,
+    created_at: data?.created_at,
+    followers: data?.followers,
+    following: data?.following,
+    banner_img_url: data?.banner_img_url,
+    is_verified: data?.is_verified || false,
+    profile_img_data: "",
+    banner_img_data: "",
   });
   const [imgBox, setImgBox] = useState(false);
+  const [bannerBox, setBannerBox] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setUserData((prev) => ({ ...prev, [name]: value }));
+    // const { name, value } = e.target;
+    // setUserData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSaveProfile = async () => {
-    try {
-      await dispatch(updateProfile(userData)).unwrap();
-      setIsEditing(false);
-    } catch (err) {
-      console.error("Failed to update profile:", err);
-    }
+    // try {
+    //   await dispatch(updateProfile(userData)).unwrap();
+    //   setIsEditing(false);
+    // } catch (err) {
+    //   console.error("Failed to update profile:", err);
+    // }
   };
 
-  const handleImageUpdate = (postFile) => {
-    console.log("imageFile:", postFile);
-    // dispatch(updateProfileImage(croppedImage));
+  const handleImageUpdate = (imgFile) => {
+    const updatedData = { ...userData, profile_img_data: imgFile };
+    setUserData(updatedData);
+    dispatch(updateProfile(updatedData)).unwrap();
     setImgBox(false);
+  };
+  const handleBannerUpdate = (imgFile) => {
+    const updatedData = { ...userData, banner_img_data: imgFile };
+    setUserData(updatedData);
+    dispatch(updateProfile(updatedData)).unwrap();
+    setBannerBox(false);
   };
 
   return (
     <div className="relative">
       {/* Cover Photo */}
       <div className="w-full h-60 md:h-60 bg-gray-300">
-        <div className="w-full h-full relative">
-          <div className="absolute top-2 right-3 text-black bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center">
+        <div className="w-full h-60 relative">
+          <div className="bg-gray-900 w-full h-full overflow-hidden rounded-sm">
+            {userData.banner_img_url && (
+              <img
+                src={userData.banner_img_url}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            )}
+          </div>
+
+          <div
+            className="absolute top-2 right-3 text-black bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center"
+            onClick={() => setBannerBox(true)}
+          >
             <Pencil size={16} />
           </div>
+          {bannerBox && (
+            <EditImage
+              setImgBox={setBannerBox}
+              imgBox={bannerBox}
+              onSave={() => handleBannerUpdate()}
+              w={16}
+              h={9}
+            />
+          )}
         </div>
       </div>
 
@@ -116,11 +150,10 @@ const ProfileInfo = () => {
         <div className="absolute -top-16 left-4 w-32 h-32 rounded-full bg-gray-400 border-4 border-white">
           <div className="w-full h-full relative">
             {userData.profile_img_url && (
-              <Image
+              <img
                 src={userData.profile_img_url}
                 alt="Profile"
-                layout="fill"
-                objectFit="cover"
+                className="rounded-full"
               />
             )}
             <div
@@ -133,7 +166,9 @@ const ProfileInfo = () => {
               <EditImage
                 setImgBox={setImgBox}
                 imgBox={imgBox}
-                onSave={handleImageUpdate}
+                onSave={() => handleImageUpdate()}
+                w={1}
+                h={1}
               />
             )}
           </div>

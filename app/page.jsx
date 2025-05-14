@@ -26,6 +26,7 @@ export default function Home() {
 
   useEffect(() => {
     dispatch(fetchPublicPosts());
+    dispatch(fetchUserData());
   }, [dispatch]);
 
   // Sample data for trending profiles
@@ -78,6 +79,8 @@ export default function Home() {
   // ];
 
   const [home, setHome] = useState(true);
+    // const state = useSelector((state) => state)
+    // console.log("state:", state);
 
   return (
     <div className="bg-gray-100 min-h-screen pb-14 md:pb-0 w-full">
