@@ -61,7 +61,8 @@ const Header = ({ setMenu, menu, home, setHome }) => {
         {/* Right section - Icons */}
         <div className={`flex items-center ${isMobile ? "gap-0" : "gap-4"} ml-auto`}>
           {!isMobile && (
-            <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+            <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center"
+              onClick={() => router.push('/Wallet')}>
               <Wallet size={20} className="text-gray-900" />
             </button>
           )}
