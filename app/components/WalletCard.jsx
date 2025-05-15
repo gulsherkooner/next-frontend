@@ -10,7 +10,7 @@ export default function WalletCard() {
       <p className="text-sm text-gray-500 mt-1">Available balance</p>
       <p className="text-3xl font-bold mt-1">$ 32</p>
       <a
-        href="#"
+        href="/Wallet"
         className="text-sm mt-4 inline-flex items-center text-black font-medium hover:underline"
       >
         View wallet <span className="ml-1">→</span>
