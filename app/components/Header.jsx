@@ -1,4 +1,5 @@
 // components/Header.jsx
+"use client"
 import React from "react";
 import { Search, Home, Bell, Mail, User, Wallet, Menu, Heart } from "lucide-react";
 import Link from "next/link";
@@ -6,7 +7,7 @@ import { useIsMobile } from "../hooks/use-mobile";
 import { useRouter } from "next/navigation";
 import { usePathname } from 'next/navigation';
 
-const Header = ({ setMenu, menu, home, setHome }) => {
+const Header = ({ setMenu, menu }) => {
   const isMobile = useIsMobile();
   const router = useRouter();
   const pathname = usePathname();
@@ -91,7 +92,7 @@ const Header = ({ setMenu, menu, home, setHome }) => {
           )}
 
           {!isMobile && (
-            <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center" onClick={() =>setHome(false)}>
+            <button className={`w-10 h-10 rounded-full bg-white flex items-center justify-center ${pathname === '/profile' ? 'border-2 border-black' : ''}`} onClick={() =>router.push("/profile")}>
               <User size={20} className="text-gray-900" />
             </button>
           )}

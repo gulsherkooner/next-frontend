@@ -13,7 +13,7 @@ import MobileNav from "./components/MobileNav";
 import { useIsMobile } from "../app/hooks/use-mobile";
 import StoryBar from "./components/StoryBar";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchPublicPosts } from "./features/posts/postsSlice";
+import { fetchPublicPosts, fetchUserPosts } from "./features/posts/postsSlice";
 import ProfileInfo from "./components/profileComponents/ProfileInfo";
 import ProfileContent from "./components/profileComponents/ProfileContent";
 import { fetchUserData } from "./features/auth/authSlice";
@@ -22,12 +22,17 @@ export default function Home() {
   const isMobile = useIsMobile();
   const [menu, setMenu] = useState(false);
   const { posts, status, error } = useSelector((state) => state.posts);
+  const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
   useEffect(() => {
     dispatch(fetchPublicPosts());
     dispatch(fetchUserData());
   }, [dispatch]);
+
+  useEffect(() => {
+    if(user?.user_id) dispatch(fetchUserPosts(user?.user_id));
+  }, [user?.user_id]);
 
   // Sample data for trending profiles
   const trendingProfiles = [
@@ -78,16 +83,14 @@ export default function Home() {
   //   },
   // ];
 
-  const [home, setHome] = useState(true);
     // const state = useSelector((state) => state)
     // console.log("state:", state);
 
   return (
     <div className="bg-gray-100 min-h-screen pb-14 md:pb-0 w-full">
-      <Header setMenu={setMenu} menu={menu} setHome={setHome} home={home} />
+      <Header setMenu={setMenu} menu={menu} />
       <Sidebar setMenu={setMenu} menu={menu} />
 
-      {home ? (
         <div className="pt-14 md:pl-56 flex md:flex-row">
           {/* Main content column */}
           <div className="flex-1 max-w-full md:max-w-xl xl:max-w-2xl 2xl:max-w-2xl mx-auto p-2 sm:p-4">
@@ -121,13 +124,6 @@ export default function Home() {
             </div>
           )}
         </div>
-      ) : (
-        <main className="pt-14 pr-2 md:pl-58 md:flex-row flex-1">
-          <ProfileInfo />
-          <ProfileContent />
-        </main>
-      )}
-
       <MobileNav />
     </div>
   );

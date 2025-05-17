@@ -1,5 +1,6 @@
+"use client"
 import React, { useEffect, useRef } from "react";
-import { Home, Play, Users, TrendingUp, Video, FileText, Bookmark, Heart, Star, Settings, HelpCircle, LogOut } from "lucide-react";
+import { Home, Play, Users, TrendingUp, Video, FileText, Bookmark, Heart, Star, Settings, HelpCircle, LogOut, ArrowRight, UserRoundCheck, Flame, Youtube, Images, BadgeCheck } from "lucide-react";
 import Link from "next/link";
 import { useIsMobile } from "../hooks/use-mobile";
 
@@ -9,16 +10,16 @@ const Sidebar = ({ menu, setMenu }) => {
   
   const menuItems = [
     { icon: <Play size={20} />, text: "Reels", link: "/" },
-    { icon: <Users size={20} />, text: "Subscriptions", link: "/" },
-    { icon: <TrendingUp size={20} />, text: "Trending", link: "/" },
+    { icon: <UserRoundCheck size={20} />, text: "Subscriptions", link: "/" },
+    { icon: <Flame size={20} />, text: "Trending", link: "/" },
   ];
 
   const contentItems = [
-    { icon: <Video size={20} />, text: "Videos", link: "/" },
-    { icon: <FileText size={20} />, text: "Posts", link: "/" },
+    { icon: <Youtube size={20} />, text: "Videos", link: "/" },
+    { icon: <Images size={20} />, text: "Posts", link: "/" },
     { icon: <Bookmark size={20} />, text: "Collections", link: "/" },
     { icon: <Heart size={20} />, text: "Liked Content", link: "/" },
-    { icon: <Star size={20} />, text: "Premium", link: "/" },
+    { icon: <BadgeCheck size={20} />, text: "Content creators", link: "/" },
     { icon: <Users size={20} />, text: "Followers", link: "/" },
   ];
 
@@ -85,21 +86,25 @@ const Sidebar = ({ menu, setMenu }) => {
       
       <aside 
         ref={sidebarRef}
-        className={`${sidebarClass} h-screen overflow-y-auto border-r border-gray-200 top-14`}
+        className={`${sidebarClass} h-screen overflow-y-aut0 top-14`}
       >
         <div className="p-2">
           {renderMenuItems(menuItems)}
 
+          <div className="border-b w-full mt-3 border-gray-300"></div>
+
           <div className="mt-4">
             <div className="flex items-center px-3 py-2 text-sm text-gray-500 font-medium">
-              <span>Content</span>
+              <span className="flex justify-center items-center gap-2">Content <ArrowRight size={16} /></span>
             </div>
             {renderMenuItems(contentItems)}
           </div>
 
+          <div className="border-b w-full mt-3 border-gray-300"></div>
+
           <div className="mt-4">
             <div className="flex items-center px-3 py-2 text-sm text-gray-500 font-medium">
-              <span>Account</span>
+              <span className="flex justify-center items-center gap-2">Account <ArrowRight size={16} /></span>
             </div>
             {renderMenuItems(accountItems)}
           </div>

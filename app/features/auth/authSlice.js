@@ -52,14 +52,36 @@ export const updateProfile = createAsyncThunk(
         },
         body: JSON.stringify(profileData),
         credentials: "include",
-      })
-        .then((res) => console.log(res.status))
-        .catch((err) => console.error(err));
+      });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || "Failed to update profile");
       }
       return data.user; // Assuming the API returns the updated user data
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+export const sendOTP = createAsyncThunk(
+  "auth/sendOTP",
+  async (email, { rejectWithValue }) => {
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    try {
+      const apiGatewayUrl =
+        process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://localhost:3001";
+      const response = await fetch(`${apiGatewayUrl}/auth/sendOTP`, {
+        method: "POST", // Using PUT to update user profile
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({email, verificationCode }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data || "Failed to send OTP");
+      }// Assuming the API returns the updated user data
+      return data;
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -148,13 +170,6 @@ const authSlice = createSlice({
       .addCase(updateProfile.rejected, (state, action) => {
         state.error = action.payload;
       });
-    // .addCase(updateProfileImage.fulfilled, (state, action) => {
-    //   state.user = action.payload;
-    //   state.error = null;
-    // })
-    // .addCase(updateProfileImage.rejected, (state, action) => {
-    //   state.error = action.payload;
-    // });
   },
 });
 

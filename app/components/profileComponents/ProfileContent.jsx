@@ -1,26 +1,47 @@
-
-import React, { useState } from 'react';
-import TabNavigation from './TabNavigation';
-import PostsGrid from './PostsGrid';
-import ReelsGrid from './ReelsGrid';
-import VideosGrid from './VideosGrid'; 
-import CollectionsGrid from './CollectionsGrid';
-import AboutTab from './AboutTab';
+"use client";
+import React, { useEffect, useState } from "react";
+import TabNavigation from "./TabNavigation";
+import PostsGrid from "./PostsGrid";
+import ReelsGrid from "./ReelsGrid";
+import VideosGrid from "./VideosGrid";
+import CollectionsGrid from "./CollectionsGrid";
+import AboutTab from "./AboutTab";
+import { useSelector } from "react-redux";
 
 const ProfileContent = () => {
-  const [activeTab, setActiveTab] = useState('posts');
+  const [activeTab, setActiveTab] = useState("posts");
+  const [imgPosts, setImgPosts] = useState(null);
+  const [videoPosts, setVideoPosts] = useState(null);
+  const [reelPosts, setReelPosts] = useState(null);
+
+  const { userPosts } = useSelector((state) => state.posts);
+
+  // Update the filtering logic to avoid too many re-renders
+  useEffect(() => {
+    if (userPosts) {
+      const img = userPosts.filter((post) => post.post_type === "image");
+      const video = userPosts.filter((post) => post.post_type === "video");
+      const reel = userPosts.filter(
+        (post) => post.post_type === "video" && post.is_reel === true
+      );
+
+      setImgPosts(img);
+      setVideoPosts(video);
+      setReelPosts(reel);
+    }
+  }, [userPosts]); // Dependency array ensures this runs only when userPosts changes
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'posts':
-        return <PostsGrid />;
-      case 'reels':
-        return <ReelsGrid />;
-      case 'videos':
-        return <VideosGrid />;
-      case 'collections':
+      case "posts":
+        return <PostsGrid imgPosts={imgPosts} />;
+      case "reels":
+        return <ReelsGrid reelPosts={reelPosts} />;
+      case "videos":
+        return <VideosGrid videoPosts={videoPosts} />;
+      case "collections":
         return <CollectionsGrid />;
-      case 'about':
+      case "about":
         return <AboutTab />;
       default:
         return <PostsGrid />;

@@ -1,8 +1,10 @@
 
 import React from 'react';
 import { Clock, Play } from 'lucide-react';
+import getTimeAgo from '@/app/lib/utils/getTimeAgo';
+import useVideoThumbnail from "../../hooks/useVideoThumbnail"
 
-const VideosGrid = () => {
+const VideosGrid = ({videoPosts}) => {
   // Mock data for videos
   const videos = Array.from({ length: 9 }).map((_, i) => ({
     id: i,
@@ -13,31 +15,33 @@ const VideosGrid = () => {
     uploadedDate: `${Math.floor(Math.random() * 30) + 1} days ago`,
     description: 'Learn how to create engaging content for your social media profiles',
   }));
+  console.log(videoPosts)
 
   return (
     <div className="p-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {videos.map((video) => (
-          <div key={video.id} className="overflow-hidden">
-            <div className="relative aspect-video bg-gray-800 overflow-hidden group">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {videoPosts.map((video) => (
+          <div key={video._id} className="overflow-hidden">
+            <div className="relative aspect-video bg-gray-300 overflow-hidden group">
               {/* Use a placeholder image for the video thumbnail */}
-              <div 
+              {/* <div 
                 className="absolute inset-0 bg-cover bg-center" 
                 style={{ 
                   backgroundImage: `url(https://source.unsplash.com/random/?tech,${video.id})` 
                 }}
-              />
+              /> */}
+              <video src={video.url[0]} poster={useVideoThumbnail(video.url[0])} className='w-full h-full object-cover object-center' />
               
               {/* Play button overlay */}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <button variant="ghost" size="icon" className="bg-black/30 text-white rounded-full h-14 w-14">
+                <button variant="ghost" size="icon" className="bg-black/30 text-white rounded-full h-14 w-14 flex items-center justify-center">
                   <Play className="h-7 w-7" />
                 </button>
               </div>
               
               {/* Duration badge */}
               <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                {video.duration}
+                {video?.duration}
               </div>
               
               {/* View count */}
@@ -46,7 +50,7 @@ const VideosGrid = () => {
                   <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
                 </svg>
-                <span className="ml-1">{video.viewCount}</span>
+                <span className="ml-1">{video?.viewCount}</span>
               </div>
             </div>
             
@@ -56,7 +60,7 @@ const VideosGrid = () => {
               <div className="flex items-center justify-between text-xs text-gray-500">
                 <div className="flex items-center">
                   <Clock className="h-3 w-3 mr-1" />
-                  <span>{video.uploadedDate}</span>
+                  <span>{getTimeAgo(video.created_at)}</span>
                 </div>
                 <button variant="ghost" size="sm" className="h-8 w-8 p-0">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

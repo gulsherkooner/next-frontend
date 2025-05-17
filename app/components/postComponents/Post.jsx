@@ -58,7 +58,7 @@ const Post = ({
       </div>
 
       {post_type == "image" && (
-        <div className="w-full aspect-[4/3] bg-gray-200 flex items-center justify-center">
+        <div className="w-full  h-auto   bg-gray-200 flex items-center justify-center">
           <img
             src={url[0]}
             alt="Post"
@@ -73,7 +73,6 @@ const Post = ({
             src={url[0]}
             className="w-full h-full object-contain"
             controls
-            poster="/placeholder.svg"
           ></video>
 
           {/* {views && (

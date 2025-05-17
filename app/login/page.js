@@ -149,7 +149,7 @@ export default function LoginPage() {
               Don&apos;t have an account <span className="font-medium">?</span>
             </p>
             <button
-              variant="outline"
+              onClick={()=>router.push("/signup")}
               className="w-full py-2 rounded-md text-sm bg-[#bababa] text-[#fafafa] hover:bg-[#fdfdfd] hover:text-[#5a5a5a] cursor-pointer border border-[#bababa]"
             >
               Create account

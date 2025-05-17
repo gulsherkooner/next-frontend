@@ -1,67 +1,17 @@
+"use client";
 import React, { useEffect, useState } from "react";
-import {
-  BadgeCheck,
-  Link,
-  MapPin,
-  MoreHorizontal,
-  Pen,
-  Pencil,
-  Plus,
-} from "lucide-react";
+import { BadgeCheck, Link, MapPin, Pencil, Plus } from "lucide-react";
 import { useIsMobile } from "../../hooks/use-mobile";
 import { useDispatch, useSelector } from "react-redux";
-import Image from "next/image";
 import getTimeAgo from "../../lib/utils/getTimeAgo";
 import EditImage from "./EditImage";
 import {
-  fetchUserData,
   updateAccessToken,
   updateProfile,
-  updateProfileImage,
 } from "../../features/auth/authSlice";
 import { getCookie } from "@/app/lib/utils/cookie";
-import { useRouter } from "next/navigation";
 
 const ProfileInfo = () => {
-  const [error, setError] = useState("");
-  const router = useRouter();
-  useEffect(() => {
-    const fetchData = async () => {
-      const accessToken = getCookie("accessToken");
-      if (!accessToken) {
-        const refreshToken = getCookie("refreshToken");
-        if (!refreshToken) {
-          router.push("/login");
-        }
-        try {
-          const apiGatewayUrl =
-            process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://localhost:3001";
-          const res = await fetch(`${apiGatewayUrl}/auth/refresh`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ refreshToken }),
-            credentials: "include",
-          });
-          const data = await res.json();
-          if (res.ok) {
-            dispatch(
-              updateAccessToken({
-                accessToken: data.accessToken,
-                refreshToken: data.refreshToken,
-              })
-            );
-            router.push("/");
-          } else {
-            setError(data.error || "Login failed");
-          }
-        } catch (err) {
-          console.error("Login error:", err);
-          setError("An unexpected error occurred");
-        }
-      }
-    };
-    fetchData();
-  }, []);
 
   const isMobile = useIsMobile();
   const dispatch = useDispatch();
@@ -98,18 +48,22 @@ const ProfileInfo = () => {
     // }
   };
 
-  const handleImageUpdate = (imgFile) => {
-    const updatedData = { ...userData, profile_img_data: imgFile };
-    setUserData(updatedData);
-    dispatch(updateProfile(updatedData)).unwrap();
+  const handleImageUpdate = (postFile) => {
+    setUserData({ ...userData, profile_img_data: postFile });
+    // dispatch(updateProfile(userData)).unwrap();
     setImgBox(false);
   };
-  const handleBannerUpdate = (imgFile) => {
-    const updatedData = { ...userData, banner_img_data: imgFile };
-    setUserData(updatedData);
-    dispatch(updateProfile(updatedData)).unwrap();
+  const handleBannerUpdate = (postFile) => {
+    setUserData({ ...userData, banner_img_data: postFile });
+    // dispatch(updateProfile(userData)).unwrap();
     setBannerBox(false);
   };
+
+  useEffect(() => {
+    if (userData.profile_img_data != "" || userData.banner_img_data != "") {
+      dispatch(updateProfile(userData)).unwrap();
+    }
+  }, [userData.profile_img_data, userData.banner_img_data]);
 
   return (
     <div className="relative">
@@ -136,7 +90,7 @@ const ProfileInfo = () => {
             <EditImage
               setImgBox={setBannerBox}
               imgBox={bannerBox}
-              onSave={() => handleBannerUpdate()}
+              onSave={handleBannerUpdate}
               w={16}
               h={9}
             />
@@ -166,7 +120,7 @@ const ProfileInfo = () => {
               <EditImage
                 setImgBox={setImgBox}
                 imgBox={imgBox}
-                onSave={() => handleImageUpdate()}
+                onSave={handleImageUpdate}
                 w={1}
                 h={1}
               />

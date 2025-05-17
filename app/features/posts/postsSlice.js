@@ -151,7 +151,8 @@ const postsSlice = createSlice({
   initialState: {
     posts: [],           // Array to store the list of posts
     status: 'idle',      // 'idle' | 'loading' | 'succeeded' | 'failed'
-    error: null          // Error message if an operation fails
+    error: null ,        // Error message if an operation fails
+    userPosts:[],
   },
   reducers: {},          // No synchronous reducers needed for now
   extraReducers: (builder) => {
@@ -175,7 +176,7 @@ const postsSlice = createSlice({
       })
       .addCase(fetchPosts.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.posts = action.payload;
+        state.posts = [...state.posts, ...action.payload];
         state.error = null;
       })
       .addCase(fetchPosts.rejected, (state, action) => {
@@ -214,7 +215,7 @@ const postsSlice = createSlice({
       })
       .addCase(fetchUserPosts.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.posts = action.payload;
+        state.userPosts = action.payload;
         state.error = null;
       })
       .addCase(fetchUserPosts.rejected, (state, action) => {

@@ -107,9 +107,6 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog }) => {
           </button>
 
           {error && <div className="mb-3 text-red-500 text-sm">{error}</div>}
-          {loading && (
-            <div className="mb-3 text-gray-500 text-sm">Loading...</div>
-          )}
 
           <div className="flex items-center mb-3">
             <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
@@ -248,7 +245,7 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog }) => {
               onClick={handleVideoSubmit}
               disabled={!postTitle.trim() || !postFile}
             >
-              Post Video
+              {loading ? <Riple color="#32cd32" size="medium" text="" textColor="" /> : "Post Video"}
             </button>
           </div>
         </div>
