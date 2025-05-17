@@ -6,7 +6,9 @@ import MobileNav from "../../../components/MobileNav";
 import { useIsMobile } from "../../../hooks/use-mobile";
 import { LogOut, Pin, ArrowLeft, Lock, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
-
+import PhotoGallery from '../../../components/PhotoGallery';
+import { useRouter } from 'next/navigation';
+import { Router } from 'next/router';
 const mockProfile = {
   id: 1,
   name: "Username",
@@ -25,6 +27,7 @@ const mockProfile = {
 };
 
 export default function ProfilePage({ params }) {
+  const Router = useRouter();
   const isMobile = useIsMobile();
   const { id: profileId } = React.use(params);
   const profile = mockProfile;
@@ -81,7 +84,7 @@ export default function ProfilePage({ params }) {
               <Section title="About Me" text={profile.aboutMe} />
               <Section title="My Ideal Date" text={profile.idealDate} />
               <Section title="What I Bring to The Table" text={profile.whatIBring} />
-              <PhotoGallery />
+              <PhotoGallery profile={{ name:  profile.name}} />
             </div>
           </div>
         </div>
@@ -106,7 +109,7 @@ export default function ProfilePage({ params }) {
                   setShowSuccess(true);
                   setTimeout(() => {
                     setShowSuccess(false);
-                    // You can trigger chat open logic here if needed
+                    Router.push('/dating/messages')
                   }, 1200);
                 }}
 
@@ -264,22 +267,3 @@ function Section({ title, text }) {
   );
 }
 
-function PhotoGallery() {
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div
-          key={i}
-          className="relative aspect-square bg-gray-200 rounded-lg flex items-center justify-center"
-        >
-          <Pin className="absolute top-4 right-4 text-gray-400 w-5 h-5 rotate-45 fill-black" />
-          {i >= 2 && (
-            <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center rounded-lg">
-              <Lock className="w-6 h-6 text-gray-500" />
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}

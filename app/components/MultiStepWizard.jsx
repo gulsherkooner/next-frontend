@@ -823,7 +823,7 @@ const LikesForm = ({ likes, setLikes, onValidation }) => {
     );
 };
 
-const MultiStepForm = ({ onComplete }) => {
+export default function MultiStepForm({ onComplete, initialData = {} }) {
     const [currentStep, setCurrentStep] = useState(0);
     const [isValid, setIsValid] = useState(false);
     const [formData, setFormData] = useState({
@@ -842,7 +842,8 @@ const MultiStepForm = ({ onComplete }) => {
         describeSelf: '',
         idealDate: '',
         greatPartner: '',
-        likes: []
+        likes: [],
+        ...initialData
     });
     const router = useRouter();
 
@@ -866,7 +867,7 @@ const MultiStepForm = ({ onComplete }) => {
                     localStorage.setItem("userProfile", JSON.stringify(formData));
                     // Call onComplete only after successful submission
                     if (onComplete) onComplete();
-
+                    handleSubmit();
                     // Redirect to the dating page with the task parameter
                     router.push('/dating?from=task');
                 } catch (error) {
@@ -966,6 +967,14 @@ const MultiStepForm = ({ onComplete }) => {
             />
         }
     ];
+    const handleSubmit = () => {
+        try {
+            localStorage.setItem("userProfile", JSON.stringify(formData));
+            if (onComplete) onComplete(formData); // trigger parent update
+        } catch (error) {
+            console.error("Failed to save profile:", error);
+        }
+    };
 
     const totalSteps = steps.length;
 
@@ -1000,4 +1009,4 @@ const MultiStepForm = ({ onComplete }) => {
     );
 };
 
-export default MultiStepForm;
+// export default MultiStepForm;

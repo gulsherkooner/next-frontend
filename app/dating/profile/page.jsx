@@ -4,7 +4,9 @@ import Header from "../../components/Header";
 import Sidebar from "../../components/Sidebar";
 import MobileNav from "../../components/MobileNav";
 import { Pencil, LogOut, Pin, ArrowLeft, Lock, MoreHorizontal } from "lucide-react";
-
+import PostComposerModal from '../../components/Postcomposer';
+import MultiStepForm from '../../components/MultiStepWizard';
+import Router from 'next/router';
 const tagEmojis = {
     // Hobbies
     "Painting": "🖌️",
@@ -144,6 +146,9 @@ function PhotoGallery() {
 
 export default function ProfilePage() {
     const [profile, setProfile] = useState(null);
+    const [showChatModal, setShowChatModal] = React.useState(false);
+    const [showPostModal, setShowPostModal] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
         const saved = localStorage.getItem("userProfile");
@@ -151,6 +156,26 @@ export default function ProfilePage() {
     }, []);
 
     if (!profile) return <div className="text-center p-10">Loading profile...</div>;
+    if (!profile) return <div className="text-center p-10">Loading profile...</div>;
+
+    if (isEditing) {
+        return (
+            <div className="bg-gray-100 min-h-screen w-full pb-14 md:pb-0">
+                <Header />
+                <Sidebar />
+                <div className="md:ml-64 pt-16 px-4 lg:px-8">
+                    <MultiStepForm
+                        onComplete={(updatedProfile) => {
+                            setProfile(updatedProfile);
+                            setIsEditing(false); // Close form
+                        }}
+                        initialData={profile} // Pre-fill form
+                    />
+                </div>
+                <MobileNav />
+            </div>
+        );
+    }
 
     const basics = [
         `${profile.height ? `${profile.height} cm` : "Height not specified"}`,
@@ -187,10 +212,17 @@ export default function ProfilePage() {
                             <p className="text-gray-500">{profile.professions[0] || "N/A"} • {profile.locations[0] || "N/A"}</p>
                         </div>
                         <div className="flex gap-2 mb-7">
-                            <button className="bg-gray-300 px-4 py-1 rounded-full text-sm">+ Add Photo</button>
-                            <button className="bg-white px-4 py-1 rounded-full text-sm">Edit Profile
-                                {/* <LogOut className="inline ml-1 w-5 h-5 text-gray-600 hover:text-black cursor-pointer" /> */}
+                            <button className="bg-gray-300 px-4 py-1 rounded-full text-sm"
+                                onClick={() => setShowPostModal(true)}>
+                                + Add Photo
                             </button>
+                            <button
+                                className="bg-white px-4 py-1 rounded-full text-sm"
+                                onClick={() => setIsEditing(true)}
+                            >
+                                Edit Profile
+                            </button>
+
                             <MoreHorizontal className="inline mt-1 w-5 h-5 text-gray-600" />
                         </div>
                     </div>
@@ -215,7 +247,10 @@ export default function ProfilePage() {
                     </div>
                 </div>
             </div>
-
+            <PostComposerModal
+                showPostModal={showPostModal}
+                setShowPostModal={setShowPostModal}
+            />
             <MobileNav />
         </div>
     );
