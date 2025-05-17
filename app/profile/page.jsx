@@ -13,9 +13,10 @@ import { getCookie } from "../lib/utils/cookie";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function profile ({ menu, setMenu }) {
+export default function profile () {
 
   const [error, setError] = useState("");
+  const [menu, setMenu] = useState(false);
   const dispatch = useDispatch();
   const router = useRouter();
 
