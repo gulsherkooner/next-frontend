@@ -42,7 +42,7 @@ const MobileNav = () => {
         {/* <span className="text-xs mt-0.5">Activity</span> */}
       </Link>
       <Link
-        href="/"
+        href="/profile"
         className="flex flex-col items-center justify-center text-gray-900 w-1/5"
       >
         <User size={27} />

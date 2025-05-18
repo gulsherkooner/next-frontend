@@ -15,6 +15,8 @@ const Post = ({
   likes_count,
   comments_count,
   post_type,
+  user,
+  title
 }) => {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -31,9 +33,13 @@ const Post = ({
       <div className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <div className="w-10 h-10 bg-gray-200 rounded-full flex-shrink-0"></div>
+            <div className="w-10 h-10 bg-gray-200 rounded-full flex-shrink-0">
+              {user?.profile_img_url && 
+                <img className="rounded-full" src={user.profile_img_url} alt="*" />
+              }
+            </div>
             <div className="ml-3">
-              <div className="font-medium">Username</div>
+              <div className="font-medium">{user?.username ? user.username : "Username"}</div>
               <div className="text-gray-500 text-xs">{getTimeAgo(created_at)}</div>
             </div>
           </div>
@@ -43,6 +49,7 @@ const Post = ({
         </div>
 
         <div className="mt-3">
+          <p className="text-md font-bold">{title}</p>
           <p className="text-sm text-gray-700">
             {showFullContent ? description : shortenedContent}
             {description.length > 150 && (
