@@ -74,7 +74,8 @@ const Header = ({ setMenu, menu }) => {
             </button>
           )}
 
-          <button className={`w-10 h-10 rounded-full ${!isMobile && "bg-white"} flex items-center justify-center`}>
+          <button className={`w-10 h-10 rounded-full ${!isMobile && "bg-white"} flex items-center justify-center`}
+          onClick={() => router.push('/dating/messages')}>
             <Mail size={20} className="text-gray-900" />
           </button>
 

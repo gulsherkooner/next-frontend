@@ -45,6 +45,8 @@ export default function LoginPage() {
             refreshToken: data.refreshToken,
           })
         );
+        localStorage.setItem('token', data.accessToken);
+        localStorage.setItem('userId', data.user.user_id);
         router.push("/");
       } else {
         setError(data.error || "Login failed");
@@ -149,7 +151,7 @@ export default function LoginPage() {
               Don&apos;t have an account <span className="font-medium">?</span>
             </p>
             <button
-              onClick={()=>router.push("/signup")}
+              onClick={() => router.push("/signup")}
               className="w-full py-2 rounded-md text-sm bg-[#bababa] text-[#fafafa] hover:bg-[#fdfdfd] hover:text-[#5a5a5a] cursor-pointer border border-[#bababa]"
             >
               Create account

@@ -8,51 +8,79 @@ import CreateProfileBox from "../components/CreateDatingProfile";
 import FiltersBox from "../components/FiltersBox";
 import TaskCompletedBox from "../components/ProfileList";
 import WalletCard from "../components/WalletCard";
-import { Suspense } from "react";
 
 export default function DatingPage() {
   const [filters, setFilters] = useState({
     gender: "Female",
-    ageRange: [25, 35],
-    distance: 5,
-    locations: ["New york"],
-    languages: ["English"],
-    lookingFor: ["Casual Dating"],
-    likes: ["Hiking"],
+    ageRange: [18, 60],
+    distance: 50,
+    locations: [],
+    languages: [],
+    lookingFor: "Casual Dating",
+    likes: []
   });
 
-  const [from, setFrom] = useState(null);
-  const [profileCompleted, setProfileCompleted] = useState(false);
+  const [fromParam, setFromParam] = useState(null);
+  const [hasProfile, setHasProfile] = useState(false);
+  const [loading, setLoading] = useState(true);
   const isMobile = useIsMobile();
 
+  // Read URL param
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      const fromParam = params.get('from');
-      setFrom(fromParam);
+      setFromParam(params.get('from'));
     }
   }, []);
 
+  // Check profile status on mount
   useEffect(() => {
-    try {
-      const status = localStorage.getItem("datingProfileCompleted");
-      if (status === "true") {
-        setProfileCompleted(true);
-      }
-    } catch (error) {
-      console.error("Error accessing localStorage:", error);
+  const checkProfileStatus = async () => {
+    const userId = localStorage.getItem('userId');
+    // console.log(userId);
+    if (!userId) {
+      setLoading(false);
+      return;
     }
-  }, []);
 
-  const handleProfileComplete = () => {
     try {
-      localStorage.setItem("datingProfileCompleted", "true");
-      setProfileCompleted(true);
+      const response = await fetch('http://localhost:5000/api/check-profile', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userId}`, // 👈 pass userId in Authorization header
+        }
+      });
+
+      if (!response.ok) throw new Error('Profile check failed');
+
+      const { exists } = await response.json();
+      setHasProfile(exists);
     } catch (error) {
-      console.error("Error saving to localStorage:", error);
+      console.error("Profile check error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
+  checkProfileStatus();
+}, []);
+
+
+  const handleProfileComplete = () => {
+    setHasProfile(true);
+    // Optional: You might want to refetch the profile here
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center py-8 text-gray-500">Loading your dating profile...</div>
+      </div>
+    );
+  }
+
+  // Main rendering logic
   return (
     <div className="bg-gray-100 min-h-screen w-full pb-14 md:pb-0">
       <Header />
@@ -60,32 +88,24 @@ export default function DatingPage() {
 
       <div className="pt-16 px-4 flex flex-col lg:flex-row justify-center gap-6">
         <main className="flex-1 max-w-full md:max-w-sm xl:max-w-2xl 2xl:max-w-2xl mx-auto p-2 sm:p-4">
-          {from === 'task' ? (
-            <TaskCompletedBox
-              genderFilter={filters.gender}
-              ageRangeFilter={filters.ageRange}
-              locationFilters={filters.locations}
-              languageFilters={filters.languages}
-              lookingForFilters={filters.lookingFor}
-              likesFilters={filters.likes}
-            />
-          ) : profileCompleted ? (
-            <TaskCompletedBox
-              genderFilter={filters.gender}
-              ageRangeFilter={filters.ageRange}
-              locationFilters={filters.locations}
-              languageFilters={filters.languages}
-              lookingForFilters={filters.lookingFor}
-              likesFilters={filters.likes}
-            />
-          ) : (
+          {!hasProfile ? (
             <CreateProfileBox onComplete={handleProfileComplete} />
+          ) : (
+            <TaskCompletedBox
+              genderFilter={filters.gender}
+              ageRangeFilter={filters.ageRange}
+              locationFilters={filters.locations}
+              languageFilters={filters.languages}
+              lookingForFilters={filters.lookingFor}
+              likesFilters={filters.likes}
+            />
           )}
         </main>
 
-        {!isMobile && (
+        {/* Sidebar - only shown when profile exists and not on mobile */}
+        {hasProfile && !isMobile && (
           <aside className="hidden lg:block w-56 fixed right-0 h-[calc(100vh-160px)] overflow-y-auto border-r border-gray-200 top-14">
-            {(from === 'task' || profileCompleted) && <WalletCard />}
+            <WalletCard />
             <FiltersBox
               gender={filters.gender}
               setGender={(val) => setFilters({ ...filters, gender: val })}

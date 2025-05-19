@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { Search } from "lucide-react";
 import { locationSuggestions, professionSuggestions } from '../features/suggestionsData';
-
 const FirstNameForm = ({ firstName, setFirstName, onValidation }) => {
     useEffect(() => {
         // Auto-validate when firstName changes
@@ -823,9 +822,10 @@ const LikesForm = ({ likes, setLikes, onValidation }) => {
     );
 };
 
-export default function MultiStepForm({ onComplete, initialData = {} }) {
+export default function MultiStepForm({ onComplete }) {
     const [currentStep, setCurrentStep] = useState(0);
     const [isValid, setIsValid] = useState(false);
+    const router = useRouter();
     const [formData, setFormData] = useState({
         firstName: '',
         gender: [],
@@ -843,9 +843,8 @@ export default function MultiStepForm({ onComplete, initialData = {} }) {
         idealDate: '',
         greatPartner: '',
         likes: [],
-        ...initialData
     });
-    const router = useRouter();
+    // const router = useRouter();
 
     const updateFormData = (field, value) => {
         setFormData(prev => ({
@@ -854,29 +853,46 @@ export default function MultiStepForm({ onComplete, initialData = {} }) {
         }));
     };
 
-    const handleNext = () => {
+    const handleNext = async () => {
         if (isValid) {
             if (currentStep < steps.length - 1) {
                 setCurrentStep(currentStep + 1);
                 setIsValid(false);
             } else {
-                // Submit the form data to your backend or storage
                 try {
-                    // Example: await submitFormToBackend(formData);
-                    console.log('Form submitted successfully:', formData);
-                    localStorage.setItem("userProfile", JSON.stringify(formData));
-                    // Call onComplete only after successful submission
+                    const token = localStorage.getItem('token');
+                    const userId = localStorage.getItem('userId'); // <-- get userId
+                    const fullFormData = {
+                        ...formData,
+                        user_id: userId, // <-- include userId in body
+                    };
+                    console.log(fullFormData);
+                    const response = await fetch('http://localhost:5000/api/dating-profile', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(fullFormData),
+                    });
+
+                    if (!response.ok) throw new Error('Signup failed');
+
+                    if (!response.ok) throw new Error('Profile creation failed');
+
+                    const data = await response.json();
+                    localStorage.setItem('datingProfileId', data._id);
                     if (onComplete) onComplete();
-                    handleSubmit();
-                    // Redirect to the dating page with the task parameter
                     router.push('/dating?from=task');
-                } catch (error) {
-                    console.error('Form submission failed:', error);
-                    // Handle error (show message to user, etc.)
+
+                } catch (err) {
+                    console.error('Error creating form:', err);
+                    alert('Error creating profile. Try again.');
                 }
             }
         }
     };
+
 
     const handleBack = () => {
         if (currentStep > 0) {
@@ -967,14 +983,7 @@ export default function MultiStepForm({ onComplete, initialData = {} }) {
             />
         }
     ];
-    const handleSubmit = () => {
-        try {
-            localStorage.setItem("userProfile", JSON.stringify(formData));
-            if (onComplete) onComplete(formData); // trigger parent update
-        } catch (error) {
-            console.error("Failed to save profile:", error);
-        }
-    };
+
 
     const totalSteps = steps.length;
 
