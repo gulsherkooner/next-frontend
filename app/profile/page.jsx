@@ -7,18 +7,20 @@ import ProfileContent from "../components/profileComponents/ProfileContent";
 import { useIsMobile } from "../hooks/use-mobile";
 import MobileNav from "../components/MobileNav";
 import { useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchUserData, updateAccessToken } from "../features/auth/authSlice";
+import { fetchUserPosts } from "../features/posts/postsSlice";
 import { getCookie } from "../lib/utils/cookie";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function profile () {
-
+export default function profile() {
   const [error, setError] = useState("");
   const [menu, setMenu] = useState(false);
   const dispatch = useDispatch();
   const router = useRouter();
+  const { userPosts } = useSelector((state) => state.posts);
+  const data = useSelector((state) => state.auth?.user);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,13 +55,16 @@ export default function profile () {
           console.error("Login error:", err);
           setError("An unexpected error occurred");
         }
-      }else{
+      } else {
         dispatch(fetchUserData());
       }
     };
     fetchData();
-    
   }, []);
+
+  useEffect(() => {
+    dispatch(fetchUserPosts(data?.user_id));
+  }, [data?.user_id]);
 
   return (
     <div className="bg-gray-100 min-h-screen pb-14 md:pb-0 w-full">
@@ -67,10 +72,10 @@ export default function profile () {
       <Sidebar setMenu={setMenu} menu={menu} />
       {/* Main content column */}
       <div className="pt-14 pr-2 md:pl-58 md:flex-row flex-1">
-        <ProfileInfo />
-        <ProfileContent />
+        <ProfileInfo data={data} profile={true} />
+        <ProfileContent userPosts={userPosts} />
       </div>
       <MobileNav />
     </div>
   );
-};
+}

@@ -6,15 +6,12 @@ import ReelsGrid from "./ReelsGrid";
 import VideosGrid from "./VideosGrid";
 import CollectionsGrid from "./CollectionsGrid";
 import AboutTab from "./AboutTab";
-import { useSelector } from "react-redux";
 
-const ProfileContent = () => {
+const ProfileContent = ({userPosts}) => {
   const [activeTab, setActiveTab] = useState("posts");
   const [imgPosts, setImgPosts] = useState(null);
   const [videoPosts, setVideoPosts] = useState(null);
   const [reelPosts, setReelPosts] = useState(null);
-
-  const { userPosts } = useSelector((state) => state.posts);
 
   // Update the filtering logic to avoid too many re-renders
   useEffect(() => {

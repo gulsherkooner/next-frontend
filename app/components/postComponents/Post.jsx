@@ -7,6 +7,8 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import getTimeAgo  from "../../lib/utils/getTimeAgo";
+import { useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 
 const Post = ({
   created_at,
@@ -16,7 +18,8 @@ const Post = ({
   comments_count,
   post_type,
   user,
-  title
+  title,
+  user_id
 }) => {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -25,14 +28,24 @@ const Post = ({
   const toggleLike = () => setLiked(!liked);
   const toggleSave = () => setSaved(!saved);
 
+  const state = useSelector((state) => state?.auth?.user)
+
+  const router = useRouter();
+
   const shortenedContent =
   description.length > 150 ? description.substring(0, 150) + "..." : description;
+
+  const handleClick = () => {
+    user_id && user_id === state.user_id ? router.push("/profile") : router.push(`/${user_id}`)
+  }
 
   return (
     <div className="bg-white rounded-lg shadow mb-4">
       <div className="p-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center">
+          <div className="flex items-center cursor-pointer"
+            onClick={()=>handleClick()}
+          >
             <div className="w-10 h-10 bg-gray-200 rounded-full flex-shrink-0">
               {user?.profile_img_url && 
                 <img className="rounded-full" src={user.profile_img_url} alt="*" />

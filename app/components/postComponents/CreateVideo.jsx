@@ -19,7 +19,7 @@ import {
 import { useDispatch } from "react-redux";
 import { createPost, fetchPublicPosts } from "../../features/posts/postsSlice";
 
-const CreateVideo = ({ openVideoDialog, setOpenVideoDialog }) => {
+const CreateVideo = ({ openVideoDialog, setOpenVideoDialog, user }) => {
   const [postTitle, setPostTitle] = useState("");
   const [postDescription, setPostDescription] = useState("");
   const [postTags, setPostTags] = useState("");
@@ -109,9 +109,11 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog }) => {
           {error && <div className="mb-3 text-red-500 text-sm">{error}</div>}
 
           <div className="flex items-center mb-3">
-            <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
+            <div className="w-10 h-10 bg-gray-300 rounded-full">
+              {user?.profile_img_url && <img src={user?.profile_img_url} alt="*" className="rounded-full" />}
+            </div>
             <div className="ml-3">
-              <h3 className="font-bold text-sm">Username</h3>
+              <h3 className="font-bold text-sm">{user?.username ? capitalizeFirstLetter(user?.username) : "Username"}</h3>
               <div className="flex items-center text-gray-600 text-xs">
                 <div className="relative">
                   <button

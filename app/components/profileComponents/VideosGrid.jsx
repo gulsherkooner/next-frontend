@@ -15,7 +15,6 @@ const VideosGrid = ({videoPosts}) => {
     uploadedDate: `${Math.floor(Math.random() * 30) + 1} days ago`,
     description: 'Learn how to create engaging content for your social media profiles',
   }));
-  console.log(videoPosts)
 
   return (
     <div className="p-4">

@@ -17,9 +17,9 @@ import {
   UserRoundCheck,
 } from "lucide-react";
 import { useDispatch } from "react-redux";
-import { createPost } from "../../features/posts/postsSlice";
+import { createPost, fetchPublicPosts } from "../../features/posts/postsSlice";
 
-const CreateImage = ({ openImageDialog, setOpenImageDialog }) => {
+const CreateImage = ({ openImageDialog, setOpenImageDialog, user }) => {
   const [postTitle, setPostTitle] = useState("");
   const [postDescription, setPostDescription] = useState("");
   const [postTags, setPostTags] = useState("");
@@ -81,9 +81,9 @@ const CreateImage = ({ openImageDialog, setOpenImageDialog }) => {
       post_tags: processedTags,
       visibility: postVisibility,
     };
-    console.log("Image post data:", postData);
     try {
       await dispatch(createPost(postData)).unwrap();
+      dispatch(fetchPublicPosts());
       setPostTitle("");
       setPostDescription("");
       setPostTags("");
@@ -112,9 +112,11 @@ const CreateImage = ({ openImageDialog, setOpenImageDialog }) => {
           )}
 
           <div className="flex items-center mb-3">
-            <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
+            <div className="w-10 h-10 bg-gray-300 rounded-full">
+              {user?.profile_img_url && <img src={user?.profile_img_url} alt="*" className="rounded-full" />}
+            </div>
             <div className="ml-3">
-              <h3 className="font-bold text-sm">Username</h3>
+              <h3 className="font-bold text-sm">{user?.username ? capitalizeFirstLetter(user?.username) : "Username"}</h3>
               <div className="flex items-center text-gray-600 text-xs">
                 <div className="relative">
                   <button

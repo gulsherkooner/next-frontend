@@ -24,7 +24,6 @@ export default function Home() {
   const { posts, status, error } = useSelector((state) => state.posts);
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
-  console.log(posts)
 
   useEffect(() => {
     dispatch(fetchPublicPosts());

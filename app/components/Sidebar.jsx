@@ -3,6 +3,8 @@ import React, { useEffect, useRef } from "react";
 import { Home, Play, Users, TrendingUp, Video, FileText, Bookmark, Heart, Star, Settings, HelpCircle, LogOut, ArrowRight, UserRoundCheck, Flame, Youtube, Images, BadgeCheck } from "lucide-react";
 import Link from "next/link";
 import { useIsMobile } from "../hooks/use-mobile";
+import { deleteCookie } from "../lib/utils/cookie";
+import { useRouter } from "next/navigation";
 
 const Sidebar = ({ menu, setMenu }) => {
   const isMobile = useIsMobile();
@@ -59,9 +61,22 @@ const Sidebar = ({ menu, setMenu }) => {
     };
   }, [isMobile, menu, setMenu]);
 
+  // Dummy handleLogOut function (replace with your actual logic)
+  const router = useRouter();
+  const handleLogOut = () => {
+    deleteCookie("accessToken");
+    deleteCookie("refreshToken");
+    router.push("/")
+  };
+
   const renderMenuItems = (items) => {
     return items.map((item, index) => (
-      <Link href={item.link} key={index} className="flex items-center p-3 hover:bg-gray-100 rounded-lg">
+      <Link
+        href={item.link}
+        key={index}
+        onClick={item.text === "Log Out" ? (e) => { e.preventDefault(); handleLogOut(); } : undefined}
+        className="flex items-center px-3 py-2 hover:bg-gray-200 rounded-lg"
+      >
         <div className="mr-4 text-gray-500">{item.icon}</div>
         <span className="text-gray-700">{item.text}</span>
       </Link>

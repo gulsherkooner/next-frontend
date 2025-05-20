@@ -11,28 +11,29 @@ import {
 } from "../../features/auth/authSlice";
 import { getCookie } from "@/app/lib/utils/cookie";
 
-const ProfileInfo = () => {
-
+const ProfileInfo = ({ data, profile }) => {
   const isMobile = useIsMobile();
   const dispatch = useDispatch();
-  const data = useSelector((state) => state.auth?.user);
-  const [userData, setUserData] = useState({
-    email: data?.email,
-    username: data?.username,
-    name: data?.name,
-    bio: data?.bio,
-    profile_img_url: data?.profile_img_url,
-    created_at: data?.created_at,
-    followers: data?.followers,
-    following: data?.following,
-    banner_img_url: data?.banner_img_url,
-    is_verified: data?.is_verified || false,
-    profile_img_data: "",
-    banner_img_data: "",
-  });
+  const [userData, setUserData] = useState({});
   const [imgBox, setImgBox] = useState(false);
   const [bannerBox, setBannerBox] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    setUserData({
+      email: data?.email,
+      username: data?.username,
+      name: data?.name,
+      bio: data?.bio,
+      profile_img_url: data?.profile_img_url,
+      created_at: data?.created_at,
+      followers: data?.followers,
+      following: data?.following,
+      banner_img_url: data?.banner_img_url,
+      is_verified: data?.is_verified || false,
+      profile_img_data: "",
+      banner_img_data: "",
+    });
+  }, [data]);
 
   const handleInputChange = (e) => {
     // const { name, value } = e.target;
@@ -60,7 +61,7 @@ const ProfileInfo = () => {
   };
 
   useEffect(() => {
-    if (userData.profile_img_data != "" || userData.banner_img_data != "") {
+    if (userData.profile_img_data || userData.banner_img_data) {
       dispatch(updateProfile(userData)).unwrap();
     }
   }, [userData.profile_img_data, userData.banner_img_data]);
@@ -80,20 +81,24 @@ const ProfileInfo = () => {
             )}
           </div>
 
-          <div
-            className="absolute top-2 right-3 text-black bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center"
-            onClick={() => setBannerBox(true)}
-          >
-            <Pencil size={16} />
-          </div>
-          {bannerBox && (
-            <EditImage
-              setImgBox={setBannerBox}
-              imgBox={bannerBox}
-              onSave={handleBannerUpdate}
-              w={16}
-              h={9}
-            />
+          {profile && (
+            <>
+              <div
+                className="absolute top-2 right-3 text-black bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center"
+                onClick={() => setBannerBox(true)}
+              >
+                <Pencil size={16} />
+              </div>
+              {bannerBox && (
+                <EditImage
+                  setImgBox={setBannerBox}
+                  imgBox={bannerBox}
+                  onSave={handleBannerUpdate}
+                  w={16}
+                  h={9}
+                />
+              )}
+            </>
           )}
         </div>
       </div>
@@ -110,20 +115,24 @@ const ProfileInfo = () => {
                 className="rounded-full"
               />
             )}
-            <div
-              className="absolute top-1 right-1 text-black bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center cursor-pointer"
-              onClick={() => setImgBox(true)}
-            >
-              <Pencil size={16} />
-            </div>
-            {imgBox && (
-              <EditImage
-                setImgBox={setImgBox}
-                imgBox={imgBox}
-                onSave={handleImageUpdate}
-                w={1}
-                h={1}
-              />
+            {profile && (
+              <>
+                <div
+                  className="absolute top-1 right-1 text-black bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center cursor-pointer"
+                  onClick={() => setImgBox(true)}
+                >
+                  <Pencil size={16} />
+                </div>
+                {imgBox && (
+                  <EditImage
+                    setImgBox={setImgBox}
+                    imgBox={imgBox}
+                    onSave={handleImageUpdate}
+                    w={1}
+                    h={1}
+                  />
+                )}
+              </>
             )}
           </div>
         </div>
@@ -132,65 +141,78 @@ const ProfileInfo = () => {
         <div className="pt-20 pb-4">
           <div className="flex justify-start items-center space-x-2">
             <div>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="name"
-                  value={userData.name}
-                  onChange={handleInputChange}
-                  className="text-xl font-bold border-b-2 border-gray-300 focus:border-blue-500 outline-none"
-                />
-              ) : (
-                <h1 className="text-xl font-bold">
-                  {userData.name ? userData.name : "Username"}
-                </h1>
-              )}
+              <h1 className="text-xl font-bold">
+                {userData.name ? userData.name : "Username"}
+              </h1>
               <p className="text-gray-500 text-sm">
                 @{userData.username ? userData.username : "Username"}
               </p>
             </div>
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className={`${
-                isMobile ? "py-2 px-3" : "py-1 px-4"
-              } rounded-full bg-gray-200 text-sm font-medium`}
-            >
-              {isMobile ? <Pencil size={16} /> : "Edit profile"}
-            </button>
-            <button
-              className={`px-3 ${
-                isMobile ? "py-2" : "py-1"
-              } rounded-full bg-white border border-gray-300`}
-            >
-              <div className="flex items-center justify-center">
-                <Plus size={16} />
-                {!isMobile && (
-                  <span className="ml-1 text-sm font-medium">Create story</span>
-                )}
-              </div>
-            </button>
-            <button
-              className={`${
-                isMobile ? "py-2 px-3" : "py-1 px-4"
-              } rounded-full bg-gray-200 text-sm font-medium`}
-            >
-              {isMobile ? <BadgeCheck size={16} /> : "Create memberships"}
-            </button>
+            {profile ? (
+              <>
+                <button
+                  className={`${
+                    isMobile ? "py-2 px-3" : "py-1 px-4"
+                  } rounded-full bg-gray-200 text-sm font-medium`}
+                >
+                  {isMobile ? <Pencil size={16} /> : "Edit profile"}
+                </button>
+                <button
+                  className={`px-3 ${
+                    isMobile ? "py-2" : "py-1"
+                  } rounded-full bg-white border border-gray-300`}
+                >
+                  <div className="flex items-center justify-center">
+                    <Plus size={16} />
+                    {!isMobile && (
+                      <span className="ml-1 text-sm font-medium">
+                        Create story
+                      </span>
+                    )}
+                  </div>
+                </button>
+                <button
+                  className={`${
+                    isMobile ? "py-2 px-3" : "py-1 px-4"
+                  } rounded-full bg-gray-200 text-sm font-medium`}
+                >
+                  {isMobile ? <BadgeCheck size={16} /> : "Create memberships"}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  className={`${
+                    isMobile ? "py-2 px-3" : "py-1 px-4"
+                  } rounded-full bg-gray-200 text-sm font-medium`}
+                >
+                  {isMobile ? <Pencil size={16} /> : "Follow"}
+                </button>
+                <button
+                  className={`px-3 ${
+                    isMobile ? "py-2" : "py-1"
+                  } rounded-full bg-white border border-gray-300`}
+                >
+                  <div className="flex items-center justify-center">
+                    {!isMobile && (
+                      <span className="ml-1 text-sm font-medium">Message</span>
+                    )}
+                  </div>
+                </button>
+                <button
+                  className={`${
+                    isMobile ? "py-2 px-3" : "py-1 px-4"
+                  } rounded-full bg-gray-200 text-sm font-medium`}
+                >
+                  {isMobile ? <BadgeCheck size={16} /> : "Subscribe"}
+                </button>
+              </>
+            )}
           </div>
 
           {/* Bio */}
           <div className="my-3 text-sm">
-            {isEditing ? (
-              <textarea
-                name="bio"
-                value={userData.bio}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-blue-500"
-                rows={3}
-              />
-            ) : (
-              <p>{userData.bio}</p>
-            )}
+            <p>{userData.bio}</p>
           </div>
 
           {/* Links and Info */}
@@ -239,18 +261,6 @@ const ProfileInfo = () => {
               <span className="text-gray-500">Following</span>
             </div>
           </div>
-
-          {/* Save Button */}
-          {isEditing && (
-            <div className="mt-4">
-              <button
-                onClick={handleSaveProfile}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md"
-              >
-                Save Changes
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>
