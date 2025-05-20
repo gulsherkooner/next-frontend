@@ -14,13 +14,13 @@ import Signup5 from "../components/signupComponents/Signup5";
 export default function RegisterPage() {
   const [error, setError] = useState();
   const [userData, setUserData] = useState({
-    email:"",
-    name:"",
-    password:"",
-    profile_img_url:"",
-    bio:"",
-    username:"",
-    DOB:"",
+    email: "",
+    name: "",
+    password: "",
+    profile_img_url: "",
+    bio: "",
+    username: "",
+    DOB: "",
   })
   const [page, setPage] = useState(1);
   const [OTP, setOTP] = useState(null);
@@ -48,6 +48,8 @@ export default function RegisterPage() {
             refreshToken: data.refreshToken,
           })
         );
+        localStorage.setItem('token', data.accessToken);
+        localStorage.setItem('userId', data.user.user_id);
         router.push("/profile");
       } else {
         setError(data.error || "Login failed");

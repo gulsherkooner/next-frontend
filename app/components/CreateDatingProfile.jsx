@@ -11,7 +11,6 @@ const CreateProfileBox = ({ onComplete }) => {
   if (showForm) {
     return <MultiStepForm onComplete={onComplete} />;
   }
-
   return (
     <div className="flex justify-center items-center min-h-[60vh] px-4">
       <div className="bg-gray-100 p-6 md:p-8 rounded-2xl shadow-lg text-center w-full max-w-md">

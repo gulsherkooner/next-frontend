@@ -1,22 +1,42 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Wallet, ChevronRight } from "lucide-react";
 import TransactionHistory from "./TransactionHistory";
 import PaymentMethods from "./PaymentMethods";
 import AddCardForm from "./AddCardForm";
-import PaymentSelector from "./PaymentSelector"; // Import it
+import PaymentSelector from "./PaymentSelector";
+
 const WalletBox = () => {
+  const [balance, setBalance] = useState(0);
   const [isAdding, setIsAdding] = useState(false);
   const [amount, setAmount] = useState("");
   const [viewHistory, setViewHistory] = useState(false);
   const [viewPaymentoption, setViewPaymentOption] = useState(false);
   const [viewAddCard, setViewAddCard] = useState(false);
   const [viewPaymentSelector, setViewPaymentSelector] = useState(false);
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setUserId(localStorage.getItem("userId"));
+    }
+  }, []);
+
+  // console.log(userId);
+  useEffect(() => {
+    if (!userId) return;
+
+    const fetchWallet = async () => {
+      const res = await fetch(`http://localhost:5000/api/wallet/${userId}`);
+      const data = await res.json();
+      if (data && data.balance !== undefined) setBalance(data.balance);
+    };
+
+    fetchWallet();
+  }, [userId]);
+
+
   const handlePresetClick = (value) => {
     setAmount((prev) => (parseInt(prev || "0") + value).toString());
-  };
-
-  const handleProceed = () => {
-    setViewPaymentSelector(true);
   };
 
   const handleCancel = () => {
@@ -27,23 +47,30 @@ const WalletBox = () => {
   if (viewHistory) {
     return <TransactionHistory onBack={() => setViewHistory(false)} />;
   }
+
   if (viewPaymentoption) {
     return (
       <PaymentMethods
         onBack={() => setViewPaymentOption(false)}
         onAddCard={() => {
           setViewPaymentOption(false);
-          setViewAddCard(true); // Navigate to Add Card
+          setViewAddCard(true);
         }}
       />
     );
   }
+
   if (viewAddCard) {
-    return <AddCardForm onBack={() => {
-      setViewAddCard(false);
-      setViewPaymentOption(true); // Go back to payment screen
-    }} />;
+    return (
+      <AddCardForm
+        onBack={() => {
+          setViewAddCard(false);
+          setViewPaymentOption(true);
+        }}
+      />
+    );
   }
+
   if (viewPaymentSelector) {
     return (
       <PaymentSelector
@@ -53,16 +80,18 @@ const WalletBox = () => {
           setIsAdding(false);
           setAmount("");
         }}
+        onTopUpComplete={(newBalance) => setBalance(newBalance)}
       />
     );
   }
+
   return (
     <div className="flex-l justify-center items-center min-h-[60vh] px-4">
       <div className="bg-gray-200 p-6 md:p-8 shadow-lg text-left w-full max-w-md rounded-t-2xl">
         <Wallet className="inline mr-2 mb-2" />
         <h2 className="inline text-2xl font-bold text-gray-800">Wallet</h2>
         <p className="text-l font-semibold text-gray-600 mb-2">Available Balance</p>
-        <h2 className="text-2xl font-bold text-gray-800">$32</h2>
+        <h2 className="text-2xl font-bold text-gray-800">${balance}</h2>
 
         {isAdding ? (
           <div className="mt-4 space-y-2">
@@ -92,14 +121,13 @@ const WalletBox = () => {
                 Cancel
               </button>
               <button
-                onClick={handleProceed}
+                onClick={() => setViewPaymentSelector(true)}
                 className="px-4 py-2 rounded-2xl bg-gray-400 text-white font-semibold hover:bg-gray-500 transition"
               >
                 Proceed to payment
               </button>
             </div>
           </div>
-
         ) : (
           <button
             onClick={() => setIsAdding(true)}
@@ -118,8 +146,10 @@ const WalletBox = () => {
         <ChevronRight className="w-5 h-5" />
       </div>
 
-      <div className="flex justify-between items-center bg-gray-200 p-6 md:p-7 border-t border-gray-500 text-left w-full max-w-md cursor-pointer rounded-b-2xl"
-        onClick={() => setViewPaymentOption(true)}>
+      <div
+        className="flex justify-between items-center bg-gray-200 p-6 md:p-7 border-t border-gray-500 text-left w-full max-w-md cursor-pointer rounded-b-2xl"
+        onClick={() => setViewPaymentOption(true)}
+      >
         <span className="text-l font-bold text-gray-800">Payment methods</span>
         <ChevronRight className="w-5 h-5" />
       </div>
