@@ -116,12 +116,11 @@ export default function LoginPage() {
             </div>
 
             <div className="flex justify-end mt-2">
-              <a
-                href="/forgot-password"
+              <div
                 className="text-sm text-custom-brand hover:underline"
               >
                 Forgot password?
-              </a>
+              </div>
             </div>
             <div className="my-6">
               <div className="flex justify-center text-[#eb5757] text-sm">
