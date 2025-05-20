@@ -8,6 +8,7 @@ import CreateProfileBox from "../components/CreateDatingProfile";
 import FiltersBox from "../components/FiltersBox";
 import TaskCompletedBox from "../components/ProfileList";
 import WalletCard from "../components/WalletCard";
+import { getCookie } from '../lib/utils/cookie';
 
 export default function DatingPage() {
   const [filters, setFilters] = useState({
@@ -35,36 +36,39 @@ export default function DatingPage() {
 
   // Check profile status on mount
   useEffect(() => {
-  const checkProfileStatus = async () => {
-    const userId = localStorage.getItem('userId');
-    // console.log(userId);
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
+    const checkProfileStatus = async () => {
+      const userId = localStorage.getItem('userId');
+      const token = localStorage.getItem('token');
+      const accessToken = getCookie("accessToken");
+      console.log(token);
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
-    try {
-      const response = await fetch('http://localhost:5000/api/check-profile', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${userId}`, // 👈 pass userId in Authorization header
-        }
-      });
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/check-profile`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`, // 👈 pass userId in Authorization header
+            // 'credentials': "include"
+          }
+        });
 
-      if (!response.ok) throw new Error('Profile check failed');
+        if (!response.ok) throw new Error('Profile check failed');
 
-      const { exists } = await response.json();
-      setHasProfile(exists);
-    } catch (error) {
-      console.error("Profile check error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        const { exists } = await response.json();
+        setHasProfile(exists);
+      } catch (error) {
+        console.error("Profile check error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  checkProfileStatus();
-}, []);
+    checkProfileStatus();
+  }, []);
 
 
   const handleProfileComplete = () => {

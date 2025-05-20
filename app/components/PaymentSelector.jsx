@@ -1,5 +1,6 @@
 import { useState } from "react";
 import SuccessMessage from "./SuccessMessage";
+import { getCookie } from '../lib/utils/cookie';
 
 export default function PaymentSelector({ amount, onBack, onTopUpComplete }) {
   const [selected, setSelected] = useState("googlepay");
@@ -22,12 +23,14 @@ export default function PaymentSelector({ amount, onBack, onTopUpComplete }) {
   };
   const [newBalance, setNewBalance] = useState(0);
   const handleAddMoney = async () => {
-    const userId = localStorage.getItem("userId");
-    const res = await fetch("http://localhost:5000/api/wallet/topup", {
+    const accessToken = getCookie("accessToken");
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/wallet/topup`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': `Bearer ${accessToken}`, // 👈 pass userId in Authorization header
+      },
       body: JSON.stringify({
-        userId,
         amount: parseFloat(amount),
         method: selected,
       }),

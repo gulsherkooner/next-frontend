@@ -860,14 +860,14 @@ export default function MultiStepForm({ onComplete }) {
                 setIsValid(false);
             } else {
                 try {
-                    const token = localStorage.getItem('token');
+                    const token = getCookie("accessToken");
                     const userId = localStorage.getItem('userId'); // <-- get userId
                     const fullFormData = {
                         ...formData,
                         user_id: userId, // <-- include userId in body
                     };
                     console.log(fullFormData);
-                    const response = await fetch('http://localhost:5000/api/dating-profile', {
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-profile`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
