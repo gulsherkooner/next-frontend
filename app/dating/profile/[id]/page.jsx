@@ -8,6 +8,7 @@ import { LogOut, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 import PhotoGallery from '../../../components/PhotoGallery';
 import { useRouter } from 'next/navigation';
+import { getCookie } from '../../../lib/utils/cookie';
 
 const tagEmojis = {
   // Hobbies
@@ -117,7 +118,7 @@ export default function ProfilePage({ params }) {
     const fetchProfile = async () => {
       // console.log(profileId);
       try {
-        const res = await fetch(`http://localhost:5000/api/find-dating-profile/${id}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/find-dating-profile/${id}`);
         if (!res.ok) throw new Error("Failed to fetch profile");
         const data = await res.json();
         setProfile(data);
@@ -135,7 +136,7 @@ export default function ProfilePage({ params }) {
       const userId = localStorage.getItem("userId");
       if (!userId) return;
       try {
-        const res = await fetch(`http://localhost:5000/api/wallet/${userId}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/wallet/${userId}`);
         const data = await res.json();
         setUserBalance(data.balance);
       } catch (err) {
@@ -250,13 +251,15 @@ export default function ProfilePage({ params }) {
                   </button>
                   <button
                     onClick={async () => {
-                      const userId = localStorage.getItem("userId");
+                      const accessToken = getCookie("accessToken");
                       try {
-                        const res = await fetch("http://localhost:5000/api/wallet/deduct", {
+                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/wallet/deduct`, {
                           method: "POST",
-                          headers: { "Content-Type": "application/json" },
+                          headers: {
+                            "Content-Type": "application/json",
+                            'Authorization': `Bearer ${accessToken}`
+                          },
                           body: JSON.stringify({
-                            userId,
                             amount: 3,
                             purpose: `Chat Unlock @${profile.firstName}`,
                           }),

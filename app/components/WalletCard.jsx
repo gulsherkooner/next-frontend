@@ -10,7 +10,7 @@ export default function WalletCard() {
       if (!userId) return;
 
       try {
-        const res = await fetch(`http://localhost:5000/api/wallet/${userId}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/wallet/${userId}`);
         const data = await res.json();
         if (data?.balance !== undefined) {
           setBalance(parseFloat(data.balance));

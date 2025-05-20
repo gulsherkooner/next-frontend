@@ -133,7 +133,7 @@ function EditableTags({ title, items = [], sectionKey, onSave, userId, inlineEdi
 
     const saveTags = async () => {
         try {
-            const res = await fetch("http://localhost:5000/api/dating-profile", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-profile`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -211,7 +211,7 @@ function Section({ title, text, sectionKey, onSave, editingSection, setEditingSe
 
     const handleSave = async () => {
         try {
-            const res = await fetch("http://localhost:5000/api/dating-profile", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-profile`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -288,7 +288,7 @@ export default function ProfilePage() {
 
         const fetchProfile = async () => {
             try {
-                const res = await fetch(`http://localhost:5000/api/dating-profile/${userId}`);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-profile/${userId}`);
                 if (!res.ok) throw new Error('Failed to fetch profile');
                 const data = await res.json();
                 setProfile(data);

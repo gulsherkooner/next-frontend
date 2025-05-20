@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { getCookie } from '../lib/utils/cookie';
 
 const ProfileCard = ({ _id, firstName, describeSelf, likes }) => (
   <div className="bg-white rounded-xl max-w-full border border-gray-300 p-4 flex flex-col gap-2">
@@ -44,9 +45,13 @@ const ProfileList = ({
     const fetchProfiles = async () => {
       try {
         // const userId = localStorage.getItem('userId');
-        const res = await fetch("http://localhost:5000/api/matches", {
+        const accessToken = getCookie("accessToken");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/matches`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            'Authorization': `Bearer ${accessToken}`
+          },
           body: JSON.stringify({
             gender: genderFilter,
             ageRange: ageRangeFilter,
