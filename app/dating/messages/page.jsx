@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
-import { MessagesList } from '../../components/MessagesList';
-import { ChatView } from '../../components/ChatView';
+import { MessagesList } from '../../components/messsageComponents/MessagesList';
+import { ChatView } from '../../components/messsageComponents/ChatView';
 import Header from "../../components/Header";
 import Sidebar from "../../components/Sidebar";
 

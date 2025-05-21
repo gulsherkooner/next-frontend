@@ -6,7 +6,7 @@ import Sidebar from "../../components/Sidebar";
 import MobileNav from "../../components/MobileNav";
 import { Pencil, MoreHorizontal, Pin } from "lucide-react";
 import PostComposerModal from '../../components/Postcomposer';
-import MultiStepForm from '../../components/profileComponents/MultiStepWizard';
+import MultiStepForm from '../../components/datingComponents/MultiStepWizard';
 
 const tagEmojis = {
     // Hobbies
