@@ -6,7 +6,7 @@ import MobileNav from "../../../components/MobileNav";
 import { useIsMobile } from "../../../hooks/use-mobile";
 import { LogOut, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
-import PhotoGallery from '../../../components/PhotoGallery';
+import PhotoGallery from '../../../components/datingComponents/PhotoGallery';
 import { useRouter } from 'next/navigation';
 import { getCookie } from '../../../lib/utils/cookie';
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import SuccessMessage from "./SuccessMessage";
-import { getCookie } from '../lib/utils/cookie';
+import { getCookie } from '../../lib/utils/cookie';
 
 export default function PaymentSelector({ amount, onBack, onTopUpComplete }) {
   const [selected, setSelected] = useState("googlepay");

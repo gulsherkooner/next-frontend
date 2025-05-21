@@ -4,7 +4,7 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import MobileNav from "../components/MobileNav";
 import { useIsMobile } from "../hooks/use-mobile";
-import ProfileSuggestion from "../components/ProfileSuggestion";
+import ProfileSuggestion from "../components/datingComponents/ProfileSuggestion";
 
 import WalletBox from "../components/Walletbox";
 

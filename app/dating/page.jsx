@@ -4,10 +4,10 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import MobileNav from "../components/MobileNav";
 import { useIsMobile } from "../hooks/use-mobile";
-import CreateProfileBox from "../components/CreateDatingProfile";
-import FiltersBox from "../components/FiltersBox";
-import TaskCompletedBox from "../components/ProfileList";
-import WalletCard from "../components/WalletCard";
+import CreateProfileBox from "../components/datingComponents/CreateDatingProfile";
+import FiltersBox from "../components/datingComponents/FiltersBox";
+import TaskCompletedBox from "../components/datingComponents/ProfileList";
+import WalletCard from "../components/walletComponents/WalletCard";
 import { getCookie } from '../lib/utils/cookie';
 
 export default function DatingPage() {
