@@ -40,7 +40,7 @@ export default function DatingPage() {
       const userId = localStorage.getItem('userId');
       const token = localStorage.getItem('token');
       const accessToken = getCookie("accessToken");
-      console.log(token);
+      // console.log(token);
       if (!token) {
         setLoading(false);
         return;
