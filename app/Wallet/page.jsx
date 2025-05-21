@@ -6,7 +6,7 @@ import MobileNav from "../components/MobileNav";
 import { useIsMobile } from "../hooks/use-mobile";
 import ProfileSuggestion from "../components/ProfileSuggestion";
 
-import WalletBox from "../components/Walletbox";
+import WalletBox from "../components/walletComponents/Walletbox";
 
 export default function WalletPage() {
   const isMobile = useIsMobile();

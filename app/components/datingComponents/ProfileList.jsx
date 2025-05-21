@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { getCookie } from '../lib/utils/cookie';
+import { getCookie } from '../../lib/utils/cookie';
 
 const ProfileCard = ({ _id, firstName, describeSelf, likes }) => (
   <div className="bg-white rounded-xl max-w-full border border-gray-300 p-4 flex flex-col gap-2">

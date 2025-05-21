@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { Search } from "lucide-react";
-import { locationSuggestions, professionSuggestions } from '../features/suggestionsData';
-import { getCookie } from "../lib/utils/cookie";
+import { locationSuggestions, professionSuggestions } from '../../features/suggestionsData';
+import { getCookie } from "../../lib/utils/cookie";
 const FirstNameForm = ({ firstName, setFirstName, onValidation }) => {
     useEffect(() => {
         // Auto-validate when firstName changes
