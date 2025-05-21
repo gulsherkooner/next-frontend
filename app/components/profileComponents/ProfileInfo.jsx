@@ -6,12 +6,14 @@ import { useDispatch, useSelector } from "react-redux";
 import getTimeAgo from "../../lib/utils/getTimeAgo";
 import EditImage from "./EditImage";
 import {
+  fetchUserData,
   updateAccessToken,
   updateProfile,
 } from "../../features/auth/authSlice";
 import { getCookie } from "@/app/lib/utils/cookie";
+import { followUser, unfollowUser } from "../../features/sub/subslice";
 
-const ProfileInfo = ({ data, profile }) => {
+const ProfileInfo = ({ data, profile, isFollowing, setIsFollowing, fetchData }) => {
   const isMobile = useIsMobile();
   const dispatch = useDispatch();
   const [userData, setUserData] = useState({});
@@ -63,8 +65,20 @@ const ProfileInfo = ({ data, profile }) => {
   useEffect(() => {
     if (userData.profile_img_data || userData.banner_img_data) {
       dispatch(updateProfile(userData)).unwrap();
+      dispatch(fetchUserData());
     }
   }, [userData.profile_img_data, userData.banner_img_data]);
+
+  const handleFollow = () => {
+    dispatch(followUser(data.user_id));
+    fetchData(data.user_id);
+    setIsFollowing(true);
+  };
+  const handleUnfollow = () => {
+    dispatch(unfollowUser(data.user_id));
+    fetchData(data.user_id);
+    setIsFollowing(false);
+  };
 
   return (
     <div className="relative">
@@ -153,7 +167,7 @@ const ProfileInfo = ({ data, profile }) => {
                 <button
                   className={`${
                     isMobile ? "py-2 px-3" : "py-1 px-4"
-                  } rounded-full bg-gray-200 text-sm font-medium`}
+                  } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
                 >
                   {isMobile ? <Pencil size={16} /> : "Edit profile"}
                 </button>
@@ -165,7 +179,7 @@ const ProfileInfo = ({ data, profile }) => {
                   <div className="flex items-center justify-center">
                     <Plus size={16} />
                     {!isMobile && (
-                      <span className="ml-1 text-sm font-medium">
+                      <span className="ml-1 text-sm font-medium cursor-pointer">
                         Create story
                       </span>
                     )}
@@ -174,35 +188,36 @@ const ProfileInfo = ({ data, profile }) => {
                 <button
                   className={`${
                     isMobile ? "py-2 px-3" : "py-1 px-4"
-                  } rounded-full bg-gray-200 text-sm font-medium`}
+                  } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
                 >
                   {isMobile ? <BadgeCheck size={16} /> : "Create memberships"}
                 </button>
               </>
             ) : (
               <>
+                {isFollowing ? (
+                  <button
+                    className={`${
+                      isMobile ? "py-2 px-3" : "py-1 px-4"
+                    } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
+                    onClick={() => handleUnfollow()}
+                  >
+                    {isMobile ? <Pencil size={16} /> : "Following"}
+                  </button>
+                ) : (
+                  <button
+                    className={`${
+                      isMobile ? "py-2 px-3" : "py-1 px-4"
+                    } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
+                    onClick={() => handleFollow()}
+                  >
+                    {isMobile ? <Pencil size={16} /> : "Follow"}
+                  </button>
+                )}
                 <button
                   className={`${
                     isMobile ? "py-2 px-3" : "py-1 px-4"
-                  } rounded-full bg-gray-200 text-sm font-medium`}
-                >
-                  {isMobile ? <Pencil size={16} /> : "Follow"}
-                </button>
-                <button
-                  className={`px-3 ${
-                    isMobile ? "py-2" : "py-1"
-                  } rounded-full bg-white border border-gray-300`}
-                >
-                  <div className="flex items-center justify-center">
-                    {!isMobile && (
-                      <span className="ml-1 text-sm font-medium">Message</span>
-                    )}
-                  </div>
-                </button>
-                <button
-                  className={`${
-                    isMobile ? "py-2 px-3" : "py-1 px-4"
-                  } rounded-full bg-gray-200 text-sm font-medium`}
+                  } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
                 >
                   {isMobile ? <BadgeCheck size={16} /> : "Subscribe"}
                 </button>
@@ -253,11 +268,11 @@ const ProfileInfo = ({ data, profile }) => {
           {/* Followers */}
           <div className="flex space-x-4 mt-3 text-sm">
             <div>
-              <span className="font-bold">1220</span>{" "}
+              <span className="font-bold">{data?.followers}</span>{" "}
               <span className="text-gray-500">Followers</span>
             </div>
             <div>
-              <span className="font-bold">700</span>{" "}
+              <span className="font-bold">{data?.following}</span>{" "}
               <span className="text-gray-500">Following</span>
             </div>
           </div>

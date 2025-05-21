@@ -1,44 +1,63 @@
 "use client";
-import React from "react";
+
+import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useDispatch } from "react-redux";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import ProfileInfo from "../components/profileComponents/ProfileInfo";
 import ProfileContent from "../components/profileComponents/ProfileContent";
 import MobileNav from "../components/MobileNav";
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
-import { fetchUserData } from "../features/auth/authSlice";
+import { checkFollowUser } from "../features/sub/subslice";
 
 const UserProfile = () => {
-  const params = useParams();
-  const { user_id } = params;
+  const { user_id } = useParams();
   const dispatch = useDispatch();
-
   const [menu, setMenu] = useState(false);
-  const [data, setData] = useState();
+  const [data, setData] = useState(null);
+  const [userPosts, setUserPosts] = useState([]);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const apiGatewayUrl =
+    process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://localhost:3001";
 
+  // Fetch user data and posts
+  const fetchData = async (user_id) => {
+    try {
+      const fetchUserRes = await fetch(
+        `${apiGatewayUrl}/auth/user/${user_id}`,
+        { method: "GET", headers: { "Content-Type": "application/json" } }
+      );
+      const fetchPostRes = await fetch(
+        `${apiGatewayUrl}/posts/user/public/${user_id}`,
+        { method: "GET", headers: { "Content-Type": "application/json" } }
+      );
+
+      if (!fetchUserRes.ok) throw new Error("Failed to fetch user data.");
+      if (!fetchPostRes.ok) throw new Error("Failed to fetch user posts.");
+
+      const userData = await fetchUserRes.json();
+      const postsData = await fetchPostRes.json();
+
+      setData(userData?.user);
+      setUserPosts(postsData?.posts);
+    } catch (error) {
+      console.error("Error fetching data:", error.message);
+    }
+  };
+
+  // Use effect for initial data fetching
   useEffect(() => {
-    dispatch(fetchUserData(user_id));
-    const fetchUser = async () => {
-      try {
-        const apiGatewayUrl =
-          process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://localhost:3001";
-        const res = await fetch(`${apiGatewayUrl}/auth/user/${user_id}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-        const data = await res.json();
-        setData(data?.user);
-      } catch (error) {
-        console.error("no user data found:", error);
-      }
-    };
-    fetchUser();
-  }, []);
+    fetchData(user_id);
+  }, [user_id, apiGatewayUrl]);
 
-  const { userPosts } = useSelector((state) => state.posts);
+  // Use effect for checking follow status
+  useEffect(() => {
+    const fetchFollow = async () => {
+      const follow = await dispatch(checkFollowUser(user_id));
+      setIsFollowing(follow?.payload?.isFollowing);
+    };
+    fetchFollow();
+  }, [user_id, dispatch]);
 
   return (
     <div className="bg-gray-100 min-h-screen pb-14 md:pb-0 w-full">
@@ -46,7 +65,13 @@ const UserProfile = () => {
       <Sidebar setMenu={setMenu} menu={menu} />
       {/* Main content column */}
       <div className="pt-14 pr-2 md:pl-58 md:flex-row flex-1">
-        <ProfileInfo data={data} profile={false} />
+        <ProfileInfo
+          data={data}
+          profile={false}
+          isFollowing={isFollowing}
+          setIsFollowing={setIsFollowing}
+          fetchData={fetchData} // Now `fetchData` is properly passed
+        />
         <ProfileContent userPosts={userPosts} />
       </div>
       <MobileNav />
