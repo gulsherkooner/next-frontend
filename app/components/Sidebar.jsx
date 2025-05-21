@@ -94,7 +94,7 @@ const Sidebar = ({ menu, setMenu }) => {
       {/* Overlay for mobile view when sidebar is open */}
       {isMobile && menu && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-[5]" 
+          className="fixed inset-0 bg-black opacity-50 z-[5]" 
           onClick={() => setMenu(false)}
         />
       )}
