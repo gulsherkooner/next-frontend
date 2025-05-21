@@ -89,8 +89,8 @@ export default function DatingPage() {
       <Header />
       <Sidebar />
 
-      <div className="pt-16 px-4 flex flex-col lg:flex-row justify-center gap-6">
-        <main className="flex-1 max-w-full md:max-w-sm xl:max-w-2xl 2xl:max-w-2xl mx-auto p-2 sm:p-4">
+      <div className="pt-16 px-4 flex flex-col lg:flex-row justify-center gap-6 md:pl-56">
+        <main className="flex-1 max-w-full md:max-w-2xl xl:max-w-2xl 2xl:max-w-2xl mx-auto p-2 sm:p-4">
           {!hasProfile ? (
             <CreateProfileBox onComplete={handleProfileComplete} />
           ) : (
