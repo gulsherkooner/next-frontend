@@ -80,7 +80,7 @@ const ProfileList = ({
   ]);
 
   return (
-    <div className="max-w-max mx-auto p-4">
+    <div className="max-w-max mx-5 p-4">
       {/* Filters UI Display */}
       <div className="flex flex-wrap gap-2 mb-4">
         {genderFilter && genderFilter !== "Both" && (
