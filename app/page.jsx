@@ -26,8 +26,8 @@ export default function Home() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(fetchPublicPosts());
     dispatch(fetchUserData());
+    dispatch(fetchPublicPosts());
   }, [dispatch]);
 
   useEffect(() => {
