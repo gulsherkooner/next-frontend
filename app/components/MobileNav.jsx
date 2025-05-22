@@ -35,7 +35,7 @@ const MobileNav = () => {
         <Heart size={27} />
       </Link>
       <Link
-        href="/"
+        href="/Wallet"
         className="flex flex-col items-center justify-center text-gray-900 w-1/5"
       >
         <Wallet size={27} />

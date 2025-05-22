@@ -25,6 +25,9 @@ export default function DatingPage() {
   const [hasProfile, setHasProfile] = useState(false);
   const [loading, setLoading] = useState(true);
   const isMobile = useIsMobile();
+  const [showFilters, setShowFilters] = useState(false);
+  const [showSignUpPrompt, setShowSignUpPrompt] = useState(false); // controls modal
+  const [forceShowCreateForm, setForceShowCreateForm] = useState(false); // shows form in main content
 
   // Read URL param
   useEffect(() => {
@@ -87,12 +90,74 @@ export default function DatingPage() {
   return (
     <div className="bg-gray-100 min-h-screen w-full pb-14 md:pb-0">
       <Header />
+
       <Sidebar />
 
       <div className="pt-16 px-4 flex flex-col lg:flex-row justify-center gap-6 md:pl-56">
         <main className="flex-1 max-w-full md:max-w-2xl xl:max-w-2xl 2xl:max-w-2xl mx-auto p-2 sm:p-4">
-          {!hasProfile ? (
-            <CreateProfileBox onComplete={handleProfileComplete} />
+          {hasProfile && isMobile && (
+            <>
+              {/* Filters Button - Top Left under Header */}
+              <div className="pt-2 px-4 md:hidden">
+                <button
+                  onClick={() => setShowFilters(true)}
+                  className="flex items-center space-x-1 px-3 py-1 text-sm bg-gray-200 text-gray-800 rounded-full shadow"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                      d="M3 4a1 1 0 012 0h14a1 1 0 110 2H5a1 1 0 01-2 0zM3 12a1 1 0 012 0h10a1 1 0 110 2H5a1 1 0 01-2 0zM3 20a1 1 0 012 0h6a1 1 0 110 2H5a1 1 0 01-2 0z" />
+                  </svg>
+                  <span>Filters</span>
+                </button>
+              </div>
+
+              {/* Mobile Sidebar for Filters */}
+              <div
+                className={`fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-end transition-opacity duration-300 ${showFilters ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                  }`}
+                onClick={() => setShowFilters(false)}
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className={`bg-white w-4/5 max-w-sm h-full p-4 overflow-auto shadow-lg transform transition-transform duration-300 ${showFilters ? 'translate-x-0' : 'translate-x-full'
+                    }`}
+                >
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-bold">Filters</h2>
+                    <button
+                      onClick={() => setShowFilters(false)}
+                      className="text-gray-600 text-xl font-bold"
+                    >
+                      &times;
+                    </button>
+                  </div>
+
+                  <FiltersBox
+                    gender={filters.gender}
+                    setGender={(val) => setFilters({ ...filters, gender: val })}
+                    ageRange={filters.ageRange}
+                    setAgeRange={(val) => setFilters({ ...filters, ageRange: val })}
+                    distance={filters.distance}
+                    setDistance={(val) => setFilters({ ...filters, distance: val })}
+                    selectedLocations={filters.locations}
+                    setSelectedLocations={(val) => setFilters({ ...filters, locations: val })}
+                    selectedLanguages={filters.languages}
+                    setSelectedLanguages={(val) => setFilters({ ...filters, languages: val })}
+                    lookingFor={filters.lookingFor}
+                    setLookingFor={(val) => setFilters({ ...filters, lookingFor: val })}
+                    likes={filters.likes}
+                    setLikes={(val) => setFilters({ ...filters, likes: val })}
+                  />
+                </div>
+              </div>
+            </>
+          )}
+          {forceShowCreateForm ? (
+            <CreateProfileBox onComplete={() => {
+              handleProfileComplete();
+              setForceShowCreateForm(false); // hide the form after submission
+            }} />
           ) : (
             <TaskCompletedBox
               genderFilter={filters.gender}
@@ -101,8 +166,11 @@ export default function DatingPage() {
               languageFilters={filters.languages}
               lookingForFilters={filters.lookingFor}
               likesFilters={filters.likes}
+              hasProfile={hasProfile}
+              onViewRestrictedProfile={() => setShowSignUpPrompt(true)}
             />
-          )}
+          )
+          }
         </main>
 
         {/* Sidebar - only shown when profile exists and not on mobile */}
@@ -127,8 +195,44 @@ export default function DatingPage() {
             />
           </aside>
         )}
+        {/* Step 1 & 2: Sign Up modal + MultiStepWizard handled by CreateProfileBox */}
+        {showSignUpPrompt && (
+          <div className="fixed inset-0 z-50 bg-opacity-50 backdrop-blur-sm flex items-center justify-center">
+            <div className="bg-white max-w-md w-full rounded-2xl p-6 sm:p-8 shadow-lg text-center relative">
+              <button
+                onClick={() => setShowSignUpPrompt(false)}
+                className="absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-xl"
+              >
+                &times;
+              </button>
+              <div className="flex flex-col items-center">
+                <div className="mb-4">
+                  <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-2xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none"
+                      viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                </div>
+                <h2 className="text-lg font-semibold mb-2">Create your profile</h2>
+                <p className="text-gray-500 text-sm mb-5">
+                  In order to access the complete profile of this user, please create and set up your own dating profile first.
+                </p>
+                <button
+                  onClick={() => {
+                    setShowSignUpPrompt(false);
+                    setForceShowCreateForm(true); // 👈 show form in main content
+                  }}
+                  className="bg-blue-600 text-white px-5 py-2 rounded-full hover:bg-blue-700 transition-all"
+                >
+                  Sign up
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
       <MobileNav />
     </div>
   );
