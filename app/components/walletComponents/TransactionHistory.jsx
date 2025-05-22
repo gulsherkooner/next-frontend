@@ -1,6 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { ArrowLeft } from "lucide-react";
-import { use } from "react";
+import dayjs from "dayjs";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 
 const TransactionHistory = ({ onBack }) => {
   const [transactions, setTransactions] = useState([]);
@@ -8,7 +13,6 @@ const TransactionHistory = ({ onBack }) => {
   useEffect(() => {
     const fetchTxns = async () => {
       const userId = localStorage.getItem("userId");
-      // console.log(userId);
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/wallet/${userId}`);
       const data = await res.json();
       if (data?.transactions) {
@@ -18,6 +22,35 @@ const TransactionHistory = ({ onBack }) => {
     };
     fetchTxns();
   }, []);
+
+  const groupedTransactions = useMemo(() => {
+    const today = dayjs();
+    const yesterday = today.subtract(1, "day");
+    const startOfWeek = today.startOf("week");
+
+    const groups = {
+      Today: [],
+      Yesterday: [],
+      "This Week": [],
+      Older: [],
+    };
+
+    transactions.forEach((txn) => {
+      const txnDate = dayjs(txn.date);
+
+      if (txnDate.isSame(today, "day")) {
+        groups.Today.push(txn);
+      } else if (txnDate.isSame(yesterday, "day")) {
+        groups.Yesterday.push(txn);
+      } else if (txnDate.isSameOrAfter(startOfWeek)) {
+        groups["This Week"].push(txn);
+      } else {
+        groups.Older.push(txn);
+      }
+    });
+
+    return groups;
+  }, [transactions]);
 
   const renderTransactions = (txns) =>
     txns.map((txn, idx) => (
@@ -45,9 +78,17 @@ const TransactionHistory = ({ onBack }) => {
     <div className="flex-1 bg-white rounded-lg px-6 py-4 shadow w-full max-w-2xl">
       <div className="flex items-center gap-2 mb-4">
         <ArrowLeft className="w-5 h-5 cursor-pointer" onClick={onBack} />
-        <h2 className="text-xl font-bold text-gray-800">Transaction history</h2>
+        <h2 className="text-xl font-bold text-gray-800">Transaction History</h2>
       </div>
-      <div>{renderTransactions(transactions)}</div>
+
+      {Object.entries(groupedTransactions).map(([label, txns]) =>
+        txns.length ? (
+          <div key={label} className="mb-4">
+            <h3 className="text-md font-semibold text-gray-600 mb-2">{label}</h3>
+            {renderTransactions(txns)}
+          </div>
+        ) : null
+      )}
     </div>
   );
 };

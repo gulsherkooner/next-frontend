@@ -155,8 +155,22 @@ export default function ProfilePage({ params }) {
       <div className="md:ml-64 pt-16 px-4 lg:px-8">
         {/* Banner */}
         <div className="relative bg-gray-300 h-52 w-full rounded-xl">
+          <img
+            src={profile.banner_img_url[0]}
+            alt="Banner"
+            className="w-full h-full object-cover rounded-xl"
+            onClick={() => setShowFullBanner(true)}
+
+          />
           <div className="absolute left-6 bottom-[-40px]">
-            <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white" />
+            <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white" >
+              <img
+                src={profile.profile_img_url[0]}
+                alt="Banner"
+                className="w-full h-full rounded-full object-cover cursor-pointer"
+                onClick={() => setShowFullBanner(true)}
+
+              /></div>
           </div>
         </div>
 
