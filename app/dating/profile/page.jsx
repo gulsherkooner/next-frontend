@@ -5,8 +5,10 @@ import Header from "../../components/Header";
 import Sidebar from "../../components/Sidebar";
 import MobileNav from "../../components/MobileNav";
 import { Pencil, MoreHorizontal, Pin } from "lucide-react";
-import PostComposerModal from '../../components/Postcomposer';
+import PostComposerModal from '../../components/datingComponents/Postcomposer';
 import MultiStepForm from '../../components/datingComponents/MultiStepWizard';
+import EditImage from "../../components/profileComponents/EditImage";
+import { getCookie } from '../../lib/utils/cookie'; // if not already imported
 
 const tagEmojis = {
     // Hobbies
@@ -131,12 +133,16 @@ function EditableTags({ title, items = [], sectionKey, onSave, userId, inlineEdi
         if (!inlineEditEnabled) setEditing(false);
     }, [inlineEditEnabled]);
 
+
     const saveTags = async () => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-profile`, {
+            const accessToken = getCookie("accessToken");
+            // const userId = getCookie("userId");
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-profile/${userId}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
+                    "Authorization": `Bearer ${accessToken}`,
                 },
                 body: JSON.stringify({ [sectionKey]: tempTags }),
             });
@@ -150,6 +156,8 @@ function EditableTags({ title, items = [], sectionKey, onSave, userId, inlineEdi
             alert("Error saving tags");
         }
     };
+
+
 
     const removeTag = (tag) => setTempTags(tempTags.filter(t => t !== tag));
     const addTag = () => {
@@ -211,14 +219,19 @@ function Section({ title, text, sectionKey, onSave, editingSection, setEditingSe
 
     const handleSave = async () => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-profile`, {
+            const accessToken = getCookie("accessToken");
+            // const userId = getCookie("userId");
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-profile/${userId}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
+                    "Authorization": `Bearer ${accessToken}`,
                 },
                 body: JSON.stringify({ [sectionKey]: tempText }),
             });
+
             if (!res.ok) throw new Error("Failed to update section");
+
             onSave(tempText);
             setEditingSection(null);
         } catch (err) {
@@ -226,6 +239,8 @@ function Section({ title, text, sectionKey, onSave, editingSection, setEditingSe
             alert("Error saving section.");
         }
     };
+
+
 
     return (
         <div>
@@ -257,11 +272,28 @@ function Section({ title, text, sectionKey, onSave, editingSection, setEditingSe
     );
 }
 
-function PhotoGallery() {
+function PhotoGallery({ posts = [] }) {
+    console.log(posts);
+    const getImageUrl = (imagePath) => {
+        if (imagePath.includes("dropbox.com")) {
+            // Replace the domain and remove query parameters
+            return imagePath
+                .replace("www.dropbox.com", "dl.dropboxusercontent.com")
+                .split("?")[0]; // Remove all query params
+        }
+        return imagePath;
+    };
+
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="relative aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
+            {posts.map((post, i) => (
+                <div key={i} className="relative aspect-square bg-gray-200 rounded-lg overflow-hidden">
+                    <img
+                        src={getImageUrl(post.image)}
+                        alt={post.name}
+                        className="w-full h-full object-cover"
+                        onError={() => console.error("Image failed to load:", getImageUrl(post.image))}
+                    />
                     {i <= 2 && (
                         <Pin className="absolute top-4 right-4 text-gray-400 w-5 h-5 rotate-45 fill-black" />
                     )}
@@ -281,6 +313,13 @@ export default function ProfilePage() {
     const [editingSection, setEditingSection] = useState(null);
     const [inlineEditEnabled, setInlineEditEnabled] = useState(false);
     const userId = typeof window !== "undefined" && localStorage.getItem("userId");
+    // Add these state variables to your ProfilePage component
+    const [imgBox, setImgBox] = useState(false);
+    const [bannerBox, setBannerBox] = useState(false);
+    const [editingImageType, setEditingImageType] = useState(null); // 'profile' or 'banner'
+    const [showFullImage, setShowFullImage] = useState(false);
+    const [showFullBanner, setShowFullBanner] = useState(false);
+    const [userPosts, setUserPosts] = useState([]);
 
     useEffect(() => {
         if (!userId) return;
@@ -303,33 +342,100 @@ export default function ProfilePage() {
         fetchProfile();
     }, [userId]);
 
+
+    useEffect(() => {
+        const fetchUserPosts = async () => {
+            try {
+                const accessToken = getCookie("accessToken");
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-posts/me`, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`
+                    }
+                });
+
+                if (!res.ok) throw new Error("Failed to fetch user posts");
+
+                const data = await res.json();
+                setUserPosts(data);
+            } catch (error) {
+                console.error("Error fetching posts:", error);
+            }
+        };
+
+        if (userId) fetchUserPosts();
+    }, [userId]);
+
     if (loading) return <div className="text-center p-10">Loading profile...</div>;
     if (!profile) return <div className="text-center p-10 text-red-600">Profile not found</div>;
-
-    if (isEditing) {
-        return (
-            <div className="bg-gray-100 min-h-screen w-full pb-14 md:pb-0">
-                <Header />
-                <Sidebar />
-                <div className="md:ml-64 pt-16 px-4 lg:px-8">
-                    <MultiStepForm
-                        onComplete={(updatedProfile) => {
-                            setProfile(updatedProfile);
-                            setIsEditing(false);
-                        }}
-                        initialData={profile}
-                    />
-                </div>
-                <MobileNav />
-            </div>
-        );
-    }
 
     const basics = [
         profile.height ? `${profile.height} cm` : "Height not specified",
         profile.age,
         ...(profile.locations || [])
     ];
+
+    // Add this function to your ProfilePage component
+    const handleImageUpdate = async (postFile) => {
+        try {
+            const MAX_SIZE_MB = 5;
+            const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
+
+            if (!ALLOWED_TYPES.includes(postFile.type)) {
+                alert("Only JPEG or PNG images are allowed.");
+                return;
+            }
+
+            if (postFile.size > MAX_SIZE_MB * 1024 * 1024) {
+                alert(`Image must be less than ${MAX_SIZE_MB}MB.`);
+                return;
+            }
+
+            const accessToken = getCookie("accessToken");
+            let base64Blob = postFile.blob;
+            if (typeof base64Blob === 'string' && base64Blob.startsWith("data:")) {
+                base64Blob = base64Blob.split(",")[1];
+            }
+            if (!['image/jpeg', 'image/png'].includes(postFile.type)) {
+                alert("Only JPEG or PNG images are allowed.");
+                return;
+            }
+
+            const imageData = {
+                blob: postFile.blob, // already base64 (no need to re-encode)
+                name: `dating-${editingImageType}-${Date.now()}.jpg`,
+                type: postFile.type || 'image/jpeg',
+                size: postFile.size,
+                lastModified: postFile.lastModified || Date.now()
+            };
+
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-profile/${userId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({
+                    [`${editingImageType}_img_data`]: imageData
+                }),
+            });
+
+            if (!res.ok) throw new Error('Upload failed');
+
+            const data = await res.json();
+
+            if (editingImageType === 'profile') {
+                setProfile({ ...profile, profile_img_url: data.profile_img_url });
+            } else {
+                setProfile({ ...profile, banner_img_url: data.banner_img_url });
+            }
+
+            setImgBox(false);
+            setBannerBox(false);
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Failed to upload image');
+        }
+    };
 
     return (
         <div className="bg-gray-100 min-h-screen w-full pb-14 md:pb-0">
@@ -338,16 +444,53 @@ export default function ProfilePage() {
 
             <div className="md:ml-64 pt-16 px-4 lg:px-8">
                 {/* Banner & Profile Pic */}
+                {/* Banner & Profile Pic */}
                 <div className="relative bg-gray-300 h-52 w-full rounded-xl">
-                    <div className="w-5 h-5 rounded-full border-5 border-white absolute top-4 right-4 bg-white cursor-pointer"
-                        onClick={() => setIsEditing(true)}>
-                        <Pencil className="w-3 h-3 fill-gray-200" />
-                    </div>
+                    {profile.banner_img_url?.[0] ? (
+                        <img
+                            src={profile.banner_img_url[0]}
+                            alt="Banner"
+                            className="w-full h-full object-cover rounded-xl"
+                            onClick={() => setShowFullBanner(true)}
+
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-gray-300"></div>
+                    )}
+                    {inlineEditEnabled && (
+                        <div className="absolute top-4 right-4">
+                            <button
+                                onClick={() => {
+                                    setBannerBox(true);
+                                    setEditingImageType('banner');
+                                }}
+                                className="w-5 h-5 rounded-full border-5 border-white bg-white cursor-pointer flex items-center justify-center"
+                            >
+                                <Pencil className="w-3 h-3 fill-gray-200" />
+                            </button>
+                        </div>
+                    )}
                     <div className="absolute left-6 bottom-[-40px]">
-                        <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white" />
-                        <div className="w-5 h-5 rounded-full border-5 border-white absolute top-2 right-1 bg-white cursor-pointer"
-                            onClick={() => setIsEditing(true)}>
-                            <Pencil className="w-3 h-3 fill-gray-200" />
+                        <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white relative">
+                            {profile.profile_img_url?.[0] && (
+                                <img
+                                    src={profile.profile_img_url[0]}
+                                    alt="Profile"
+                                    className="w-full h-full rounded-full object-cover cursor-pointer"
+                                    onClick={() => setShowFullImage(true)}
+                                />
+                            )}
+                            {inlineEditEnabled && (
+                                <button
+                                    onClick={() => {
+                                        setImgBox(true);
+                                        setEditingImageType('profile');
+                                    }}
+                                    className="w-5 h-5 rounded-full border-5 border-white absolute top-2 right-1 bg-white cursor-pointer flex items-center justify-center"
+                                >
+                                    <Pencil className="w-3 h-3 fill-gray-200" />
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -396,7 +539,7 @@ export default function ProfilePage() {
                                 inlineEditEnabled={inlineEditEnabled}
                                 onSave={(updated) => setProfile({ ...profile, basics: updated })}
                             />
-                            
+
                             <EditableTags
                                 title="Likes"
                                 items={profile.likes || []}
@@ -454,15 +597,63 @@ export default function ProfilePage() {
                                 userId={userId}
                                 inlineEditEnabled={inlineEditEnabled}
                             />
-                            <PhotoGallery />
+                            <PhotoGallery posts={userPosts} />
                         </div>
                     </div>
 
 
                 </div>
             </div>
-            <PostComposerModal showPostModal={showPostModal} setShowPostModal={setShowPostModal} />
+            <PostComposerModal showPostModal={showPostModal} setShowPostModal={setShowPostModal} username={profile.firstName} />
             <MobileNav />
+            {imgBox && (
+                <EditImage
+                    setImgBox={setImgBox}
+                    imgBox={imgBox}
+                    onSave={handleImageUpdate}
+                    w={1}
+                    h={1}
+                />
+            )}
+
+            {bannerBox && (
+                <EditImage
+                    setImgBox={setBannerBox}
+                    imgBox={bannerBox}
+                    onSave={handleImageUpdate}
+                    w={16}
+                    h={9}
+                />
+            )}
+            {showFullImage && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm cursor-pointer"
+                    onClick={() => setShowFullImage(false)}
+                >
+                    <div className="animate-pop rounded-xl shadow-2xl p-2 bg-white/5">
+                        <img
+                            src={profile.profile_img_url[0]}
+                            alt="Full Profile"
+                            className="max-w-[70vw] max-h-[70vh] rounded-lg object-contain pointer-events-none"
+                        />
+                    </div>
+                </div>
+            )}
+
+            {showFullBanner && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm cursor-pointer"
+                    onClick={() => setShowFullBanner(false)}
+                >
+                    <div className="animate-pop p-2 bg-white/5 rounded-xl shadow-2xl max-w-[95vw] max-h-[80vh]">
+                        <img
+                            src={profile.banner_img_url[0]}
+                            alt="Full Banner"
+                            className="w-full h-auto rounded-lg object-contain pointer-events-none"
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
