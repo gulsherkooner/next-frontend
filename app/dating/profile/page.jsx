@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState ,useRef} from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Header from "../../components/Header";
 import Sidebar from "../../components/Sidebar";
@@ -9,8 +9,7 @@ import PostComposerModal from '../../components/datingComponents/Postcomposer';
 import MultiStepForm from '../../components/datingComponents/MultiStepWizard';
 import EditImage from "../../components/profileComponents/EditImage";
 import { getCookie } from '../../lib/utils/cookie'; // if not already imported
-import { motion } from "framer-motion";
-
+import { motion, AnimatePresence } from "framer-motion";
 const tagEmojis = {
     // Hobbies
     "Painting": "🖌️",
@@ -405,7 +404,7 @@ export default function ProfilePage() {
     const [showFullImage, setShowFullImage] = useState(false);
     const [showFullBanner, setShowFullBanner] = useState(false);
     const [userPosts, setUserPosts] = useState([]);
-
+    const [activeTab, setActiveTab] = useState("posts");
     useEffect(() => {
         if (!userId) return;
         setLoading(true);
@@ -606,7 +605,111 @@ export default function ProfilePage() {
                     </div>
 
                     <p className="text-gray-700 mb-6">{profile.gender?.join(', ')} • {profile.interestedIn?.join(', ')}</p>
-                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 border-t-1">
+                    <div className="md:hidden">
+                        <div className="flex justify-around mt-6 mb-4 border-b border-gray-300">
+                            {["posts", "tags", "about"].map((tab) => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setActiveTab(tab)}
+                                    className={`pb-2 px-2 text-sm font-medium ${activeTab === tab ? "border-b-2 border-black text-black" : "text-gray-500"}`}
+                                >
+                                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                </button>
+                            ))}
+                        </div>
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={activeTab}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.3 }}
+                                className="space-y-4 mt-4"
+                            >
+                                {activeTab === "posts" && <PhotoGallery posts={userPosts} />}
+                                {activeTab === "tags" && (
+                                    <>
+                                        <EditableTags
+                                            title="Looking for"
+                                            items={profile.lookingFor || []}
+                                            sectionKey="lookingFor"
+                                            userId={userId}
+                                            inlineEditEnabled={inlineEditEnabled}
+                                            onSave={(updated) => setProfile({ ...profile, lookingFor: updated })}
+                                        />
+                                        <EditableTags
+                                            title="My Basics"
+                                            items={profile.lookingFor || []}
+                                            sectionKey="basics"
+                                            userId={userId}
+                                            inlineEditEnabled={inlineEditEnabled}
+                                            onSave={(updated) => setProfile({ ...profile, basics: updated })}
+                                        />
+
+                                        <EditableTags
+                                            title="Likes"
+                                            items={profile.likes || []}
+                                            sectionKey="likes"
+                                            userId={userId}
+                                            inlineEditEnabled={inlineEditEnabled}
+                                            onSave={(updated) => setProfile({ ...profile, likes: updated })}
+                                        />
+                                        <EditableTags
+                                            title="Languages"
+                                            items={profile.languages || []}
+                                            sectionKey="languages"
+                                            userId={userId}
+                                            inlineEditEnabled={inlineEditEnabled}
+                                            onSave={(updated) => setProfile({ ...profile, languages: updated })}
+                                        />
+                                        <EditableTags
+                                            title="Education"
+                                            items={profile.professions || []}
+                                            sectionKey="professions"
+                                            userId={userId}
+                                            inlineEditEnabled={inlineEditEnabled}
+                                            onSave={(updated) => setProfile({ ...profile, professions: updated })}
+                                        />
+                                    </>
+                                )}
+                                {activeTab === "about" && (
+                                    <>
+                                        <Section
+                                            title="About Me"
+                                            text={profile.describeSelf}
+                                            sectionKey="describeSelf"
+                                            editingSection={editingSection}
+                                            setEditingSection={setEditingSection}
+                                            onSave={(val) => setProfile({ ...profile, describeSelf: val })}
+                                            userId={userId}
+                                            inlineEditEnabled={inlineEditEnabled}
+                                        />
+                                        <Section
+                                            title="My Ideal Date"
+                                            text={profile.idealDate}
+                                            sectionKey="idealDate"
+                                            editingSection={editingSection}
+                                            setEditingSection={setEditingSection}
+                                            onSave={(val) => setProfile({ ...profile, idealDate: val })}
+                                            userId={userId}
+                                            inlineEditEnabled={inlineEditEnabled}
+                                        />
+                                        <Section
+                                            title="What I Bring to The Table"
+                                            text={profile.greatPartner}
+                                            sectionKey="greatPartner"
+                                            editingSection={editingSection}
+                                            setEditingSection={setEditingSection}
+                                            onSave={(val) => setProfile({ ...profile, greatPartner: val })}
+                                            userId={userId}
+                                            inlineEditEnabled={inlineEditEnabled}
+                                        />
+                                    </>
+                                )}
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+                    <div className="hidden md:grid grid-cols-1 lg:grid-cols-4 gap-6 border-t-1">
                         <div className="space-y-4 mt-5">
                             <EditableTags
                                 title="Looking for"

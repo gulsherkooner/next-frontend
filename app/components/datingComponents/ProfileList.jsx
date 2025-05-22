@@ -3,7 +3,8 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { getCookie } from '../../lib/utils/cookie';
 
-const ProfileCard = ({ _id, firstName, describeSelf, likes, banner_img_url, profile_img_url }) => (
+const ProfileCard = ({ _id, firstName, describeSelf, likes, banner_img_url, profile_img_url, hasProfile,
+  onViewRestrictedProfile, }) => (
   <div className="bg-white rounded-xl max-w-full border border-gray-300 p-4 flex flex-col gap-2">
     <div className="h-24 bg-gray-200 rounded-md mb-2">
       <img
@@ -38,7 +39,17 @@ const ProfileCard = ({ _id, firstName, describeSelf, likes, banner_img_url, prof
       )}
     </div>
     <Link href={`/dating/profile/${_id}`}>
-      <div className="flex items-center text-sm font-medium text-black mt-2 hover:underline cursor-pointer">
+      <div
+        className="flex items-center text-sm font-medium text-black mt-2 hover:underline cursor-pointer"
+        onClick={(e) => {
+          e.preventDefault();
+          if (!hasProfile) {
+            onViewRestrictedProfile();
+          } else {
+            window.location.href = `/dating/profile/${_id}`;
+          }
+        }}
+      >
         View profile <ArrowRight className="ml-1 w-4 h-4" />
       </div>
     </Link>
@@ -53,6 +64,8 @@ const ProfileList = ({
   languageFilters = [],
   lookingForFilters,
   likesFilters = [],
+  hasProfile,
+  onViewRestrictedProfile,
 }) => {
   const [profiles, setProfiles] = useState([]);
 
@@ -123,7 +136,8 @@ const ProfileList = ({
       {/* Profiles List */}
       <div className="flex flex-col gap-4">
         {profiles.length > 0 ? (
-          profiles.map((profile) => <ProfileCard key={profile._id} {...profile} />)
+          profiles.map((profile) => <ProfileCard key={profile._id} {...profile} hasProfile={hasProfile}
+            onViewRestrictedProfile={onViewRestrictedProfile} />)
         ) : (
           <div className="text-center py-8 text-gray-500">
             No profiles match your current filters

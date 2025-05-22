@@ -9,6 +9,7 @@ import Link from "next/link";
 import PhotoGallery from '../../../components/datingComponents/PhotoGallery';
 import { useRouter } from 'next/navigation';
 import { getCookie } from '../../../lib/utils/cookie';
+import { AnimatePresence, motion } from "framer-motion";
 
 const tagEmojis = {
   // Hobbies
@@ -113,6 +114,8 @@ export default function ProfilePage({ params }) {
   const [showChatModal, setShowChatModal] = useState(false);
   const [userBalance, setUserBalance] = useState(null);
   const requiredBalance = 3.0;
+  const [activeTab, setActiveTab] = useState("posts");
+
   // console.log(params.id);
   useEffect(() => {
     const fetchProfile = async () => {
@@ -198,23 +201,75 @@ export default function ProfilePage({ params }) {
           </div>
 
           <p className="text-gray-700 mb-6">{profile.describeSelf}</p>
-
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 border-t-2">
-            <div className="space-y-4 mt-5">
-              <Card title="Looking for" items={[profile.lookingFor]} />
-              <Card title="My Basics" items={[profile.gender, profile.age, profile.height]} />
-              <Card title="Likes" items={profile.likes} />
-              <Card title="Languages" items={profile.languages} />
-              <Card title="Education" items={profile.professions} />
+          {/* Mobile Tabs */}
+          {isMobile && (
+            <div className="flex justify-around mt-6 mb-4 border-b border-gray-300 md:hidden">
+              {["posts", "tags", "about"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`pb-2 px-2 text-sm font-medium ${activeTab === tab ? "border-b-2 border-black text-black" : "text-gray-500"
+                    }`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1).replace("-", " ")}
+                </button>
+              ))}
             </div>
+          )}
 
-            <div className="lg:col-span-3 space-y-6 mt-5">
-              <Section title="About Me" text={profile.describeSelf} />
-              <Section title="My Ideal Date" text={profile.idealDate} />
-              <Section title="What I Bring to The Table" text={profile.greatPartner} />
-              <PhotoGallery profile={{ name: profile.name }} />
+          {/* Desktop: full view */}
+          {!isMobile && (
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 border-t-2">
+              <div className="space-y-4 mt-5">
+                <Card title="Looking for" items={[profile.lookingFor]} />
+                <Card title="My Basics" items={[profile.gender, profile.age, profile.height]} />
+                <Card title="Likes" items={profile.likes} />
+                <Card title="Languages" items={profile.languages} />
+                <Card title="Education" items={profile.professions} />
+              </div>
+              <div className="lg:col-span-3 space-y-6 mt-5">
+                <Section title="About Me" text={profile.describeSelf} />
+                <Section title="My Ideal Date" text={profile.idealDate} />
+                <Section title="What I Bring to The Table" text={profile.greatPartner} />
+                <PhotoGallery profile={{ name: profile.name }} />
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Mobile: Tabbed view */}
+          {isMobile && (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                className="mt-6 space-y-4"
+              >
+                {activeTab === "posts" && (
+                  <PhotoGallery profile={{ name: profile.name }} />
+                )}
+                {activeTab === "tags" && (
+                  <>
+                    <Card title="Looking for" items={[profile.lookingFor]} />
+                    <Card title="My Basics" items={[profile.gender, profile.age, profile.height]} />
+                    <Card title="Likes" items={profile.likes} />
+                    <Card title="Languages" items={profile.languages} />
+                    <Card title="Education" items={profile.professions} />
+                  </>
+                )}
+                {activeTab === "about" && (
+                  <>
+                    <Section title="About Me" text={profile.describeSelf} />
+                    <Section title="My Ideal Date" text={profile.idealDate} />
+                    <Section title="What I Bring to The Table" text={profile.greatPartner} />
+                  </>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          )}
+
         </div>
       </div>
 
