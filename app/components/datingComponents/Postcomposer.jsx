@@ -1,17 +1,22 @@
 import React, { useState } from 'react';
-
-export default function PostComposerModal({ showPostModal, setShowPostModal }) {
+import { getCookie } from '../../lib/utils/cookie';
+export default function PostComposerModal({ showPostModal, setShowPostModal ,Username}) {
   const [image, setImage] = useState(null);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImage(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result); // base64
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const removeImage = () => setImage(null);
 
+  const removeImage = () => setImage(null);
+  // console.log(Username);
   return (
     showPostModal && (
       <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-gray-900/10">
@@ -20,7 +25,7 @@ export default function PostComposerModal({ showPostModal, setShowPostModal }) {
           <div className="flex items-center mb-4">
             <div className="w-10 h-10 bg-gray-300 rounded-full mr-2"></div>
             <div>
-              <div className="text-sm font-semibold">Username</div>
+              <div className="text-sm font-semibold">{Username}</div>
               <div className="text-xs text-gray-500">🌍 Public</div>
             </div>
           </div>
@@ -62,14 +67,44 @@ export default function PostComposerModal({ showPostModal, setShowPostModal }) {
               Cancel
             </button>
             <button
-              onClick={() => {
-                setShowPostModal(false);
-                // Optional: Trigger post logic here
+              onClick={async () => {
+                if (!image) return;
+
+                const accessToken = getCookie("accessToken"); // or however you get it
+                const base64 = image;
+
+                const postFile = {
+                  image: base64,
+                  type: 'image/jpeg',
+                  name: `dating-post-${Date.now()}.jpg`
+                };
+
+                try {
+                  const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-posts`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(postFile)
+                  });
+
+                  if (!res.ok) throw new Error("Upload failed");
+
+                  const data = await res.json();
+                  console.log("Post created:", data);
+                  setShowPostModal(false);
+                  setImage(null);
+                } catch (err) {
+                  console.error("Post error:", err);
+                  alert("Failed to post image.");
+                }
               }}
               className="px-6 py-2 bg-black text-white rounded-full text-sm font-medium hover:opacity-90"
             >
               Post
             </button>
+
           </div>
         </div>
       </div>
