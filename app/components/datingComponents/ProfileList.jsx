@@ -3,10 +3,25 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { getCookie } from '../../lib/utils/cookie';
 
-const ProfileCard = ({ _id, firstName, describeSelf, likes }) => (
+const ProfileCard = ({ _id, firstName, describeSelf, likes, banner_img_url, profile_img_url }) => (
   <div className="bg-white rounded-xl max-w-full border border-gray-300 p-4 flex flex-col gap-2">
-    <div className="h-24 bg-gray-200 rounded-md mb-2"></div>
-    <h3 className="text-sm font-semibold">{firstName}</h3>
+    <div className="h-24 bg-gray-200 rounded-md mb-2">
+      <img
+        src={banner_img_url[0]}
+        alt="Banner"
+        className="w-full h-full object-cover rounded-xl"
+      />
+    </div>
+    <div className="flex items-center space-x-2">
+      <div className="w-10 h-10 rounded-full bg-gray-200 border-4 border-white">
+        <img
+          src={profile_img_url[0]}
+          alt="Profile"
+          className="w-full h-full rounded-full object-cover cursor-pointer"
+        />
+      </div>
+      <h3 className="text-sm font-semibold">{firstName}</h3>
+    </div>
     <p className="text-sm text-gray-600">{describeSelf || "No bio provided."}</p>
     <div className="flex flex-wrap gap-2 text-xs">
       {Array.isArray(likes) && likes.length > 0 ? (

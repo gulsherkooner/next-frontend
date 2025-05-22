@@ -7,9 +7,21 @@ export default function PhotoGallery({ profile = { name: 'username' } }) {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
+  const allImages = [
+    "https://images.unsplash.com/photo-1595152772835-219674b2a8a6",
+    "https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d",
+    "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e",
+    "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde",
+    "https://images.unsplash.com/photo-1607746882042-944635dfe10e",
+    "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61",
+    "https://images.unsplash.com/photo-1544005313-94ddf0286df2",
+    "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c"
+  ];
 
-  const images = Array.from({ length: 6 }).map((_, i) => `https://via.placeholder.com/600x600?text=Image+${i + 1}`);
-
+  // Shuffle and pick 6 random images
+  const images = [...allImages]
+    .sort(() => 0.5 - Math.random())  // simple shuffle
+    .slice(0, 6);                       // pick first 6
   const handleImageClick = (index) => {
     setSelectedImageIndex(index);
     if (index >= 2) {
