@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useIsMobile } from "../hooks/use-mobile";
+import { useRouter } from "next/navigation";
 
 const ReelCarousel = () => {
   const img =
@@ -58,6 +59,8 @@ const ReelCarousel = () => {
     );
   };
 
+  const router = useRouter();
+
   return (
     <div className="mb-4">
       <h2 className="font-medium text-lg mb-3 px-1">Suggested reels</h2>
@@ -70,7 +73,8 @@ const ReelCarousel = () => {
           {reels.map((reel) => (
             <div
               key={reel.id}
-              className="w-36 h-52 flex-shrink-0 bg-gray-200 rounded-lg flex items-center justify-center relative overflow-hidden"
+              onClick={()=>router.push('/reels')}
+              className="w-36 h-52 flex-shrink-0 bg-gray-200 rounded-lg flex items-center justify-center relative overflow-hidden cursor-pointer"
             >
               {reel.imageUrl ? (
                 <img

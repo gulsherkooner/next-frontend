@@ -11,7 +11,7 @@ const Sidebar = ({ menu, setMenu }) => {
   const sidebarRef = useRef(null);
   
   const menuItems = [
-    { icon: <Play size={20} />, text: "Reels", link: "/" },
+    { icon: <Play size={20} />, text: "Reels", link: "/reels" },
     { icon: <UserRoundCheck size={20} />, text: "Subscriptions", link: "/" },
     { icon: <Flame size={20} />, text: "Trending", link: "/" },
   ];
@@ -86,7 +86,7 @@ const Sidebar = ({ menu, setMenu }) => {
   // For desktop/tablet view, always show the sidebar
   // For mobile, show based on menu state
   const sidebarClass = isMobile 
-    ? `w-3/4 fixed z-10 bg-white ${menu ? "left-0" : "-left-full"} transition-all duration-300`
+    ? `w-3/4 fixed z-20 bg-white ${menu ? "left-0" : "-left-full"} transition-all duration-300`
     : "hidden md:block w-56 fixed left-0";
 
   return (
@@ -94,7 +94,7 @@ const Sidebar = ({ menu, setMenu }) => {
       {/* Overlay for mobile view when sidebar is open */}
       {isMobile && menu && (
         <div 
-          className="fixed inset-0 bg-black opacity-50 z-[5]" 
+          className="fixed inset-0 bg-black opacity-50 z-20"
           onClick={() => setMenu(false)}
         />
       )}
