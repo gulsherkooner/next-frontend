@@ -114,7 +114,7 @@ export default function DatingPage() {
 
               {/* Mobile Sidebar for Filters */}
               <div
-                className={`fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-end transition-opacity duration-300 ${showFilters ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                className={`fixed inset-0 z-50 bg-opacity-50 backdrop-blur-sm flex justify-end transition-opacity duration-300 ${showFilters ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
                   }`}
                 onClick={() => setShowFilters(false)}
               >

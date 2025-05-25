@@ -3,10 +3,12 @@ import React, { useState, useEffect } from 'react';
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import MobileNav from "../components/MobileNav";
+import { getCookie } from '../lib/utils/cookie';
 import {
   CircleUserRound, Bell, Globe, Eye,
   PersonStanding, FileChartColumn,
-  CircleHelp, HeartIcon, ArrowLeft, Search, ChevronRight
+  CircleHelp, HeartIcon, ArrowLeft, Search, ChevronRight,
+  Router
 } from 'lucide-react';
 
 // Import your settings components
@@ -20,36 +22,85 @@ import { Content } from '../components/SettingsComponent/Content';
 import { Additional } from '../components/SettingsComponent/Additional';
 
 export default function SettingPage() {
-  const [selectedSettingId, setSelectedSettingId] = useState(1);
+  const [selectedSettingId, setSelectedSettingId] = useState(null);
   const [isDesktop, setIsDesktop] = useState(true);
-
+  const [data, setData] = useState();
   useEffect(() => {
-    const checkScreenSize = () => setIsDesktop(window.innerWidth >= 1024);
+    const checkProfileStatus = async () => {
+      const accessToken = getCookie("accessToken");
+      try {
+        const api_url = process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://localhost:3001";
+        const response = await fetch(`${api_url}/auth/user`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`, // 👈 pass userId in Authorization header
+            // 'credentials': "include"
+          }
+        });
+        const data = await response.json();
+        const newresponse = await fetch(`${api_url}/api/dating-profile/${data.user.user_id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`, // 👈 pass userId in Authorization header
+            // 'credentials': "include"
+          }
+        });
+        const profileData = await newresponse.json();
+        const mergedData = {
+          ...data,      // from /auth/user
+          ...profileData,        // from /api/check-profile
+        };
+
+        setData(mergedData);
+        if (!response.ok) throw new Error('Profile check failed');
+      } catch (error) {
+        console.error("Profile check error:", error);
+      }
+    };
+    checkProfileStatus();
+  }, []);
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const isNowDesktop = window.innerWidth >= 1024;
+      setIsDesktop(isNowDesktop);
+      setSelectedSettingId(isNowDesktop ? 1 : null);
+
+
+      // If switching to mobile view, show the menu
+      if (!isNowDesktop) {
+        setSelectedSettingId(null);
+      }
+    };
+
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
+
 
   const handleaccountclick = (id) => {
     setSelectedSettingId(id);
   };
 
   const renderSettingComponent = () => {
+    // console.log(data);
     switch (selectedSettingId) {
       case 1:
-        return <YourAccount />;
+        return <YourAccount data={data} />;
       case 2:
-        return <Notifications />;
+        return <Notifications user={data.user} />;
       case 3:
-        return <Privacy />;
+        return <Privacy user={data.user} />;
       case 4:
-        return <Dating />;
+        return <Dating data={data} />;
       case 5:
         return <Language />;
       case 6:
-        return <Accessibility />;
+        return <Accessibility user={data.user} />;
       case 7:
-        return <Content />;
+        return <Content user={data.user} />;
       case 8:
         return <Additional />;
       default:
@@ -87,7 +138,7 @@ export default function SettingPage() {
           <div className="flex flex-col gap-4">
             {selectedSettingId === null ? (
               <div className="bg-white rounded-md shadow p-5 h-[100vh]">
-                <ArrowLeft className='inline mb-2' onClick={() => setispush(false)} />
+                <ArrowLeft className='inline mb-2' />
                 <h2 className="text-xl font-extrabold ml-2 inline">Settings</h2>
                 <hr />
                 <div className="relative mt-4">
