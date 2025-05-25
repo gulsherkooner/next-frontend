@@ -115,7 +115,8 @@ export default function ProfilePage({ params }) {
   const [userBalance, setUserBalance] = useState(null);
   const requiredBalance = 3.0;
   const [activeTab, setActiveTab] = useState("posts");
-
+  const [showFullImage, setShowFullImage] = useState(false);
+  const [showFullBanner, setShowFullBanner] = useState(false);
   // console.log(params.id);
   useEffect(() => {
     const fetchProfile = async () => {
@@ -171,7 +172,7 @@ export default function ProfilePage({ params }) {
                 src={profile.profile_img_url[0]}
                 alt="Banner"
                 className="w-full h-full rounded-full object-cover cursor-pointer"
-                onClick={() => setShowFullBanner(true)}
+                onClick={() => setShowFullImage(true)}
 
               /></div>
           </div>
@@ -179,11 +180,12 @@ export default function ProfilePage({ params }) {
 
         {/* Main content */}
         <div className="mt-12">
-          <div className="flex items-center mb-6 flex-wrap gap-2">
+          <div className="flex items-center mb-6 flex-wrap">
             <div>
               <h1 className="text-2xl font-bold">{profile.firstName}</h1>
               <h3 className="text-xs font-light text-gray-500">@{profile.firstName}</h3>
               <p className="text-gray-500">{profile.professions} • {profile.locations[0]}</p>
+
             </div>
             <div className="flex gap-2 mb-7">
               <button
@@ -377,6 +379,35 @@ export default function ProfilePage({ params }) {
         </div>
       )}
       <MobileNav />
+      {showFullImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm cursor-pointer"
+          onClick={() => setShowFullImage(false)}
+        >
+          <div className="animate-pop rounded-xl shadow-2xl p-2 bg-white/5">
+            <img
+              src={profile.profile_img_url[0]}
+              alt="Full Profile"
+              className="max-w-[70vw] max-h-[70vh] rounded-lg object-contain pointer-events-none"
+            />
+          </div>
+        </div>
+      )}
+
+      {showFullBanner && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm cursor-pointer"
+          onClick={() => setShowFullBanner(false)}
+        >
+          <div className="animate-pop p-2 bg-white/5 rounded-xl shadow-2xl max-w-[95vw] max-h-[80vh]">
+            <img
+              src={profile.banner_img_url[0]}
+              alt="Full Banner"
+              className="w-full h-auto rounded-lg object-contain pointer-events-none"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

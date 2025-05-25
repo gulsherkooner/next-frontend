@@ -72,7 +72,7 @@ const FiltersBox = ({
     };
 
     return (
-        <div className="bg-gray-100 p-4 rounded-lg shadow w-full space-y-6">
+        <div className="bg-white p-4 rounded-lg shadow w-full space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-extrabold">Filters</h2>

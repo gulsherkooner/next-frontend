@@ -24,7 +24,7 @@ export default function WalletCard() {
   }, []);
 
   return (
-    <div className="max-w-xs bg-gray-100 p-4 rounded-xl shadow-sm mb-5">
+    <div className="max-w-xs bg-white p-4 rounded-xl shadow-sm mb-5">
       <div className="flex items-center gap-2">
         <Wallet className="w-5 h-5" />
         <h2 className="text-lg font-semibold">Wallet</h2>

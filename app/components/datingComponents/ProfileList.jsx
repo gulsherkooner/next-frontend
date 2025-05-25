@@ -3,44 +3,51 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { getCookie } from '../../lib/utils/cookie';
 
-const ProfileCard = ({ _id, firstName, describeSelf, likes, banner_img_url, profile_img_url, hasProfile,
-  onViewRestrictedProfile, }) => (
-  <div className="bg-white rounded-xl max-w-full border border-gray-300 p-4 flex flex-col gap-2">
-    <div className="h-24 bg-gray-200 rounded-md mb-2">
-      <img
-        src={banner_img_url[0]}
-        alt="Banner"
-        className="w-full h-full object-cover rounded-xl"
-      />
-    </div>
-    <div className="flex items-center space-x-2">
-      <div className="w-10 h-10 rounded-full bg-gray-200 border-4 border-white">
-        <img
+const ProfileCard = ({
+  _id,
+  firstName,
+  describeSelf,
+  likes,
+  banner_img_url,
+  profile_img_url,
+  hasProfile,
+  onViewRestrictedProfile,
+}) => (
+  <div className="bg-white border border-gray-300 rounded-xl w-full flex flex-col md:flex-row overflow-hidden shadow-sm">
+    {/* Left gray section (profile placeholder or image) */}
+    <div className="w-full md:w-2/5 bg-gray-300">
+    <img
           src={profile_img_url[0]}
           alt="Profile"
-          className="w-full h-full rounded-full object-cover cursor-pointer"
+          className="w-full h-full rounded object-cover cursor-pointer"
         />
+    </div>
+
+    {/* Right section */}
+    <div className="w-full md:w-3/4 p-4 flex flex-col gap-2">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900">{firstName}</h3>
+        <p className="text-sm text-gray-600 mt-1">
+          {describeSelf || "No bio provided."}
+        </p>
       </div>
-      <h3 className="text-sm font-semibold">{firstName}</h3>
-    </div>
-    <p className="text-sm text-gray-600">{describeSelf || "No bio provided."}</p>
-    <div className="flex flex-wrap gap-2 text-xs">
-      {Array.isArray(likes) && likes.length > 0 ? (
-        likes.map((tag, idx) => (
-          <span
-            key={idx}
-            className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full border text-xs"
-          >
-            {tag}
-          </span>
-        ))
-      ) : (
-        <span className="text-xs text-gray-400">No likes listed</span>
-      )}
-    </div>
-    <Link href={`/dating/profile/${_id}`}>
-      <div
-        className="flex items-center text-sm font-medium text-black mt-2 hover:underline cursor-pointer"
+
+      <div className="flex flex-wrap gap-2 text-xs mt-3">
+        {Array.isArray(likes) && likes.length > 0 ? (
+          likes.map((tag, idx) => (
+            <span
+              key={idx}
+              className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full border flex items-center gap-1"
+            >
+              {tag}
+            </span>
+          ))
+        ) : (
+          <span className="text-xs text-gray-400">No likes listed</span>
+        )}
+      </div>
+
+      <button
         onClick={(e) => {
           e.preventDefault();
           if (!hasProfile) {
@@ -49,12 +56,15 @@ const ProfileCard = ({ _id, firstName, describeSelf, likes, banner_img_url, prof
             window.location.href = `/dating/profile/${_id}`;
           }
         }}
+        className="text-sm text-gray-700 font-medium hover:underline mt-1 text-left"
       >
-        View profile <ArrowRight className="ml-1 w-4 h-4" />
-      </div>
-    </Link>
+        View profile
+        <ArrowRight className="inline mx-2 w-4"/>
+      </button>
+    </div>
   </div>
 );
+
 
 const ProfileList = ({
   genderFilter,
@@ -108,7 +118,7 @@ const ProfileList = ({
   ]);
 
   return (
-    <div className="max-w-max mx-5 p-4">
+    <div className="max-w-lg -mx-7 p-4">
       {/* Filters UI Display */}
       <div className="flex flex-wrap gap-2 mb-4">
         {genderFilter && genderFilter !== "Both" && (
