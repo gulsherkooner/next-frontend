@@ -16,7 +16,7 @@ const Header = ({ setMenu, menu }) => {
   };
 
   return (
-    <header className="fixed top-0 left-0 w-full h-14 bg-gray-200 z-30 flex items-center justify-between px-2 md:px-4 xl:px-4 2xl:px-4">
+    <header className="fixed top-0 left-0 w-full h-14 bg-[#b4b4b4] z-30 flex items-center justify-between px-2 md:px-4 xl:px-4 2xl:px-4">
       <div className="flex items-center gap-4 w-full max-w-screen mx-auto">
         {/* Left section - Search bar */}
         <div className="flex items-center gap-3">

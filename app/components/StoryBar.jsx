@@ -1,10 +1,12 @@
 import React, { useRef, useState } from "react";
 import { Image, ChevronLeft, ChevronRight } from "lucide-react";
 import { useIsMobile } from "../hooks/use-mobile";
+import { useRouter } from "next/navigation";
 
 const Story = ({ username, imageUrl, isViewed = false }) => {
+  const Router = useRouter();
   return (
-    <div className="flex flex-col items-center justify-center space-y-1 cursor-pointer">
+    <div onClick={()=>Router.push('/stories')} className="flex flex-col items-center justify-center space-y-1 cursor-pointer">
       <div
         className={`w-16 h-16 rounded-full p-[2px] ${
           isViewed
