@@ -9,7 +9,7 @@ import FiltersBox from "../components/datingComponents/FiltersBox";
 import TaskCompletedBox from "../components/datingComponents/ProfileList";
 import WalletCard from "../components/walletComponents/WalletCard";
 import { getCookie } from '../lib/utils/cookie';
-
+import {CircleUserRound} from 'lucide-react';
 export default function DatingPage() {
   const [filters, setFilters] = useState({
     gender: "Female",
@@ -95,7 +95,7 @@ export default function DatingPage() {
 
       <div className="pt-16 px-4 flex flex-col lg:flex-row justify-center gap-6 md:pl-56">
         <main className="flex-1 max-w-full md:max-w-2xl xl:max-w-2xl 2xl:max-w-2xl mx-auto p-2 sm:p-4">
-          {hasProfile && (
+          
             <>
               {/* Filters Button - Top Left under Header */}
               <div className="pt-2 px-4 lg:hidden">
@@ -152,7 +152,7 @@ export default function DatingPage() {
                 </div>
               </div>
             </>
-          )}
+          
           {forceShowCreateForm ? (
             <CreateProfileBox onComplete={() => {
               handleProfileComplete();
@@ -174,7 +174,7 @@ export default function DatingPage() {
         </main>
 
         {/* Sidebar - only shown when profile exists and not on mobile */}
-        {hasProfile && !isMobile && (
+        {!isMobile && !forceShowCreateForm &&(
           <aside className="hidden lg:block w-56 fixed right-0 h-[calc(100vh-160px)] overflow-y-auto border-r border-gray-200 top-14">
             <WalletCard />
             <FiltersBox
@@ -208,11 +208,7 @@ export default function DatingPage() {
               <div className="flex flex-col items-center">
                 <div className="mb-4">
                   <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-2xl">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none"
-                      viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                        d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
+                    <CircleUserRound />
                   </div>
                 </div>
                 <h2 className="text-lg font-semibold mb-2">Create your profile</h2>
@@ -224,7 +220,7 @@ export default function DatingPage() {
                     setShowSignUpPrompt(false);
                     setForceShowCreateForm(true); // 👈 show form in main content
                   }}
-                  className="bg-blue-600 text-white px-5 py-2 rounded-full hover:bg-blue-700 transition-all"
+                  className="bg-gray-400 text-white px-5 py-2 rounded-full hover:bg-blue-700 transition-all"
                 >
                   Sign up
                 </button>
