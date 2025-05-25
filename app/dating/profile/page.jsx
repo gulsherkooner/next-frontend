@@ -6,7 +6,6 @@ import Sidebar from "../../components/Sidebar";
 import MobileNav from "../../components/MobileNav";
 import { Pencil, MoreHorizontal, Pin } from "lucide-react";
 import PostComposerModal from '../../components/datingComponents/Postcomposer';
-import MultiStepForm from '../../components/datingComponents/MultiStepWizard';
 import EditImage from "../../components/profileComponents/EditImage";
 import { getCookie } from '../../lib/utils/cookie'; // if not already imported
 import { motion, AnimatePresence } from "framer-motion";
@@ -124,150 +123,19 @@ function Card({ title, items }) {
     );
 }
 
-function EditableTags({ title, items = [], sectionKey, onSave, userId, inlineEditEnabled }) {
-    const [editing, setEditing] = useState(false);
-    const [tempTags, setTempTags] = useState(items);
-    const [newTag, setNewTag] = useState("");
-
-    useEffect(() => {
-        if (!inlineEditEnabled) setEditing(false);
-    }, [inlineEditEnabled]);
-
-
-    const saveTags = async () => {
-        try {
-            const accessToken = getCookie("accessToken");
-            // const userId = getCookie("userId");
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-profile/${userId}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${accessToken}`,
-                },
-                body: JSON.stringify({ [sectionKey]: tempTags }),
-            });
-
-            if (!res.ok) throw new Error("Failed to update tags");
-
-            onSave(tempTags);
-            setEditing(false);
-        } catch (err) {
-            console.error("Failed to update tags:", err);
-            alert("Error saving tags");
-        }
-    };
-
-
-
-    const removeTag = (tag) => setTempTags(tempTags.filter(t => t !== tag));
-    const addTag = () => {
-        if (newTag && !tempTags.includes(newTag)) {
-            setTempTags([...tempTags, newTag]);
-            setNewTag("");
-        }
-    };
-
+function EditableTags({ title, items = [] }) {
     return (
-        <div className="max-w-xs bg-gray-200 p-4 rounded-xl shadow-sm mb-5">
-            <div className="flex justify-between items-center mb-2">
-                <h3 className="font-semibold text-sm text-gray-800">{title}</h3>
-                {inlineEditEnabled && (
-                    <button onClick={() => setEditing(!editing)} className="text-xs text-blue-600">
-                        {editing ? "Cancel" : "Edit"}
-                    </button>
-                )}
-            </div>
-
-            {editing ? (
-                <div>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                        {tempTags.map((tag, i) => (
-                            <span key={i} className="bg-white px-3 py-1 text-xs rounded-full border text-gray-700 flex items-center gap-1">
-                                {tag}{' '}
-                                <button onClick={() => removeTag(tag)} className="ml-1 text-red-500">×</button>
-                            </span>
-                        ))}
-                    </div>
-                    <div className="flex gap-2 mb-2">
-                        <input
-                            type="text"
-                            value={newTag}
-                            onChange={(e) => setNewTag(e.target.value)}
-                            className="px-2 py-1 text-xs border rounded"
-                            placeholder="Add new tag"
-                        />
-                        <button onClick={addTag} className="text-sm bg-blue-500 text-white px-2 rounded">Add</button>
-                    </div>
-                    <button onClick={saveTags} className="text-sm bg-green-500 text-white px-4 py-1 rounded">Save</button>
-                </div>
-            ) : (
-                <div className="flex flex-wrap gap-2">
-                    {items.map((item, i) => (
-                        <span key={i} className="bg-gray-100 px-3 py-1 text-xs rounded-full border text-gray-700">
-                            {item}
-                        </span>
-                    ))}
-                </div>
-            )}
-        </div>
+        <Card title={title} items={items}/>
     );
 }
 
-function Section({ title, text, sectionKey, onSave, editingSection, setEditingSection, userId, inlineEditEnabled }) {
-    const [tempText, setTempText] = useState(text || "");
-    const isEditing = editingSection === sectionKey;
-
-    const handleSave = async () => {
-        try {
-            const accessToken = getCookie("accessToken");
-            // const userId = getCookie("userId");
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-profile/${userId}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${accessToken}`,
-                },
-                body: JSON.stringify({ [sectionKey]: tempText }),
-            });
-
-            if (!res.ok) throw new Error("Failed to update section");
-
-            onSave(tempText);
-            setEditingSection(null);
-        } catch (err) {
-            console.error("Save failed:", err);
-            alert("Error saving section.");
-        }
-    };
-
-
-
+function Section({ title, text}) {
     return (
         <div>
             <h2 className="text-md font-semibold mb-2">{title}</h2>
-            {isEditing ? (
-                <div>
-                    <textarea
-                        className="w-full p-2 border rounded bg-white text-sm"
-                        value={tempText}
-                        onChange={(e) => setTempText(e.target.value)}
-                        rows={4}
-                    />
-                    <div className="mt-2 flex gap-2">
-                        <button onClick={handleSave} className="px-3 py-1 bg-blue-600 text-white rounded">Save</button>
-                        <button onClick={() => setEditingSection(null)} className="px-3 py-1 bg-gray-400 text-white rounded">Cancel</button>
-                    </div>
-                </div>
-            ) : (
-                <p
-                    className={`text-sm text-gray-700 whitespace-pre-line bg-gray-200 p-4 rounded-xl shadow-sm mb-5 ${inlineEditEnabled ? 'cursor-pointer' : ''}`}
-                    onClick={() => {
-                        if (inlineEditEnabled) setEditingSection(sectionKey);
-                    }}
-                >
-                    {text || (inlineEditEnabled ? "Click to add description" : "No description")}
-                </p>
-            )}
+            <p className={`text-sm text-gray-700 whitespace-pre-line bg-gray-200 p-4 rounded-xl shadow-sm mb-5}`}>
+                {text}
+            </p>
         </div>
     );
 }
@@ -393,9 +261,6 @@ export default function ProfilePage() {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showPostModal, setShowPostModal] = useState(false);
-    const [isEditing, setIsEditing] = useState(false);
-    const [editingSection, setEditingSection] = useState(null);
-    const [inlineEditEnabled, setInlineEditEnabled] = useState(false);
     const userId = typeof window !== "undefined" && localStorage.getItem("userId");
     // Add these state variables to your ProfilePage component
     const [imgBox, setImgBox] = useState(false);
@@ -453,7 +318,7 @@ export default function ProfilePage() {
     if (!profile) return <div className="text-center p-10 text-red-600">Profile not found</div>;
 
     const basics = [
-        profile.height ? `${profile.height} cm` : "Height not specified",
+        profile.height ? `${profile.height} cm` : "175",
         profile.age,
         ...(profile.locations || [])
     ];
@@ -529,7 +394,7 @@ export default function ProfilePage() {
             <div className="md:ml-64 pt-16 px-4 lg:px-8">
                 {/* Banner & Profile Pic */}
                 {/* Banner & Profile Pic */}
-                <div className="relative bg-gray-300 h-52 w-full rounded-xl">
+                <div className="relative bg-gray-300 h-58 w-full rounded-xl">
                     {profile.banner_img_url?.[0] ? (
                         <img
                             src={profile.banner_img_url[0]}
@@ -541,21 +406,21 @@ export default function ProfilePage() {
                     ) : (
                         <div className="w-full h-full bg-gray-300"></div>
                     )}
-                    {inlineEditEnabled && (
-                        <div className="absolute top-4 right-4">
-                            <button
-                                onClick={() => {
-                                    setBannerBox(true);
-                                    setEditingImageType('banner');
-                                }}
-                                className="w-5 h-5 rounded-full border-5 border-white bg-white cursor-pointer flex items-center justify-center"
-                            >
-                                <Pencil className="w-3 h-3 fill-gray-200" />
-                            </button>
-                        </div>
-                    )}
+
+                    <div className="absolute top-4 right-4">
+                        <button
+                            onClick={() => {
+                                setBannerBox(true);
+                                setEditingImageType('banner');
+                            }}
+                            className="w-5 h-5 rounded-full border-5 border-white bg-white cursor-pointer flex items-center justify-center"
+                        >
+                            <Pencil className="w-3 h-3 fill-gray-200" />
+                        </button>
+                    </div>
+
                     <div className="absolute left-6 bottom-[-40px]">
-                        <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white relative">
+                        <div className="w-28 h-28 rounded-full bg-gray-200 border-4 border-white relative">
                             {profile.profile_img_url?.[0] && (
                                 <img
                                     src={profile.profile_img_url[0]}
@@ -564,17 +429,16 @@ export default function ProfilePage() {
                                     onClick={() => setShowFullImage(true)}
                                 />
                             )}
-                            {inlineEditEnabled && (
-                                <button
-                                    onClick={() => {
-                                        setImgBox(true);
-                                        setEditingImageType('profile');
-                                    }}
-                                    className="w-5 h-5 rounded-full border-5 border-white absolute top-2 right-1 bg-white cursor-pointer flex items-center justify-center"
-                                >
-                                    <Pencil className="w-3 h-3 fill-gray-200" />
-                                </button>
-                            )}
+                            <button
+                                onClick={() => {
+                                    setImgBox(true);
+                                    setEditingImageType('profile');
+                                }}
+                                className="w-5 h-5 rounded-full border-5 border-white absolute top-2 right-1 bg-white cursor-pointer flex items-center justify-center"
+                            >
+                                <Pencil className="w-3 h-3 fill-gray-200" />
+                            </button>
+
                         </div>
                     </div>
                 </div>
@@ -594,9 +458,8 @@ export default function ProfilePage() {
                             </button>
                             <button
                                 className="bg-white px-4 py-1 rounded-full text-sm"
-                                onClick={() => setInlineEditEnabled(!inlineEditEnabled)}
-                            >
-                                {inlineEditEnabled ? "Done Editing" : "Edit Profile"}
+                                onClick={()=>{router.push('/settings')}}
+                            >Edit Profile
                             </button>
 
 
@@ -633,42 +496,31 @@ export default function ProfilePage() {
                                             title="Looking for"
                                             items={profile.lookingFor || []}
                                             sectionKey="lookingFor"
-                                            userId={userId}
-                                            inlineEditEnabled={inlineEditEnabled}
-                                            onSave={(updated) => setProfile({ ...profile, lookingFor: updated })}
                                         />
                                         <EditableTags
                                             title="My Basics"
-                                            items={profile.lookingFor || []}
+                                            items={basics || []}
                                             sectionKey="basics"
-                                            userId={userId}
-                                            inlineEditEnabled={inlineEditEnabled}
-                                            onSave={(updated) => setProfile({ ...profile, basics: updated })}
+                                            
                                         />
 
                                         <EditableTags
                                             title="Likes"
                                             items={profile.likes || []}
                                             sectionKey="likes"
-                                            userId={userId}
-                                            inlineEditEnabled={inlineEditEnabled}
-                                            onSave={(updated) => setProfile({ ...profile, likes: updated })}
+                                            
                                         />
                                         <EditableTags
                                             title="Languages"
                                             items={profile.languages || []}
                                             sectionKey="languages"
-                                            userId={userId}
-                                            inlineEditEnabled={inlineEditEnabled}
-                                            onSave={(updated) => setProfile({ ...profile, languages: updated })}
+                                            
                                         />
                                         <EditableTags
                                             title="Education"
                                             items={profile.professions || []}
                                             sectionKey="professions"
-                                            userId={userId}
-                                            inlineEditEnabled={inlineEditEnabled}
-                                            onSave={(updated) => setProfile({ ...profile, professions: updated })}
+                                            
                                         />
                                     </>
                                 )}
@@ -678,31 +530,19 @@ export default function ProfilePage() {
                                             title="About Me"
                                             text={profile.describeSelf}
                                             sectionKey="describeSelf"
-                                            editingSection={editingSection}
-                                            setEditingSection={setEditingSection}
-                                            onSave={(val) => setProfile({ ...profile, describeSelf: val })}
-                                            userId={userId}
-                                            inlineEditEnabled={inlineEditEnabled}
+                                            
                                         />
                                         <Section
                                             title="My Ideal Date"
                                             text={profile.idealDate}
                                             sectionKey="idealDate"
-                                            editingSection={editingSection}
-                                            setEditingSection={setEditingSection}
-                                            onSave={(val) => setProfile({ ...profile, idealDate: val })}
-                                            userId={userId}
-                                            inlineEditEnabled={inlineEditEnabled}
+                                           
                                         />
                                         <Section
                                             title="What I Bring to The Table"
                                             text={profile.greatPartner}
                                             sectionKey="greatPartner"
-                                            editingSection={editingSection}
-                                            setEditingSection={setEditingSection}
-                                            onSave={(val) => setProfile({ ...profile, greatPartner: val })}
-                                            userId={userId}
-                                            inlineEditEnabled={inlineEditEnabled}
+                                           
                                         />
                                     </>
                                 )}
@@ -715,43 +555,30 @@ export default function ProfilePage() {
                                 title="Looking for"
                                 items={profile.lookingFor || []}
                                 sectionKey="lookingFor"
-                                userId={userId}
-                                inlineEditEnabled={inlineEditEnabled}
-                                onSave={(updated) => setProfile({ ...profile, lookingFor: updated })}
+                                
                             />
                             <EditableTags
                                 title="My Basics"
-                                items={profile.lookingFor || []}
+                                items={basics || []}
                                 sectionKey="basics"
-                                userId={userId}
-                                inlineEditEnabled={inlineEditEnabled}
-                                onSave={(updated) => setProfile({ ...profile, basics: updated })}
                             />
 
                             <EditableTags
                                 title="Likes"
                                 items={profile.likes || []}
                                 sectionKey="likes"
-                                userId={userId}
-                                inlineEditEnabled={inlineEditEnabled}
-                                onSave={(updated) => setProfile({ ...profile, likes: updated })}
+                                
                             />
                             <EditableTags
                                 title="Languages"
                                 items={profile.languages || []}
                                 sectionKey="languages"
-                                userId={userId}
-                                inlineEditEnabled={inlineEditEnabled}
-                                onSave={(updated) => setProfile({ ...profile, languages: updated })}
                             />
                             <EditableTags
                                 title="Education"
                                 items={profile.professions || []}
                                 sectionKey="professions"
-                                userId={userId}
-                                inlineEditEnabled={inlineEditEnabled}
-                                onSave={(updated) => setProfile({ ...profile, professions: updated })}
-                            />
+                               />
                         </div>
 
                         <div className="lg:col-span-3 space-y-6 mt-5">
@@ -759,31 +586,19 @@ export default function ProfilePage() {
                                 title="About Me"
                                 text={profile.describeSelf}
                                 sectionKey="describeSelf"
-                                editingSection={editingSection}
-                                setEditingSection={setEditingSection}
-                                onSave={(val) => setProfile({ ...profile, describeSelf: val })}
-                                userId={userId}
-                                inlineEditEnabled={inlineEditEnabled}
+                                
                             />
                             <Section
                                 title="My Ideal Date"
                                 text={profile.idealDate}
                                 sectionKey="idealDate"
-                                editingSection={editingSection}
-                                setEditingSection={setEditingSection}
-                                onSave={(val) => setProfile({ ...profile, idealDate: val })}
-                                userId={userId}
-                                inlineEditEnabled={inlineEditEnabled}
+                                
                             />
                             <Section
                                 title="What I Bring to The Table"
                                 text={profile.greatPartner}
                                 sectionKey="greatPartner"
-                                editingSection={editingSection}
-                                setEditingSection={setEditingSection}
-                                onSave={(val) => setProfile({ ...profile, greatPartner: val })}
-                                userId={userId}
-                                inlineEditEnabled={inlineEditEnabled}
+                               
                             />
                             <PhotoGallery posts={userPosts} />
                         </div>

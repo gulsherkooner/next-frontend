@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Wallet, ChevronRight } from "lucide-react";
+import { Wallet, ChevronRight, PlusCircle } from "lucide-react";
 import TransactionHistory from "./TransactionHistory";
 import PaymentMethods from "./PaymentMethods";
 import AddCardForm from "./AddCardForm";
@@ -16,9 +16,11 @@ const WalletBox = () => {
   const [viewAddCard, setViewAddCard] = useState(false);
   const [viewPaymentSelector, setViewPaymentSelector] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const [isSelectAccount, setselectAccount] = useState(false);
   const [withdrawConfirmed, setWithdrawConfirmed] = useState(false);
   const [userId, setUserId] = useState(null);
   const [lastWithdrawAmount, setLastWithdrawAmount] = useState("");
+  const [selected, setSelected] = useState("Google Pay");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -88,7 +90,71 @@ const WalletBox = () => {
       alert("An error occurred while processing withdrawal.");
     }
   };
+  if (isSelectAccount) {
+    const netBanking = [
+      { name: "WhatsAppPay", icon: "/icons/whatsapp.svg" },
+      { name: "Amazon Pay", icon: "/icons/amazonpay.svg" },
+      { name: "Paytm", icon: "/icons/paytm.svg" },
+      { name: "Google Pay", icon: "/icons/googlepay.svg" },
+    ];
 
+    return (
+      <div className="bg-gray-200 p-6 rounded-2xl max-w w-full space-y-6">
+        <h2 className="text-xl font-bold text-gray-800">Select Bank Account </h2>
+
+        {/* Net banking */}
+        <div>
+          <h3 className="text-md font-semibold text-gray-700 mb-2">
+            Net banking
+          </h3>
+          <div className="space-y-2">
+            {netBanking.map((method) => (
+              <div
+                key={method.name}
+                className={`flex items-center justify-between p-3 bg-white rounded-md hover:bg-gray-100 cursor-pointer ${selected === method.name ? "ring-2 ring-gray-400" : ""
+                  }`}
+                onClick={() => setSelected(method.name)}
+              >
+                <div className="flex items-center gap-3">
+                  <img src={method.icon} alt={method.name} className="h-6 w-6" />
+                  <span className="text-gray-800 font-medium">
+                    {method.name}
+                  </span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={selected === method.name}
+                  readOnly
+                  className="form-checkbox accent-black"
+                />
+              </div>
+            ))}
+            <button className="flex items-center text-sm text-black font-semibold mt-1 hover:underline">
+              <PlusCircle className="mr-1 w-4 h-4" />
+              Add Bank
+            </button>
+          </div>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex justify-end gap-3 pt-2">
+          <button
+            className="px-4 py-2 text-sm font-medium text-black bg-white rounded-md hover:bg-gray-300"
+            onClick={()=>{setselectAccount(false)}}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-black"
+            onClick={()=>{setselectAccount(false)}}
+          >
+            Done
+          </button>
+        </div>
+
+      </div>
+    );
+  }
   // Withdraw screen
   if (isWithdrawing) {
     return (
@@ -114,7 +180,8 @@ const WalletBox = () => {
         </button>
 
         <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
-          <div>
+          <div
+            onClick={() => setselectAccount(true)}>
             <p className="font-medium">HSBC Bank ****2212</p>
             <p className="text-xs text-gray-500">Expected transfer by 06, May 25</p>
           </div>
@@ -206,6 +273,8 @@ const WalletBox = () => {
       />
     );
   }
+
+
 
   return (
     <div className="flex flex-col items-center w-full px-4 md:px-6 lg:px-8 max-w-3xl mx-auto space-y-4">

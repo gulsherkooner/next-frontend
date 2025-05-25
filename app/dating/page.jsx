@@ -98,7 +98,7 @@ export default function DatingPage() {
           
             <>
               {/* Filters Button - Top Left under Header */}
-              <div className="pt-2 px-4 lg:hidden">
+              <div className="pt-2 -mx-3 lg:hidden">
                 <button
                   onClick={() => setShowFilters(true)}
                   className="flex items-center space-x-1 px-3 py-1 text-sm bg-gray-200 text-gray-800 rounded-full shadow"
