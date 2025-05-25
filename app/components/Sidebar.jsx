@@ -26,7 +26,7 @@ const Sidebar = ({ menu, setMenu }) => {
   ];
 
   const accountItems = [
-    { icon: <Settings size={20} />, text: "Settings", link: "/" },
+    { icon: <Settings size={20} />, text: "Settings", link: "/settings" },
     { icon: <HelpCircle size={20} />, text: "Help & Support", link: "/" },
     { icon: <LogOut size={20} />, text: "Log Out", link: "/" },
   ];
