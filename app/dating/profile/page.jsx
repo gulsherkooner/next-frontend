@@ -125,11 +125,11 @@ function Card({ title, items }) {
 
 function EditableTags({ title, items = [] }) {
     return (
-        <Card title={title} items={items}/>
+        <Card title={title} items={items} />
     );
 }
 
-function Section({ title, text}) {
+function Section({ title, text }) {
     return (
         <div>
             <h2 className="text-md font-semibold mb-2">{title}</h2>
@@ -144,17 +144,46 @@ function PhotoGallery({ posts = [] }) {
     const [showImage, setShowImage] = useState(null); // clicked post
     const [pinnedPosts, setPinnedPosts] = useState([]);
     const [showPinFor, setShowPinFor] = useState(null); // which image to show pin menu
+    const [localPosts, setLocalPosts] = useState([]);
     const longPressTimeout = useRef(null);
+    const token = getCookie("accessToken");
+    useEffect(() => {
+        const initiallyPinned = posts.filter(p => p.ispinned).map(p => p._id);
+        setPinnedPosts(initiallyPinned);
+        setLocalPosts(posts);
+    }, [posts]);
+    const togglePin = async (postId) => {
+        const isCurrentlyPinned = pinnedPosts.includes(postId);
+        const newPinState = !isCurrentlyPinned;
 
-    const togglePin = (postId) => {
         setPinnedPosts((prev) =>
-            prev.includes(postId)
+            isCurrentlyPinned
                 ? prev.filter((id) => id !== postId)
                 : [...prev, postId]
         );
         setShowPinFor(null); // hide menu
-    };
 
+        setLocalPosts(prev =>
+            prev.map(post =>
+                post._id === postId ? { ...post, ispinned: newPinState } : post
+            )
+        );
+
+        try {
+            await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-posts/pin-post/${postId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`, // if needed
+                    // include auth token here if needed
+                },
+                body: JSON.stringify({ ispinned: newPinState }),
+            });
+        } catch (err) {
+            console.error('Failed to update pin:', err);
+            // Optionally rollback UI change
+        }
+    };
     const getImageUrl = (imagePath) => {
         if (imagePath.includes("dropbox.com")) {
             return imagePath
@@ -173,12 +202,17 @@ function PhotoGallery({ posts = [] }) {
     const handleMouseUp = () => {
         clearTimeout(longPressTimeout.current);
     };
+    const sortedPosts = [...localPosts].sort((a, b) => {
+        if (a.ispinned === b.ispinned) return 0;
+        return a.ispinned ? -1 : 1;
+    });
+
 
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {posts.map((post, i) => {
-                const postId = post.id || i;
-                const isPinned = pinnedPosts.includes(postId);
+            {sortedPosts.map((post, i) => {
+                const postId = post._id || i;
+                const isPinned = post.ispinned;
 
                 return (
                     <div
@@ -458,7 +492,7 @@ export default function ProfilePage() {
                             </button>
                             <button
                                 className="bg-white px-4 py-1 rounded-full text-sm"
-                                onClick={()=>{router.push('/settings')}}
+                                onClick={() => { router.push('/settings') }}
                             >Edit Profile
                             </button>
 
@@ -501,26 +535,26 @@ export default function ProfilePage() {
                                             title="My Basics"
                                             items={basics || []}
                                             sectionKey="basics"
-                                            
+
                                         />
 
                                         <EditableTags
                                             title="Likes"
                                             items={profile.likes || []}
                                             sectionKey="likes"
-                                            
+
                                         />
                                         <EditableTags
                                             title="Languages"
                                             items={profile.languages || []}
                                             sectionKey="languages"
-                                            
+
                                         />
                                         <EditableTags
                                             title="Education"
                                             items={profile.professions || []}
                                             sectionKey="professions"
-                                            
+
                                         />
                                     </>
                                 )}
@@ -530,19 +564,19 @@ export default function ProfilePage() {
                                             title="About Me"
                                             text={profile.describeSelf}
                                             sectionKey="describeSelf"
-                                            
+
                                         />
                                         <Section
                                             title="My Ideal Date"
                                             text={profile.idealDate}
                                             sectionKey="idealDate"
-                                           
+
                                         />
                                         <Section
                                             title="What I Bring to The Table"
                                             text={profile.greatPartner}
                                             sectionKey="greatPartner"
-                                           
+
                                         />
                                     </>
                                 )}
@@ -555,7 +589,7 @@ export default function ProfilePage() {
                                 title="Looking for"
                                 items={profile.lookingFor || []}
                                 sectionKey="lookingFor"
-                                
+
                             />
                             <EditableTags
                                 title="My Basics"
@@ -567,7 +601,7 @@ export default function ProfilePage() {
                                 title="Likes"
                                 items={profile.likes || []}
                                 sectionKey="likes"
-                                
+
                             />
                             <EditableTags
                                 title="Languages"
@@ -578,7 +612,7 @@ export default function ProfilePage() {
                                 title="Education"
                                 items={profile.professions || []}
                                 sectionKey="professions"
-                               />
+                            />
                         </div>
 
                         <div className="lg:col-span-3 space-y-6 mt-5">
@@ -586,19 +620,19 @@ export default function ProfilePage() {
                                 title="About Me"
                                 text={profile.describeSelf}
                                 sectionKey="describeSelf"
-                                
+
                             />
                             <Section
                                 title="My Ideal Date"
                                 text={profile.idealDate}
                                 sectionKey="idealDate"
-                                
+
                             />
                             <Section
                                 title="What I Bring to The Table"
                                 text={profile.greatPartner}
                                 sectionKey="greatPartner"
-                               
+
                             />
                             <PhotoGallery posts={userPosts} />
                         </div>
@@ -607,7 +641,7 @@ export default function ProfilePage() {
 
                 </div>
             </div>
-            <PostComposerModal showPostModal={showPostModal} setShowPostModal={setShowPostModal} username={profile.firstName} />
+            <PostComposerModal showPostModal={showPostModal} setShowPostModal={setShowPostModal} profile={profile} />
             <MobileNav />
             {imgBox && (
                 <EditImage

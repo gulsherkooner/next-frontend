@@ -14,6 +14,7 @@ import { AnimatePresence, motion } from "framer-motion";
 const tagEmojis = {
   // Hobbies
   "Painting": "🖌️",
+  "Art": "🖌️",
   "Music": "🎶",
   "Movies": "🎬",
   "Reading": "📚",
@@ -66,6 +67,7 @@ const tagEmojis = {
   "Beach Life": "🏖️",
   "Camping life": "🏕️",
   "Road Trip Junkie": "🚗",
+  "Traveling": "🚗",
   "Fishing trips": "🎣",
   "Spa weekends": "💆‍♀️",
   "History Buff": "🏛️",
@@ -84,7 +86,9 @@ const tagEmojis = {
 
   // Relationship Basics
   "Single": "💔",
+  "Any": "💔",
   "In a relationship": "❤️",
+  "Serious Relationship": "❤️",
   "Married": "💍",
   "Straight": "🌈",
   "Gay": "🏳️‍🌈",
@@ -93,16 +97,28 @@ const tagEmojis = {
 
   // Education
   "University of Example": "🎓",
+  "Graphic Designer": "🎓",
+  "Student": "🎓",
   "High School": "🏫",
+  "Software Engineer": "🏫",
+  "Teacher": "🏫",
+  "Doctor": "🧑🏻‍⚕️",
 
   // Extras
   "5'8\"": "📏",
+  "174": "📏",
+  "200": "📏",
+  "174": "📏",
+  "30": "😁",
+  "25": "😁",
   "Casual Dating": "💞",
   "Adventurous": "🧭",
   "Good Listener": "👂",
   "Funny": "😂",
   "Romantic": "🌹",
-  "Bookworm": "📖"
+  "Bookworm": "📖",
+  "Male":"👨🏻",
+  "Female":"🚺"
 };
 export default function ProfilePage({ params }) {
   const Router = useRouter();
@@ -223,7 +239,7 @@ export default function ProfilePage({ params }) {
           {!isMobile && (
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 border-t-2">
               <div className="space-y-4 mt-5">
-                <Card title="Looking for" items={[profile.lookingFor]} />
+                <Card title="Looking for" items={profile.lookingFor} />
                 <Card title="My Basics" items={[profile.gender, profile.age, profile.height]} />
                 <Card title="Likes" items={profile.likes} />
                 <Card title="Languages" items={profile.languages} />
@@ -254,7 +270,7 @@ export default function ProfilePage({ params }) {
                 )}
                 {activeTab === "tags" && (
                   <>
-                    <Card title="Looking for" items={[profile.lookingFor]} />
+                    <Card title="Looking for" items={profile.lookingFor} />
                     <Card title="My Basics" items={[profile.gender, profile.age, profile.height]} />
                     <Card title="Likes" items={profile.likes} />
                     <Card title="Languages" items={profile.languages} />

@@ -99,7 +99,7 @@ const WalletBox = () => {
     ];
 
     return (
-      <div className="bg-gray-200 p-6 rounded-2xl max-w w-full space-y-6">
+      <div className="bg-gray-200 p-6 max-w-2xl rounded-2xl space-y-6 md:-ml-20">
         <h2 className="text-xl font-bold text-gray-800">Select Bank Account </h2>
 
         {/* Net banking */}
@@ -158,7 +158,7 @@ const WalletBox = () => {
   // Withdraw screen
   if (isWithdrawing) {
     return (
-      <div className="w-full max-w-md mx-auto bg-gray-200 rounded-2xl shadow-md p-6 space-y-4">
+      <div className=" max-w-xl mx-auto bg-gray-200 rounded-2xl shadow-md p-6 space-y-4 md:-ml-20">
         <h2 className="text-lg font-bold flex items-center">
           <span className="mr-2">💸</span> Withdraw Funds
         </h2>
@@ -277,7 +277,7 @@ const WalletBox = () => {
 
 
   return (
-    <div className="flex flex-col items-center w-full px-4 md:px-6 lg:px-8 max-w-3xl mx-auto space-y-4">
+    <div className="flex flex-col items-center px-4 md:px-6 lg:px-8 max-w-3xl md:-ml-20 space-y-4">
       <div className="w-full bg-gray-200 rounded-2xl shadow-md overflow-hidden">
         <div className="p-6 md:p-8">
           <Wallet className="inline mr-2 mb-2" />
