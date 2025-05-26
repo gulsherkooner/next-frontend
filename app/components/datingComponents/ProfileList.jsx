@@ -2,7 +2,60 @@ import React, { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { getCookie } from '../../lib/utils/cookie';
-
+const tagEmojis = {
+  "Painting": "🖌️",
+  "Art": "🖌️",
+  "Music": "🎶",
+  "Movies": "🎬",
+  "Reading": "📚",
+  "Gaming": "🎮",
+  "Photography": "📸",
+  "Cooking": "🍳",
+  "DIY Art": "🛠️",
+  "Fashion": "👗",
+  "Writing": "✍️",
+  "Dog lover": "🐕",
+  "Ambitious": "🏅",
+  "Family oriented": "👨‍👩‍👧‍👦",
+  "Open minded": "💭",
+  "Romantic": "💖",
+  "Confident": "💪",
+  "Creative": "🎨",
+  "Positive": "👍",
+  "Sense of adventure": "🌄",
+  "Sustainable": "🌱",
+  "Tennis": "🎾",
+  "Running": "🏃‍♂️",
+  "Badminton": "🏸",
+  "Gym-rat": "🏋️‍♂️",
+  "Yoga": "🧘‍♂️",
+  "Kitesurfing": "🏄‍♂️",
+  "Cycling": "🚴‍♂️",
+  "Hockey": "🏒",
+  "Football": "🏈",
+  "Basketball": "🏀",
+  "Cricket": "🏏",
+  "Sushi": "🍣",
+  "Sweet tooth": "🍬",
+  "Coffee": "☕",
+  "Vegetarian": "🥦",
+  "Whisky": "🥃",
+  "Foodie": "🍽️",
+  "Pizza": "🍕",
+  "Wine": "🍷",
+  "Beer": "🍺",
+  "Tea": "🍵",
+  "Hiking": "🥾",
+  "Beach Life": "🏖️",
+  "Camping life": "🏕️",
+  "Road Trip Junkie": "🚗",
+  "Traveling": "🚗",
+  "Fishing trips": "🎣",
+  "Spa weekends": "💆‍♀️",
+  "History Buff": "🏛️",
+  "Wildlife": "🐅",
+  "Ski Resort Lover": "🎿"
+};
 const ProfileCard = ({
   _id,
   firstName,
@@ -16,11 +69,11 @@ const ProfileCard = ({
   <div className="bg-white border border-gray-300 rounded-xl w-full flex flex-col md:flex-row overflow-hidden shadow-sm">
     {/* Left gray section (profile placeholder or image) */}
     <div className="w-full md:w-2/5 bg-gray-300">
-    <img
-          src={profile_img_url[0]}
-          alt="Profile"
-          className="w-full h-full rounded object-cover cursor-pointer"
-        />
+      <img
+        src={profile_img_url[0]}
+        alt="Profile"
+        className="w-full h-full rounded object-cover cursor-pointer"
+      />
     </div>
 
     {/* Right section */}
@@ -39,7 +92,7 @@ const ProfileCard = ({
               key={idx}
               className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full border flex items-center gap-1"
             >
-              {tag}
+              {tagEmojis[tag]}{tag}
             </span>
           ))
         ) : (
@@ -59,7 +112,7 @@ const ProfileCard = ({
         className="text-sm text-gray-700 font-medium hover:underline mt-1 text-left"
       >
         View profile
-        <ArrowRight className="inline mx-2 w-4"/>
+        <ArrowRight className="inline mx-2 w-4" />
       </button>
     </div>
   </div>

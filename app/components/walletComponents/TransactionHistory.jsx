@@ -75,7 +75,7 @@ const TransactionHistory = ({ onBack }) => {
     ));
 
   return (
-    <div className="flex-1 bg-white rounded-lg px-6 py-4 shadow w-full max-w-2xl">
+    <div className="flex-1 bg-white rounded-lg px-6 py-4 md:-ml-15 shadow xs:w-xs max-w-2xl">
       <div className="flex items-center gap-2 mb-4">
         <ArrowLeft className="w-5 h-5 cursor-pointer" onClick={onBack} />
         <h2 className="text-xl font-bold text-gray-800">Transaction History</h2>

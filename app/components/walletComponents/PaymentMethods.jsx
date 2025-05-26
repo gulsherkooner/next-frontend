@@ -16,7 +16,7 @@ const PaymentMethods = ({ onBack, onAddCard }) => {
   ];
 
   return (
-    <div className="bg-gray-200 p-6 rounded-2xl max-w w-full space-y-6">
+    <div className="bg-gray-200 p-6 rounded-2xl space-y-6 md:-ml-20">
       <h2 className="text-xl font-bold text-gray-800">Payment methods</h2>
 
       {/* Credit & Debit cards */}

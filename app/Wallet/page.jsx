@@ -33,8 +33,8 @@ export default function WalletPage() {
       <Header />
       <Sidebar />
 
-      <div className="pt-16 px-4 flex flex-col lg:flex-row justify-center gap-6 md:pl-56">
-        <main className="flex-1 max-w-full md:max-w-sm xl:max-w-2xl 2xl:max-w-2xl mx-auto p-2 sm:p-4">
+      <div className="pt-16 px-4 flex flex-col lg:flex-row justify-center gap-6 md:pl-40">
+        <main className="flex-1  md:max-w-sm xl:max-w-2xl 2xl:max-w-2xl mx-auto p-2 sm:p-4">
           <WalletBox />
         </main>
       </div>
