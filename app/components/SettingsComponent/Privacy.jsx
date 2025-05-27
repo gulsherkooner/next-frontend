@@ -1,7 +1,7 @@
 import { ChevronRight, ArrowLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getCookie } from '../../lib/utils/cookie';
-
+import toast from 'react-hot-toast';
 const api_url = process.env.NEXT_PUBLIC_API_GATEWAY_URL;
 
 const defaultSettings = {
@@ -103,7 +103,105 @@ const usePrivacySettings = (user_id, accessToken) => {
   return [settings, saveSettings];
 };
 
+const ChangePassword = ({ setSection }) => {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const accessToken = getCookie("accessToken");
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error("All fields are required");
+      return;
+    }
 
+    if (newPassword !== confirmPassword) {
+      toast.error("New and confirm passwords do not match");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/auth/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success(data.message || "Password changed successfully");
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setSection('main');
+      } else {
+        toast.error(data.message || "Failed to change password");
+      }
+    } catch (error) {
+      toast.error("Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <ArrowLeft className='inline mb-2 cursor-pointer' onClick={() => setSection('main')} />
+      <h2 className="inline text-xl font-extrabold mb-6 ml-3">Change Password</h2>
+      <hr />
+
+      <div className="space-y-4 p-5 mt-5">
+        <h2 className="text-xl font-extrabold mb-5">Current Password</h2>
+        <input
+          type="password"
+          placeholder="Enter Current Password"
+          className="bg-white w-full p-2 rounded-xl border border-gray-300 mb-3"
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
+        />
+        <p className="text-sm text-gray-800 mb-4">Forgot Password?</p>
+      </div>
+
+      <div className="space-y-4 p-5">
+        <h2 className="text-xl font-extrabold mb-5">New Password</h2>
+        <input
+          type="password"
+          placeholder="Enter New Password"
+          className="bg-white w-full p-2 rounded-xl border border-gray-300 mb-5"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-4 p-5">
+        <h2 className="text-xl font-extrabold mb-5">Confirm Password</h2>
+        <input
+          type="password"
+          placeholder="Confirm Password"
+          className="bg-white w-full p-2 rounded-xl border border-gray-300 mb-5"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-4 p-5 justify-self-end">
+        <button
+          type="submit"
+          onClick={handleChangePassword}
+          className="bg-white text-lg p-2 rounded-xl border border-gray-300"
+          disabled={loading}
+        >
+          {loading ? 'Submitting...' : 'Submit'}
+        </button>
+      </div>
+    </>
+  );
+};
 
 export const Privacy = ({ user }) => {
   const user_id = user.user_id;
@@ -181,39 +279,7 @@ export const Privacy = ({ user }) => {
       )}
 
       {section === 'changePassword' && (
-        <>
-          <ArrowLeft className='inline mb-2' onClick={() => setSection('main')} />
-          <h2 className="inline text-xl font-extrabold mb-6 ml-3">Change Password</h2>
-          <hr />
-          <div className="space-y-4 p-5 mt-5">
-            <h2 className="text-xl font-extrabold mb-5">Current Password</h2>
-            <input
-              type="text"
-              placeholder="Enter Current Password"
-              className="bg-white w-full p-2 rounded-xl border border-gray-300 mb-3"
-            />
-            <p className="text-sm text-gray-800 mb-4">Forgot Password?</p>
-          </div>
-          <div className="space-y-4 p-5">
-            <h2 className="text-xl font-extrabold mb-5">New Password</h2>
-            <input
-              type="text"
-              placeholder="Enter New Password"
-              className="bg-white w-full p-2 rounded-xl border border-gray-300 mb-5"
-            />
-          </div>
-          <div className="space-y-4 p-5">
-            <h2 className="text-xl font-extrabold mb-5">Confirm Password</h2>
-            <input
-              type="text"
-              placeholder="Confirm Password"
-              className="bg-white w-full p-2 rounded-xl border border-gray-300 mb-5"
-            />
-          </div>
-          <div className="space-y-4 p-5 justify-self-end">
-            <button type="submit" className="bg-white text-lg p-2 rounded-xl border border-gray-300">Submit</button>
-          </div>
-        </>
+        <ChangePassword setSection={setSection}/>
       )}
 
       {section === 'messages' && settings?.privacy.messages && (
