@@ -12,7 +12,7 @@ const footerLinks = [
   { name: "Accessibility Help", href: "/accessibility" },
   { name: "Blog", href: "/blog" },
   { name: "Advertising", href: "/advertising" },
-  { name: "Brand Resources", href: "/brand" },
+  { name: "Brand Resources", href: "/brands" },
 ];
 
 const Footer = () => {
