@@ -33,7 +33,7 @@ const Post = ({
   const router = useRouter();
 
   const shortenedContent =
-  description.length > 150 ? description.substring(0, 150) + "..." : description;
+  description?.length > 150 ? description?.substring(0, 150) + "..." : description;
 
   const handleClick = () => {
     user_id && user_id === state.user_id ? router.push("/profile") : router.push(`/${user_id}`)
@@ -65,7 +65,7 @@ const Post = ({
           <p className="text-md font-bold">{title}</p>
           <p className="text-sm text-gray-700">
             {showFullContent ? description : shortenedContent}
-            {description.length > 150 && (
+            {description?.length > 150 && (
               <button
                 onClick={() => setShowFullContent(!showFullContent)}
                 className="text-gray-500 hover:text-gray-700 ml-1 text-xs font-medium"

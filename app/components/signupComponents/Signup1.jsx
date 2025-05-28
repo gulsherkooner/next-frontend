@@ -22,7 +22,7 @@ const Signup1 = ({ userData, setUserData, setPage, setOTP }) => {
   const [loading, setLoading] = useState(false);
 
   const handleNext = async() => {
-    const nameRegex = /^[a-zA-Z\s]+$/; // Only allows letters and spaces
+    const nameRegex = /^[a-zA-Z0-9\s]+$/; // Only allows letters and spaces
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Basic email validation regex
     const currentYear = new Date().getFullYear(); // Get the current year
 
