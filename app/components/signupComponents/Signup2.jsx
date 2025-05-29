@@ -2,6 +2,7 @@ import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import React, { useState } from "react";
 
 const Signup2 = ({ userData, setUserData, setPage, OTP, setOTP }) => {
+  console.log(OTP)
   const [error, setError] = useState();
   const [showPassword, setShowPassword] = useState(false);
   const togglePasswordVisibility = () => {
