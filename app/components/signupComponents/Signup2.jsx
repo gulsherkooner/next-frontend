@@ -29,6 +29,7 @@ const Signup2 = ({ userData, setUserData, setPage, OTP, setOTP }) => {
 
   return (
     <div className="bg-[#eeeeee] p-8 rounded-lg max-w-md w-full aspect-square flex flex-col justify-between">
+      <p>{OTP}</p>
       <div className="space-y-1">
         <div className="">
           <ArrowLeft size={20} onClick={() => setPage(1)} />
