@@ -1,0 +1,19 @@
+services:
+  next-frontend:
+    image: next-frontend:${TAG:-latest}
+    build:
+      context: /root/cent-stage/next-frontend
+      dockerfile: Dockerfile
+      cache_from:
+        - next-frontend:cache
+    env_file:
+      - /root/cent-stage/next-frontend/.env.local
+    ports:
+      - "3000:3000"
+    networks:
+      - cent-stage-network
+    restart: unless-stopped
+
+networks:
+  cent-stage-network:
+    external: true
