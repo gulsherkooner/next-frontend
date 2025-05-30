@@ -111,7 +111,7 @@ export default function Home() {
 
           {/* Right sidebar - only visible on larger screens */}
           {!isMobile && (
-            <div className="hidden lg:block w-80 p-4">
+            <div className="hidden lg:block w-80 p-4"> 
               <ProfileSuggestion
                 title="Trending Profiles"
                 profiles={trendingProfiles}
