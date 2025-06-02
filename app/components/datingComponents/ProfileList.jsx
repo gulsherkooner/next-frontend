@@ -137,7 +137,7 @@ const ProfileList = ({
       try {
         // const userId = localStorage.getItem('userId');
         const accessToken = getCookie("accessToken");
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/matches`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/matches`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

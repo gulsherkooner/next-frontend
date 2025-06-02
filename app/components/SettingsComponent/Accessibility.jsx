@@ -19,7 +19,7 @@ export const Accessibility = ({ user}) => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await fetch(`${api_url}/api/settings/${user_id}`, {
+        const response = await fetch(`${api_url}/date/settings/${user_id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -54,7 +54,7 @@ export const Accessibility = ({ user}) => {
 
   const saveSettings = async (updatedSettings) => {
     try {
-      await fetch(`${api_url}/api/settings/${user_id}`, {
+      await fetch(`${api_url}/date/settings/${user_id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -24,7 +24,7 @@ export default function PaymentSelector({ amount, onBack, onTopUpComplete }) {
   const [newBalance, setNewBalance] = useState(0);
   const handleAddMoney = async () => {
     const accessToken = getCookie("accessToken");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/wallet/topup`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/wallet/topup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

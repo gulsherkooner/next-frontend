@@ -170,7 +170,7 @@ function PhotoGallery({ posts = [] }) {
         );
 
         try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-posts/pin-post/${postId}`, {
+            await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/dating-posts/pin-post/${postId}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -310,7 +310,7 @@ export default function ProfilePage() {
 
         const fetchProfile = async () => {
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-profile/${userId}`);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/dating-profile/${userId}`);
                 if (!res.ok) throw new Error('Failed to fetch profile');
                 const data = await res.json();
                 setProfile(data);
@@ -330,7 +330,7 @@ export default function ProfilePage() {
         const fetchUserPosts = async () => {
             try {
                 const accessToken = getCookie("accessToken");
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-posts/me`, {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/dating-posts/me`, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`
                     }
@@ -391,7 +391,7 @@ export default function ProfilePage() {
                 lastModified: postFile.lastModified || Date.now()
             };
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-profile/${userId}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/dating-profile/${userId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

@@ -39,7 +39,7 @@ export default function SettingPage() {
           }
         });
         const data = await response.json();
-        const newresponse = await fetch(`${api_url}/api/dating-profile/${data.user.user_id}`, {
+        const newresponse = await fetch(`${api_url}/date/dating-profile/${data.user.user_id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -50,7 +50,7 @@ export default function SettingPage() {
         const profileData = await newresponse.json();
         const mergedData = {
           ...data,      // from /auth/user
-          ...profileData,        // from /api/check-profile
+          ...profileData,        // from /date/check-profile
         };
 
         setData(mergedData);

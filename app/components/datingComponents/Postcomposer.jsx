@@ -66,7 +66,7 @@ export default function PostComposerModal({ showPostModal, setShowPostModal, pro
         name: `dating-post-${Date.now()}.jpg`
       };
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-posts`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/dating-posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -56,7 +56,7 @@ export const YourAccount = ({ data, accessToken }) => {
     setLoading(true); // ✅ Start loading
     try {
       const accessToken = getCookie("accessToken");
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-profile/${data.user_id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/dating-profile/${data.user_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

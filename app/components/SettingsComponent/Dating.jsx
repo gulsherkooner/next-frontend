@@ -496,7 +496,7 @@ export const Dating = ({ data }) => {
       const userId = data?.user_id;
       const token = getCookie('accessToken');
 
-      const response = await fetch(`${api_url}/api/dating-profile/${userId}`, {
+      const response = await fetch(`${api_url}/date/dating-profile/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

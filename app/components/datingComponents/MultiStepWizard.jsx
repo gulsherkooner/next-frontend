@@ -868,7 +868,7 @@ export default function MultiStepForm({ onComplete }) {
                         user_id: userId, // <-- include userId in body
                     };
                     console.log(fullFormData);
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/dating-profile`, {
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/dating-profile`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

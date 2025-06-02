@@ -33,7 +33,7 @@ export const useSettings = (user_id, accessToken) => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await fetch(`${api_url}/api/settings/${user_id}`, {
+        const response = await fetch(`${api_url}/date/settings/${user_id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -60,7 +60,7 @@ export const useSettings = (user_id, accessToken) => {
 
         // Auto-create record if not present
         if (!fetched._id) {
-          await fetch(`${api_url}/api/settings/${user_id}`, {
+          await fetch(`${api_url}/date/settings/${user_id}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ export const useSettings = (user_id, accessToken) => {
     setSettings(updated);
 
     try {
-      await fetch(`${api_url}/api/settings/${user_id}`, {
+      await fetch(`${api_url}/date/settings/${user_id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

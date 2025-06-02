@@ -32,7 +32,7 @@ const WalletBox = () => {
     if (!userId) return;
 
     const fetchWallet = async () => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/wallet/${userId}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/wallet/${userId}`);
       const data = await res.json();
       if (data && data.balance !== undefined) setBalance(data.balance);
     };
@@ -63,7 +63,7 @@ const WalletBox = () => {
     const accessToken = getCookie("accessToken");
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/wallet/deduct`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/wallet/deduct`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

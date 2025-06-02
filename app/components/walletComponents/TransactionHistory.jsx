@@ -13,7 +13,7 @@ const TransactionHistory = ({ onBack }) => {
   useEffect(() => {
     const fetchTxns = async () => {
       const userId = localStorage.getItem("userId");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/wallet/${userId}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/wallet/${userId}`);
       const data = await res.json();
       if (data?.transactions) {
         const sorted = data.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));

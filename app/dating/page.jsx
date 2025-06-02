@@ -49,7 +49,7 @@ export default function DatingPage() {
       }
 
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/api/check-profile`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/check-profile`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
