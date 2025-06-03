@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useIsMobile } from "../../hooks/use-mobile";
 import {
   Ellipsis,
   Menu,
@@ -8,12 +9,10 @@ import {
   ThumbsUp,
 } from "lucide-react";
 
-const ReelItem = ({ reel, isActive }) => {
+const ReelItem = ({ reel, isActive, isLiked, setIsLiked, isSaved, setIsSaved, formatCount, showComments, setShowComments }) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
-  const [showComments, setShowComments] = useState(false);
   const videoRef = useRef(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (videoRef.current) {
@@ -49,15 +48,6 @@ const ReelItem = ({ reel, isActive }) => {
     }
   };
 
-  const formatCount = (count) => {
-    if (count >= 1000000) {
-      return (count / 1000000).toFixed(1) + "M";
-    } else if (count >= 1000) {
-      return (count / 1000).toFixed(1) + "K";
-    }
-    return count.toString();
-  };
-
   return (
     <div
       className="relative w-full h-full flex-shrink-0 bg-black overflow-hidden rounded-lg"
@@ -66,9 +56,10 @@ const ReelItem = ({ reel, isActive }) => {
       {/* Video */}
       <video
         ref={videoRef}
-        className=" w-full h-full object-center object-contain md:rounded-lg"
+        className=" w-full h-full max-h-[calc(100vh-112px)] object-center object-contain md:rounded-lg"
         loop
         playsInline
+        preload="metadata"
         onClick={togglePlayPause}
         style={{ cursor: "pointer" }}
       >
@@ -94,102 +85,103 @@ const ReelItem = ({ reel, isActive }) => {
         </div>
       )}
 
-      {/* Right Side Actions */}
-      <div className="absolute right-3 bottom-4 flex flex-col items-center gap-4">
-        {/* Like Button */}
-        <div className="flex flex-col items-center">
-          <button
-            onClick={() => setIsLiked(!isLiked)}
-            className={`p-2 rounded-full transition-all duration-200 ${
-              isLiked
-                ? "bg-red-500 text-white scale-110"
-                : "bg-black/30 text-white hover:bg-black/50"
-            } backdrop-blur-sm`}
-          >
-            <ThumbsUp size={20} />
-          </button>
-          <span className="text-white text-xs mt-1 font-medium">
-            {formatCount(reel.likes + (isLiked ? 1 : 0))}
-          </span>
-        </div>
-
-        {/* Comment Button */}
-        <div className="flex flex-col items-center">
-          <button
-            onClick={() => setShowComments(!showComments)}
-            className="p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-all duration-200 backdrop-blur-sm"
-          >
-            <MessageSquareText size={20} />
-          </button>
-          <span className="text-white text-xs mt-1 font-medium">
-            {formatCount(reel.comments)}
-          </span>
-        </div>
-
-        {/* Share Button */}
-        <div className="flex flex-col items-center">
-          <button className="p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-all duration-200 backdrop-blur-sm">
-            <Share2 size={20} />
-          </button>
-          <span className="text-white text-xs mt-1 font-medium">
-            {formatCount(reel.shares)}
-          </span>
-        </div>
-
-        {/* Save Button */}
-        <div className="flex flex-col items-center">
-          <button
-            onClick={() => setIsSaved(!isSaved)}
-            className={`p-2 rounded-full transition-all duration-200 ${
-              isSaved
-                ? "bg-yellow-500 text-white scale-110"
-                : "bg-black/30 text-white hover:bg-black/50"
-            } backdrop-blur-sm`}
-          >
-            <svg
-              className="w-5 h-5"
-              fill={isSaved ? "currentColor" : "none"}
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+      {isMobile && (
+        <div className="absolute right-3 bottom-4 flex flex-col items-center gap-4">
+          {/* Like Button */}
+          <div className="flex flex-col items-center">
+            <button
+              onClick={() => setIsLiked(!isLiked)}
+              className={`p-2 rounded-full transition-all duration-200 ${
+                isLiked
+                  ? "bg-red-500 text-white scale-110"
+                  : "bg-black/30 text-white hover:bg-black/50"
+              } backdrop-blur-sm`}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-              />
-            </svg>
-          </button>
-        </div>
+              <ThumbsUp size={20} />
+            </button>
+            <span className="text-white text-xs mt-1 font-medium">
+              {formatCount(reel.likes + (isLiked ? 1 : 0))}
+            </span>
+          </div>
 
-        {/* Menu Button */}
-        <div className="flex flex-col items-center">
-          <button
-            onClick={() => setIsSaved(!isSaved)}
-            className={`p-2 rounded-full transition-all duration-200 ${
-              isSaved
-                ? "bg-yellow-500 text-white scale-110"
-                : "bg-black/30 text-white hover:bg-black/50"
-            } backdrop-blur-sm`}
-          >
-            <Ellipsis size={20} />
-          </button>
-        </div>
+          {/* Comment Button */}
+          <div className="flex flex-col items-center">
+            <button
+              onClick={() => setShowComments(!showComments)}
+              className="p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-all duration-200 backdrop-blur-sm"
+            >
+              <MessageSquareText size={20} />
+            </button>
+            <span className="text-white text-xs mt-1 font-medium">
+              {formatCount(reel.comments)}
+            </span>
+          </div>
 
-        {/* Music Button */}
-        <div className="flex flex-col items-center">
-          <button
-            onClick={() => setIsSaved(!isSaved)}
-            className={`p-2 rounded-lg transition-all duration-200 ${
-              isSaved
-                ? "bg-yellow-500 text-white scale-110"
-                : "bg-black/30 text-white hover:bg-black/50"
-            } backdrop-blur-sm`}
-          >
-            <Music2 size={20} />
-          </button>
+          {/* Share Button */}
+          <div className="flex flex-col items-center">
+            <button className="p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-all duration-200 backdrop-blur-sm">
+              <Share2 size={20} />
+            </button>
+            <span className="text-white text-xs mt-1 font-medium">
+              {formatCount(reel.shares)}
+            </span>
+          </div>
+
+          {/* Save Button */}
+          <div className="flex flex-col items-center">
+            <button
+              onClick={() => setIsSaved(!isSaved)}
+              className={`p-2 rounded-full transition-all duration-200 ${
+                isSaved
+                  ? "bg-yellow-500 text-white scale-110"
+                  : "bg-black/30 text-white hover:bg-black/50"
+              } backdrop-blur-sm`}
+            >
+              <svg
+                className="w-5 h-5"
+                fill={isSaved ? "currentColor" : "none"}
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {/* Menu Button */}
+          <div className="flex flex-col items-center">
+            <button
+              onClick={() => setIsSaved(!isSaved)}
+              className={`p-2 rounded-full transition-all duration-200 ${
+                isSaved
+                  ? "bg-yellow-500 text-white scale-110"
+                  : "bg-black/30 text-white hover:bg-black/50"
+              } backdrop-blur-sm`}
+            >
+              <Ellipsis size={20} />
+            </button>
+          </div>
+
+          {/* Music Button */}
+          <div className="flex flex-col items-center">
+            <button
+              onClick={() => setIsSaved(!isSaved)}
+              className={`p-2 rounded-lg transition-all duration-200 ${
+                isSaved
+                  ? "bg-yellow-500 text-white scale-110"
+                  : "bg-black/30 text-white hover:bg-black/50"
+              } backdrop-blur-sm`}
+            >
+              <Music2 size={20} />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Bottom Content */}
       <div className="absolute bottom-0 left-0 right-0 p-3 pb-6">

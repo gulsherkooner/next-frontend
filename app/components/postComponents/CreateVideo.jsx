@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { createPost, fetchPublicPosts } from "../../features/posts/postsSlice";
+import { Riple } from "react-loading-indicators";
 
 const CreateVideo = ({ openVideoDialog, setOpenVideoDialog, user }) => {
   const [postTitle, setPostTitle] = useState("");
@@ -52,7 +53,7 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog, user }) => {
   };
 
   const handleVideoSubmit = async () => {
-    setLoading(true);
+    // setLoading(true);
     setError(null);
     // Process tags - remove # and filter empty tags
     const processedTags = postTags
@@ -60,39 +61,91 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog, user }) => {
       .map((tag) => (tag.startsWith("#") ? tag.substring(1) : tag))
       .filter((tag) => tag.trim() !== "");
 
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64Content = reader.result.split(",")[1];
-      const postData = {
-        title: postTitle,
-        description: postDescription,
-        post_type: "video",
-        media: [
-          {
-            media_type: "video",
-            media_name: postFile.name,
-            media_content: base64Content,
-          },
-        ],
-        post_tags: processedTags,
-        visibility: postVisibility,
-      };
-      try {
-        await dispatch(createPost(postData)).unwrap();
-        dispatch(fetchPublicPosts());
-        setLoading(false);
-        setPostTitle("");
-        setPostDescription("");
-        setPostTags("");
-        setPostVisibility("public");
-        setPostFile(null);
-        setOpenVideoDialog(false);
-      } catch (err) {
-        console.error("Create post error:", err);
-        setError(err.message || "Failed to create post");
-      }
+    // Get video dimensions before reading file
+    const getVideoDimensions = (file) => {
+      return new Promise((resolve, reject) => {
+        if (!file) {
+          reject(new Error("No file provided"));
+          return;
+        }
+        console.log("getVideoDimensions called with:", file);
+        const url = URL.createObjectURL(file);
+        const video = document.createElement("video");
+        video.preload = "metadata";
+        document.body.appendChild(video);
+        video.style.display = "none";
+
+        let timeoutId = setTimeout(() => {
+          console.error("Timeout loading video metadata");
+          reject(new Error("Timeout loading video metadata"));
+          video.remove();
+        }, 5000);
+
+        video.onloadedmetadata = function () {
+          clearTimeout(timeoutId);
+          console.log("onloadedmetadata fired", video.videoWidth, video.videoHeight);
+          URL.revokeObjectURL(url);
+          resolve({ width: video.videoWidth, height: video.videoHeight });
+          video.remove();
+        };
+        video.onerror = function (e) {
+          clearTimeout(timeoutId);
+          console.error("Video failed to load metadata", e);
+          URL.revokeObjectURL(url);
+          reject(new Error("Failed to load video metadata"));
+          video.remove();
+        };
+        video.src = url;
+      });
     };
-    reader.readAsDataURL(postFile);
+
+    try {
+      const { width, height } = await getVideoDimensions(postFile);
+      // Check for 9:16 ratio (allowing a small margin for floating point errors)
+      const isReel =
+        Math.abs(width / height - 9 / 16) < 0.01 ||
+        Math.abs(height / width - 16 / 9) < 0.01;
+
+      console.log("isReel:", isReel);
+
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64Content = reader.result.split(",")[1];
+        const postData = {
+          title: postTitle,
+          description: postDescription,
+          post_type: "video",
+          media: [
+            {
+              media_type: "video",
+              media_name: postFile.name,
+              media_content: base64Content,
+            },
+          ],
+          post_tags: processedTags,
+          visibility: postVisibility,
+          is_reel: isReel,
+        };
+        try {
+          // await dispatch(createPost(postData)).unwrap();
+          // dispatch(fetchPublicPosts());
+          // setLoading(false);
+          // setPostTitle("");
+          // setPostDescription("");
+          // setPostTags("");
+          // setPostVisibility("public");
+          // setPostFile(null);
+          // setOpenVideoDialog(false);
+        } catch (err) {
+          console.error("Create post error:", err);
+          setError(err.message || "Failed to create post");
+        }
+      };
+      reader.readAsDataURL(postFile);
+    } catch (err) {
+      setLoading(false);
+      setError("Failed to read video dimensions or file.");
+    }
   };
 
   return (
@@ -110,10 +163,20 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog, user }) => {
 
           <div className="flex items-center mb-3">
             <div className="w-10 h-10 bg-gray-300 rounded-full">
-              {user?.profile_img_url && <img src={user?.profile_img_url} alt="*" className="rounded-full" />}
+              {user?.profile_img_url && (
+                <img
+                  src={user?.profile_img_url}
+                  alt="*"
+                  className="rounded-full"
+                />
+              )}
             </div>
             <div className="ml-3">
-              <h3 className="font-bold text-sm">{user?.username ? capitalizeFirstLetter(user?.username) : "Username"}</h3>
+              <h3 className="font-bold text-sm">
+                {user?.username
+                  ? capitalizeFirstLetter(user?.username)
+                  : "Username"}
+              </h3>
               <div className="flex items-center text-gray-600 text-xs">
                 <div className="relative">
                   <button
@@ -243,11 +306,21 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog, user }) => {
             </button>
             <button
               type="button"
-              className="bg-gray-800 text-white px-4 py-1.5 rounded-md text-sm font-medium ml-2"
+              className="bg-gray-800 text-white px-4 py-1.5 rounded-md text-sm font-medium ml-2 relative overflow-hidden"
               onClick={handleVideoSubmit}
               disabled={!postTitle.trim() || !postFile}
             >
-              {loading ? <Riple color="#32cd32" size="medium" text="" textColor="" /> : "Post Video"}
+              {loading ? (
+                <Riple
+                  className="absolute inset-0"
+                  color="#32cd32"
+                  size="small"
+                  text=""
+                  textColor=""
+                />
+              ) : (
+                "Post Video"
+              )}
             </button>
           </div>
         </div>

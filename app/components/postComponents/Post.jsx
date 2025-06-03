@@ -88,10 +88,10 @@ const Post = ({
       )}
 
       {post_type == "video" && (
-        <div className="w-full aspect-[4/3] bg-gray-200 flex items-center justify-center relative">
+        <div className="w-full h-auto bg-gray-200 flex items-center justify-center relative">
           <video
             src={url[0]}
-            className="w-full h-full object-contain"
+            className="max-w-full max-h-full object-contain"
             controls
           ></video>
 

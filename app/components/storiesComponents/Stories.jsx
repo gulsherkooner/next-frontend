@@ -363,7 +363,6 @@ const Stories = () => {
                 key={currentStory.id}
                 className="w-full h-full object-center object-contain md:rounded-lg"
                 autoPlay
-                muted
                 loop
                 playsInline
                 preload="metadata"

@@ -198,7 +198,7 @@ const ProfileList = ({
 
       {/* Profiles List */}
       <div className="flex flex-col gap-4">
-        {profiles.length > 0 ? (
+        {profiles?.length > 0 ? (
           profiles.map((profile) => <ProfileCard key={profile._id} {...profile} hasProfile={hasProfile}
             onViewRestrictedProfile={onViewRestrictedProfile} />)
         ) : (
