@@ -20,6 +20,7 @@ const Stories = () => {
   const isMobile = useIsMobile();
   const router = useRouter();
   const videoRef = useRef(null);
+  const [progress, setProgress] = useState(0);
 
   const [loadedUsersCount, setLoadedUsersCount] = useState(1); // Initial number of users to display
   const loadMoreRef = useRef(null);
@@ -103,6 +104,62 @@ const Stories = () => {
         },
       ],
     },
+    {
+      id: 4,
+      name: "User 3",
+      avatar: null,
+      stories: [
+        {
+          id: 9,
+          content: "User 3 Story 1",
+          time: "15h",
+          videoUrl:
+            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+        },
+        {
+          id: 10,
+          content: "User 3 Story 2",
+          time: "12h",
+          videoUrl:
+            "https://dl.dropboxusercontent.com/scl/fi/s9cs6bqz4ysjfjok5odl5/tikmate.app_7488599562404236550_hd.mp4?rlkey=140osgeoqslqzhvvcz5c4x2f8&st=k44dp5ia",
+        },
+        {
+          id: 11,
+          content: "User 3 Story 3",
+          time: "20h",
+          videoUrl:
+            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
+        },
+      ],
+    },
+    {
+      id: 5,
+      name: "User 3",
+      avatar: null,
+      stories: [
+        {
+          id: 12,
+          content: "User 3 Story 1",
+          time: "15h",
+          videoUrl:
+            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+        },
+        {
+          id: 13,
+          content: "User 3 Story 2",
+          time: "12h",
+          videoUrl:
+            "https://dl.dropboxusercontent.com/scl/fi/s9cs6bqz4ysjfjok5odl5/tikmate.app_7488599562404236550_hd.mp4?rlkey=140osgeoqslqzhvvcz5c4x2f8&st=k44dp5ia",
+        },
+        {
+          id: 14,
+          content: "User 3 Story 3",
+          time: "20h",
+          videoUrl:
+            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
+        },
+      ],
+    },
   ];
 
   const currentUser = users[selectedUser];
@@ -132,26 +189,25 @@ const Stories = () => {
     };
   }, [loadedUsersCount, users.length]); // Re-run when isPaused or the story itself changes
 
-
   const handlePreviousStory = () => {
     if (selectedStory > 0) {
       setSelectedStory((prev) => prev - 1);
-      setIsPaused(false); 
+      setIsPaused(false);
     } else if (selectedUser > 0) {
       setSelectedUser((prev) => prev - 1);
       setSelectedStory(users[selectedUser - 1].stories.length - 1);
-      setIsPaused(false); 
+      setIsPaused(false);
     }
   };
 
   const handleNextStory = () => {
     if (selectedStory < currentUser.stories.length - 1) {
       setSelectedStory((prev) => prev + 1);
-      setIsPaused(false); 
+      setIsPaused(false);
     } else if (selectedUser < users.length - 1) {
       setSelectedUser((prev) => prev + 1);
       setSelectedStory(0);
-      setIsPaused(false); 
+      setIsPaused(false);
     }
   };
 
@@ -159,8 +215,11 @@ const Stories = () => {
     const videoElement = videoRef.current;
     if (videoElement) {
       if (isPaused) {
-        videoElement.play().catch(error => {
-          console.warn("Video play failed. User interaction might be required or media error.", error);
+        videoElement.play().catch((error) => {
+          console.warn(
+            "Video play failed. User interaction might be required or media error.",
+            error
+          );
         });
       } else {
         videoElement.pause();
@@ -175,7 +234,7 @@ const Stories = () => {
       videoElement.muted = !isMuted;
     }
     setIsMuted(!isMuted);
-  }
+  };
 
   // Flatten *displayed* users for the sidebar display
   const displayedUserStories = users.slice(0, loadedUsersCount).map((user) => ({
@@ -183,11 +242,35 @@ const Stories = () => {
     isCurrentUser: user.id === currentUser?.id, // currentUser might be undefined if users array was empty
   }));
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const updateProgress = () => {
+      if (video.duration) {
+        setProgress(video.currentTime / video.duration);
+      }
+    };
+
+    video.addEventListener("timeupdate", updateProgress);
+    video.addEventListener("ended", () => setProgress(1));
+    video.addEventListener("loadedmetadata", updateProgress);
+
+    // Reset progress when story changes
+    setProgress(0);
+
+    return () => {
+      video.removeEventListener("timeupdate", updateProgress);
+      video.removeEventListener("ended", () => setProgress(1));
+      video.removeEventListener("loadedmetadata", updateProgress);
+    };
+  }, [currentStory?.id]);
+
   return (
-    <div className="flex h-screen bg-gray-100 w-full">
+    <div className="flex h-full bg-gray-100 w-full">
       {/* Sidebar */}
       {!isMobile && (
-        <div className="w-70 bg-white border-r border-gray-200 flex flex-col">
+        <div className="w-70 bg-white border-r border-gray-200 flex flex-col overflow-y-scroll no-scrollbar">
           {/* Header */}
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center space-x-3 mb-6">
@@ -223,7 +306,7 @@ const Stories = () => {
           </div>
 
           {/* All Stories Section */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 ">
             <div className="p-6">
               <h2 className="text-sm font-medium text-gray-900 mb-4">
                 All stories
@@ -289,11 +372,11 @@ const Stories = () => {
       )}
 
       {/* Main Story Viewer */}
-      <div className="flex-1 flex items-center justify-center bg-gray-200 relative">
+      <div className="flex-1 flex items-center justify-center bg-gray-200 relative max-h-[calc(100vh-56px)]">
         {/* Story Container */}
         <div
           className={`relative bg-black rounded-lg overflow-hidden shadow-xl ${
-            isMobile ? "w-full h-[calc(100vh-112px)]" : "w-96"
+            isMobile ? "w-full h-[calc(100vh-112px)]" : "w-96  max-h-[calc(100vh-56px)]"
           }`}
           style={{
             aspectRatio: !isMobile && "9/16",
@@ -308,13 +391,15 @@ const Stories = () => {
                 className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden"
               >
                 <div
-                  className={`h-full bg-red-500 transition-all duration-300 ${
-                    index < selectedStory
-                      ? "w-full"
-                      : index === selectedStory
-                      ? "w-1/2"
-                      : "w-0"
-                  }`}
+                  className={`h-full bg-red-500 transition-all duration-150`}
+                  style={{
+                    width:
+                      index < selectedStory
+                        ? "100%"
+                        : index === selectedStory
+                        ? `${Math.round(progress * 100)}%`
+                        : "0%",
+                  }}
                 />
               </div>
             ))}
@@ -339,9 +424,16 @@ const Stories = () => {
                   onClick={togglePause}
                   className="p-2 hover:bg-white/20 rounded-full transition-colors"
                 >
-                  {isPaused ? (<Play className="w-4 h-4 text-white" />) : (<Pause className="w-4 h-4 text-white" />)}
+                  {isPaused ? (
+                    <Play className="w-4 h-4 text-white" />
+                  ) : (
+                    <Pause className="w-4 h-4 text-white" />
+                  )}
                 </button>
-                <button onClick={toggleMute} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+                <button
+                  onClick={toggleMute}
+                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                >
                   {isMuted ? (
                     <VolumeX className="w-4 h-4 text-white/60" />
                   ) : (
@@ -359,7 +451,7 @@ const Stories = () => {
           <div className="w-full h-full relative">
             {currentStory?.videoUrl ? (
               <video
-              ref={videoRef}
+                ref={videoRef}
                 key={currentStory.id}
                 className="w-full h-full object-center object-contain md:rounded-lg"
                 autoPlay

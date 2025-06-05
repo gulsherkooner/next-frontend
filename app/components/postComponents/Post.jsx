@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 
 const Post = ({
+  post_id,
   created_at,
   description,
   url,
@@ -78,7 +79,7 @@ const Post = ({
       </div>
 
       {post_type == "image" && (
-        <div className="w-full  h-auto   bg-gray-200 flex items-center justify-center">
+        <div className="w-full  h-auto   bg-gray-200 flex items-center justify-center" onClick={() => router.push(`/post/${post_id}`)}>
           <img
             src={url[0]}
             alt="Post"
@@ -88,7 +89,7 @@ const Post = ({
       )}
 
       {post_type == "video" && (
-        <div className="w-full h-auto bg-gray-200 flex items-center justify-center relative">
+        <div className="w-full h-auto bg-gray-200 flex items-center justify-center relative" onClick={() => router.push(`/post/${post_id}`)}>
           <video
             src={url[0]}
             className="max-w-full max-h-full object-contain"

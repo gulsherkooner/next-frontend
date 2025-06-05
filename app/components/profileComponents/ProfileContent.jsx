@@ -38,7 +38,7 @@ const ProfileContent = ({userPosts}) => {
         return <VideosGrid videoPosts={videoPosts} />;
       case "collections":
         return <CollectionsGrid />;
-      case "about":
+      case "account":
         return <AboutTab />;
       default:
         return <PostsGrid />;
