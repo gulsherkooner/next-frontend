@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Heart,
   MessageSquare,
@@ -25,6 +25,30 @@ const Post = ({
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showFullContent, setShowFullContent] = useState(false);
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+
+    const handleIntersection = (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          video.play();
+        } else {
+          video.pause();
+        }
+      });
+    };
+
+    const observer = new window.IntersectionObserver(handleIntersection, {
+      threshold: 0.5, // 50% visible
+    });
+
+    observer.observe(video);
+
+    return () => observer.disconnect();
+  }, []);
 
   const toggleLike = () => setLiked(!liked);
   const toggleSave = () => setSaved(!saved);
@@ -74,6 +98,14 @@ const Post = ({
                 {showFullContent ? "See less" : "See more"}
               </button>
             )}
+            {/* {views && (
+            <div className="absolute bottom-4 left-4 right-4 flex items-center text-white text-xs">
+              <div className="flex-1 h-1 bg-white/30 rounded-full relative">
+                <div className="absolute h-1 w-1/4 bg-white rounded-full"></div>
+              </div>
+              <div className="ml-2">{views} views</div>
+            </div>
+          )} */}
           </p>
         </div>
       </div>
@@ -91,19 +123,10 @@ const Post = ({
       {post_type == "video" && (
         <div className="w-full h-auto bg-gray-200 flex items-center justify-center relative" onClick={() => router.push(`/post/${post_id}`)}>
           <video
+            ref={videoRef}
             src={url[0]}
             className="max-w-full max-h-full object-contain"
-            controls
           ></video>
-
-          {/* {views && (
-            <div className="absolute bottom-4 left-4 right-4 flex items-center text-white text-xs">
-              <div className="flex-1 h-1 bg-white/30 rounded-full relative">
-                <div className="absolute h-1 w-1/4 bg-white rounded-full"></div>
-              </div>
-              <div className="ml-2">{views} views</div>
-            </div>
-          )} */}
         </div>
       )}
 

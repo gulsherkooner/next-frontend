@@ -15,6 +15,7 @@ const VideoView = ({ post }) => {
   const hideControlsTimeout = useRef(null);
   const videoRef = useRef(null);
   const videoContainerRef = useRef(null);
+  const self = useSelector((state) => state.auth?.user);
 
   const comments = [
     {
@@ -476,7 +477,11 @@ const VideoView = ({ post }) => {
               {/* Comment Input */}
               <div className="flex gap-3 mb-6">
                 <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
-                  Y
+                  <img
+                    src={self?.profile_img_url}
+                    className="rounded-full object-center object-contain"
+                    alt=""
+                  />
                 </div>
                 <div className="flex-1">
                   <textarea
@@ -489,14 +494,14 @@ const VideoView = ({ post }) => {
                   <div className="flex justify-end gap-2 mt-3">
                     <button
                       onClick={() => setNewComment("")}
-                      className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
+                      className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-full"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleCommentSubmit}
                       disabled={!newComment.trim()}
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
                     >
                       Comment
                     </button>

@@ -21,6 +21,7 @@ const ImageView = ({ post, image }) => {
   const [isSaved, setIsSaved] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [showReplies, setShowReplies] = useState({});
+  const self = useSelector((state) => state.auth?.user);
   const router = useRouter();
   const touchStartX = useRef(null);
 
@@ -418,7 +419,7 @@ const ImageView = ({ post, image }) => {
             {/* Comment input */}
             <div className="flex gap-3 items-center py-3 px-4 bg-gray-100 rounded-xl mt-2">
               <img
-                src={post?.user?.profile_img_url} // Replace with user's avatar if available
+                src={self?.profile_img_url} // Replace with user's avatar if available
                 alt="User avatar"
                 className="w-10 h-10 rounded-full object-cover flex-shrink-0"
               />
