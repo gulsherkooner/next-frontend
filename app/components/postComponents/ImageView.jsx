@@ -23,6 +23,7 @@ import {
   likeComment,
   unlikeComment,
 } from "../../features/comments/commentSlice";
+import { fetchPublicPosts } from "../../features/posts/postsSlice";
 
 const ImageView = ({ postMain, image }) => {
   const [post, setPost] = useState(postMain);

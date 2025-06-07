@@ -17,7 +17,7 @@ import {
   unlikeComment,
   deleteComment,
 } from "../../features/comments/commentSlice";
-import { fetchPublicPosts } from "../../features/posts/postSlice"; // Add this import if not present
+import { fetchPublicPosts } from "../../features/posts/postsSlice"; // Add this import if not present
 
 const VideoView = ({ postMain }) => {
   const [isPlaying, setIsPlaying] = useState(false);
