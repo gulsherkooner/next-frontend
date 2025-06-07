@@ -17,9 +17,8 @@ import {
   unlikeComment,
   deleteComment,
 } from "../../features/comments/commentSlice";
-import { fetchPublicPosts } from "../../features/posts/postsSlice"; // Add this import if not present
 
-const VideoView = ({ postMain }) => {
+const VideoView = ({ post }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [comments, setComments] = useState([]);
@@ -40,23 +39,6 @@ const VideoView = ({ postMain }) => {
   const videoContainerRef = useRef(null);
   const self = useSelector((state) => state.auth?.user);
   const dispatch = useDispatch();
-
-  const posts = useSelector((state) => state.posts.posts);
-  const [post, setPost] = useState(postMain);
-
-  useEffect(() => {
-    if (!postMain.url || postMain.url.length === 0) {
-      dispatch(fetchPublicPosts()).then(() => {
-        const found = posts.find(
-          (p) => String(p.post_id) === String(postMain.post_id)
-        );
-        setPost(found);
-      });
-    } else {
-      setPost(postMain);
-    }
-    // eslint-disable-next-line
-  }, [postMain, dispatch, posts]);
 
   const suggestedVideos = [
     {
