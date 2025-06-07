@@ -46,9 +46,9 @@ const Page = () => {
       {post?.post_type === "video" ? (
         <VideoView post={post} />
       ) : post?.post_type === "image" ? (
-        <ImageView post={post} image={true} />
+        <ImageView postMain={post} image={true} />
       ) : (
-        <ImageView post={post} image={false} />
+        <ImageView postMain={post} image={false} />
       )}
       <MobileNav />
     </div>
