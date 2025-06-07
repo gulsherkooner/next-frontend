@@ -298,7 +298,7 @@ const ImageView = ({ post, image }) => {
             <div className="p-4 space-y-4">
               {postComments &&
                 postComments
-                  .filter((comment) => comment.parent_comment_id === null && !comment.is_deleted) // Only top-level and not deleted
+                  ?.filter((comment) => comment.parent_comment_id === null && !comment.is_deleted) // Only top-level and not deleted
                   .map((comment) => (
                     <div key={comment.comment_id} className="space-y-3">
                       {/* Main comment */}

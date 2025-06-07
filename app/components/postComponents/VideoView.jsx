@@ -602,8 +602,8 @@ const VideoView = ({ post }) => {
 
               {/* Comments List */}
               <div className="space-y-6">
-                {comments
-                  .filter(
+                {comments && comments
+                  ?.filter(
                     (comment) =>
                       comment.parent_comment_id === null && !comment.is_deleted
                   )
