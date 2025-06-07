@@ -1,48 +1,44 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { Maximize2, Pause, Play, Volume2, VolumeX } from "lucide-react";
+import {
+  Maximize2,
+  Pause,
+  Play,
+  Volume2,
+  VolumeX,
+  ThumbsUp,
+  MoreHorizontal,
+} from "lucide-react";
 import getTimeAgo from "../../lib/utils/getTimeAgo";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  postComment,
+  likeComment,
+  unlikeComment,
+  deleteComment,
+} from "../../features/comments/commentSlice";
 
 const VideoView = ({ post }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
+  const [replyOpen, setReplyOpen] = useState({});
+  const [replyText, setReplyText] = useState({});
+  const [showReplies, setShowReplies] = useState({});
+  const [commentLikes, setCommentLikes] = useState({});
+  const [likeTimeouts, setLikeTimeouts] = useState({});
+  const [moreMenuOpen, setMoreMenuOpen] = useState({});
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(0.5);
+  const [showControls, setShowControls] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
-  const [volume, setVolume] = useState(1);
-  const [showControls, setShowControls] = useState(true);
   const hideControlsTimeout = useRef(null);
   const videoRef = useRef(null);
   const videoContainerRef = useRef(null);
   const self = useSelector((state) => state.auth?.user);
-
-  const comments = [
-    {
-      id: 1,
-      username: "TechExplorer",
-      text: "This tutorial really helped me understand the concept! The explanation was clear and easy to follow.",
-      likes: 127,
-      time: "2 days ago",
-      replies: 8,
-    },
-    {
-      id: 2,
-      username: "CodeMaster99",
-      text: "Great content as always! Could you make a follow-up video covering advanced techniques?",
-      likes: 89,
-      time: "1 day ago",
-      replies: 3,
-    },
-    {
-      id: 3,
-      username: "LearnWithMe",
-      text: "Thank you for sharing this knowledge. It saved me hours of research!",
-      likes: 45,
-      time: "18 hours ago",
-      replies: 1,
-    },
-  ];
+  const dispatch = useDispatch();
 
   const suggestedVideos = [
     {
@@ -233,7 +229,10 @@ const VideoView = ({ post }) => {
   useEffect(() => {
     if (!showControls) return;
     if (hideControlsTimeout.current) clearTimeout(hideControlsTimeout.current);
-    hideControlsTimeout.current = setTimeout(() => setShowControls(false), 5000);
+    hideControlsTimeout.current = setTimeout(
+      () => setShowControls(false),
+      5000
+    );
     return () => clearTimeout(hideControlsTimeout.current);
   }, [showControls, isPlaying, currentTime, volume, isMuted]);
 
@@ -241,8 +240,102 @@ const VideoView = ({ post }) => {
     setShowControls(true);
   };
 
+  // Fetch comments from backend
+  const fetchComments = async () => {
+    try {
+      const apiGatewayUrl =
+        process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://localhost:3001";
+      const response = await fetch(
+        `${apiGatewayUrl}/comments/post/${post.post_id}`
+      );
+      const data = await response.json();
+      setComments(data);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+    }
+  };
+
+  // Fetch likes for all comments
+  const fetchLikes = async () => {
+    try {
+      const apiGatewayUrl =
+        process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://localhost:3001";
+      const response = await fetch(
+        `${apiGatewayUrl}/comments/post/${post.post_id}/likes`
+      );
+      const data = await response.json();
+      setCommentLikes(data);
+    } catch (error) {
+      console.error("Error fetching likes:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchComments();
+    fetchLikes();
+    // eslint-disable-next-line
+  }, [post?.post_id]);
+
+  // Utility to debounce actions per comment/reply
+  const debounceAction = (id, action) => {
+    if (likeTimeouts[id]) return;
+    setLikeTimeouts((prev) => ({ ...prev, [id]: true }));
+    action();
+    setTimeout(() => {
+      setLikeTimeouts((prev) => {
+        const newTimeouts = { ...prev };
+        delete newTimeouts[id];
+        return newTimeouts;
+      });
+    }, 700);
+  };
+
+  // Like/Unlike handler for comments and replies
+  const handleLike = (commentId) => {
+    debounceAction(commentId, () => {
+      const likedByUser = commentLikes[commentId]?.includes(self?.user_id);
+      if (likedByUser) {
+        dispatch(unlikeComment(commentId)).then(() => {
+          fetchComments();
+          fetchLikes();
+        });
+      } else {
+        dispatch(likeComment(commentId)).then(() => {
+          fetchComments();
+          fetchLikes();
+        });
+      }
+    });
+  };
+
+  const handleComment = (parent_comment_id = null) => {
+    const text = parent_comment_id
+      ? replyText[parent_comment_id]
+      : replyText["main"];
+    if (!text || !text.trim()) return;
+    dispatch(
+      postComment({ post_id: post.post_id, text, parent_comment_id })
+    ).then(() => {
+      setReplyText((prev) => ({ ...prev, [parent_comment_id || "main"]: "" }));
+      fetchComments();
+      fetchLikes();
+    });
+    setReplyOpen((prev) => ({ ...prev, [parent_comment_id]: false }));
+  };
+
+  const handleDeleteComment = (commentId) => {
+    dispatch(deleteComment(commentId)).then(() => fetchComments());
+  };
+
+  const getReplies = (commentId) => {
+    if (!comments) return [];
+    return comments.filter(
+      (c) => c.parent_comment_id === commentId && !c.is_deleted
+    );
+  };
+
   return (
-    <div className="pt-7 min-h-screen bg-white">
+    <div className="pt-14 min-h-screen bg-white">
       <div className="w-full max-w-screen px-4 py-6 shadow-lg">
         <div className="flex flex-col lg:flex-row lg:gap-6">
           {/* Main Content */}
@@ -285,7 +378,9 @@ const VideoView = ({ post }) => {
               {/* Video Controls */}
               <div
                 className={`absolute bottom-0 left-0 right-0 px-4 pb-4 pt-2 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-300 ${
-                  showControls ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+                  showControls
+                    ? "opacity-100 pointer-events-auto"
+                    : "opacity-0 pointer-events-none"
                 }`}
                 onMouseMove={handleMouseMove}
               >
@@ -453,25 +548,16 @@ const VideoView = ({ post }) => {
             </div>
 
             {/* Comments Section  */}
-            <div className=" hidden lg:block border-t pt-6 order-3">
+            <div className="hidden lg:block border-t pt-6 order-3">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-semibold">
-                  {comments.length} Comments
+                  {
+                    comments.filter(
+                      (c) => c.parent_comment_id === null && !c.is_deleted
+                    ).length
+                  }{" "}
+                  Comments
                 </h3>
-                <button className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
-                  <svg
-                    className="w-4 h-4"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h7a1 1 0 100-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Sort by
-                </button>
               </div>
 
               {/* Comment Input */}
@@ -485,23 +571,28 @@ const VideoView = ({ post }) => {
                 </div>
                 <div className="flex-1">
                   <textarea
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
+                    value={replyText["main"] || ""}
+                    onChange={(e) =>
+                      setReplyText((prev) => ({
+                        ...prev,
+                        main: e.target.value,
+                      }))
+                    }
                     placeholder="Add a comment..."
                     className="w-full p-3 border-b-2 border-gray-200 focus:border-gray-400 outline-none resize-none"
                     rows="1"
                   />
                   <div className="flex justify-end gap-2 mt-3">
                     <button
-                      onClick={() => setNewComment("")}
-                      className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-full"
+                      onClick={() => setReplyText((prev) => ({ ...prev, main: "" }))}
+                      className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
                     >
                       Cancel
                     </button>
                     <button
-                      onClick={handleCommentSubmit}
-                      disabled={!newComment.trim()}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                      onClick={() => handleComment()}
+                      disabled={!(replyText["main"] || "").trim()}
+                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
                     >
                       Comment
                     </button>
@@ -511,59 +602,231 @@ const VideoView = ({ post }) => {
 
               {/* Comments List */}
               <div className="space-y-6">
-                {comments.map((comment) => (
-                  <div key={comment.id} className="flex gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                      {comment.username.charAt(0)}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-sm">
-                          {comment.username}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          • {comment.time}
-                        </span>
+                {comments
+                  .filter(
+                    (comment) =>
+                      comment.parent_comment_id === null && !comment.is_deleted
+                  )
+                  .map((comment) => (
+                    <div key={comment.comment_id} className="flex gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                        {comment.username?.charAt(0)}
                       </div>
-                      <p className="text-sm text-gray-700 mb-2 leading-relaxed">
-                        {comment.text}
-                      </p>
-                      <div className="flex items-center gap-4">
-                        <button className="flex items-center gap-1 text-gray-600 hover:text-gray-800">
-                          <svg
-                            className="w-4 h-4"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-sm">
+                            {comment.username}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            • {getTimeAgo(comment.created_at)}
+                          </span>
+                          <div className="relative ml-auto">
+                            <button
+                              onClick={() =>
+                                setMoreMenuOpen((prev) => ({
+                                  ...prev,
+                                  [comment.comment_id]:
+                                    !prev[comment.comment_id],
+                                }))
+                              }
+                            >
+                              <MoreHorizontal className="w-4 h-4 text-gray-500" />
+                            </button>
+                            {moreMenuOpen[comment.comment_id] && (
+                              <div className="absolute right-0 mt-2 bg-white border rounded shadow z-10">
+                                <button
+                                  className="block px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-left"
+                                  onClick={() => {
+                                    setMoreMenuOpen({});
+                                    handleDeleteComment(comment.comment_id);
+                                  }}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-700 mb-2 leading-relaxed">
+                          {comment.text}
+                        </p>
+                        <div className="flex items-center gap-4">
+                          <button
+                            onClick={() => handleLike(comment.comment_id)}
+                            className={`flex items-center gap-1 ${
+                              commentLikes[comment.comment_id]?.includes(
+                                self?.user_id
+                              )
+                                ? "text-black"
+                                : "text-gray-600 hover:text-gray-800"
+                            }`}
+                            disabled={!!likeTimeouts[comment.comment_id]}
                           >
-                            <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
-                          </svg>
-                          <span className="text-xs">{comment.likes}</span>
-                        </button>
-                        <button className="flex items-center gap-1 text-gray-600 hover:text-gray-800">
-                          <svg
-                            className="w-4 h-4"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
+                            <ThumbsUp
+                              className={`w-4 h-4 ${
+                                commentLikes[comment.comment_id]?.includes(
+                                  self?.user_id
+                                )
+                                  ? "fill-black"
+                                  : ""
+                              }`}
+                            />
+                            <span className="text-xs">
+                              {comment.likes_count}
+                            </span>
+                          </button>
+                          <button
+                            className="text-xs text-gray-600 hover:text-gray-800 font-medium"
+                            onClick={() =>
+                              setReplyOpen((prev) => ({
+                                ...prev,
+                                [comment.comment_id]: !prev[comment.comment_id],
+                              }))
+                            }
                           >
-                            <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
-                          </svg>
-                          Share
-                        </button>
-
-                        <button className="px-4 py-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors flex items-center gap-2">
-                          <svg
-                            className="w-5 h-5"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
+                            Reply
+                          </button>
+                        </div>
+                        {/* Reply input */}
+                        {replyOpen[comment.comment_id] && (
+                          <div className="flex gap-3 items-center py-3 px-4 bg-gray-100 rounded-xl mt-2 w-full max-w-full">
+                            <img
+                              src={self?.profile_img_url}
+                              alt="User avatar"
+                              className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                            />
+                            <textarea
+                              placeholder="Write a reply"
+                              className="flex-1 bg-gray-100 border-none outline-none resize-none text-sm px-3 py-2 placeholder-gray-500 no-scrollbar"
+                              value={replyText[comment.comment_id] || ""}
+                              onChange={(e) =>
+                                setReplyText((prev) => ({
+                                  ...prev,
+                                  [comment.comment_id]: e.target.value,
+                                }))
+                              }
+                            />
+                            <button
+                              disabled={
+                                !(replyText[comment.comment_id] || "").trim()
+                              }
+                              onClick={() => handleComment(comment.comment_id)}
+                              className="bg-blue-600 text-white px-5 py-2 rounded-full font-semibold text-sm transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                            >
+                              Reply
+                            </button>
+                          </div>
+                        )}
+                        {/* Replies */}
+                        {getReplies(comment.comment_id).length > 0 && (
+                          <button
+                            onClick={() =>
+                              setShowReplies((prev) => ({
+                                ...prev,
+                                [comment.comment_id]: !prev[comment.comment_id],
+                              }))
+                            }
+                            className="flex items-center gap-2 mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium"
                           >
-                            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                          </svg>
-                          Save
-                        </button>
+                            <svg
+                              className="w-4 h-4"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                            {getReplies(comment.comment_id).length} Replies
+                          </button>
+                        )}
+                        {showReplies[comment.comment_id] &&
+                          getReplies(comment.comment_id).map((reply) => (
+                            <div
+                              key={reply.comment_id}
+                              className="ml-8 flex gap-3 mt-3"
+                            >
+                              <div className="w-8 h-8 bg-gray-300 rounded-full flex-shrink-0">
+                                <img
+                                  src={reply.profile_img_url}
+                                  alt="User avatar"
+                                  className="w-full h-full rounded-full object-cover"
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-semibold text-sm">
+                                    {reply.username}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    • {getTimeAgo(reply.created_at)}
+                                  </span>
+                                  <div className="relative ml-auto">
+                                    <button
+                                      onClick={() =>
+                                        setMoreMenuOpen((prev) => ({
+                                          ...prev,
+                                          [reply.comment_id]:
+                                            !prev[reply.comment_id],
+                                        }))
+                                      }
+                                    >
+                                      <MoreHorizontal className="w-4 h-4 text-gray-500" />
+                                    </button>
+                                    {moreMenuOpen[reply.comment_id] && (
+                                      <div className="absolute right-0 mt-2 bg-white border rounded shadow z-10">
+                                        <button
+                                          className="block px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-left"
+                                          onClick={() => {
+                                            setMoreMenuOpen({});
+                                            handleDeleteComment(
+                                              reply.comment_id
+                                            );
+                                          }}
+                                        >
+                                          Delete
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                <p className="text-sm text-gray-700 mb-2 leading-relaxed">
+                                  {reply.text}
+                                </p>
+                                <div className="flex items-center gap-4">
+                                  <button
+                                    onClick={() => handleLike(reply.comment_id)}
+                                    className={`flex items-center gap-1 ${
+                                      commentLikes[reply.comment_id]?.includes(
+                                        self?.user_id
+                                      )
+                                        ? "text-black"
+                                        : "text-gray-600 hover:text-gray-800"
+                                    }`}
+                                    disabled={!!likeTimeouts[reply.comment_id]}
+                                  >
+                                    <ThumbsUp
+                                      className={`w-4 h-4 ${
+                                        commentLikes[
+                                          reply.comment_id
+                                        ]?.includes(self?.user_id)
+                                          ? "fill-black"
+                                          : ""
+                                      }`}
+                                    />
+                                    <span className="text-xs">
+                                      {reply.likes_count}
+                                    </span>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           </div>
@@ -659,25 +922,16 @@ const VideoView = ({ post }) => {
             </div>
 
             {/* Comments Section  */}
-            <div className=" block lg:hidden border-t pt-6 order-3">
+            <div className="block lg:hidden border-t pt-6 order-3">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-semibold">
-                  {comments.length} Comments
+                  {
+                    comments.filter(
+                      (c) => c.parent_comment_id === null && !c.is_deleted
+                    ).length
+                  }{" "}
+                  Comments
                 </h3>
-                <button className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
-                  <svg
-                    className="w-4 h-4"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h7a1 1 0 100-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Sort by
-                </button>
               </div>
 
               {/* Comment Input */}
@@ -713,66 +967,231 @@ const VideoView = ({ post }) => {
 
               {/* Comments List */}
               <div className="space-y-6">
-                {comments.map((comment) => (
-                  <div key={comment.id} className="flex gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                      {comment.username.charAt(0)}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-sm">
-                          {comment.username}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          • {comment.time}
-                        </span>
+                {comments
+                  .filter(
+                    (comment) =>
+                      comment.parent_comment_id === null && !comment.is_deleted
+                  )
+                  .map((comment) => (
+                    <div key={comment.comment_id} className="flex gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                        {comment.username?.charAt(0)}
                       </div>
-                      <p className="text-sm text-gray-700 mb-2 leading-relaxed">
-                        {comment.text}
-                      </p>
-                      <div className="flex items-center gap-4">
-                        <button className="flex items-center gap-1 text-gray-600 hover:text-gray-800">
-                          <svg
-                            className="w-4 h-4"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-sm">
+                            {comment.username}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            • {getTimeAgo(comment.created_at)}
+                          </span>
+                          <div className="relative ml-auto">
+                            <button
+                              onClick={() =>
+                                setMoreMenuOpen((prev) => ({
+                                  ...prev,
+                                  [comment.comment_id]:
+                                    !prev[comment.comment_id],
+                                }))
+                              }
+                            >
+                              <MoreHorizontal className="w-4 h-4 text-gray-500" />
+                            </button>
+                            {moreMenuOpen[comment.comment_id] && (
+                              <div className="absolute right-0 mt-2 bg-white border rounded shadow z-10">
+                                <button
+                                  className="block px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-left"
+                                  onClick={() => {
+                                    setMoreMenuOpen({});
+                                    handleDeleteComment(comment.comment_id);
+                                  }}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-700 mb-2 leading-relaxed">
+                          {comment.text}
+                        </p>
+                        <div className="flex items-center gap-4">
+                          <button
+                            onClick={() => handleLike(comment.comment_id)}
+                            className={`flex items-center gap-1 ${
+                              commentLikes[comment.comment_id]?.includes(
+                                self?.user_id
+                              )
+                                ? "text-black"
+                                : "text-gray-600 hover:text-gray-800"
+                            }`}
+                            disabled={!!likeTimeouts[comment.comment_id]}
                           >
-                            <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
-                          </svg>
-                          <span className="text-xs">{comment.likes}</span>
-                        </button>
-                        <button className="flex items-center gap-1 text-gray-600 hover:text-gray-800">
-                          <svg
-                            className="w-4 h-4"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667v-5.43a2 2 0 00-1.106-1.79l-.05-.025A4 4 0 0011.057 2H5.64a2 2 0 00-1.962 1.608l-1.2 6A2 2 0 004.44 12H8v4a2 2 0 002 2 1 1 0 001-1v-.667a4 4 0 01.8-2.4l1.4-1.866a4 4 0 00.8-2.4z" />
-                          </svg>
-                        </button>
-                        <button className="text-xs text-gray-600 hover:text-gray-800 font-medium">
-                          Reply
-                        </button>
-                      </div>
-                      {comment.replies > 0 && (
-                        <button className="flex items-center gap-2 mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium">
-                          <svg
-                            className="w-4 h-4"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                              clipRule="evenodd"
+                            <ThumbsUp
+                              className={`w-4 h-4 ${
+                                commentLikes[comment.comment_id]?.includes(
+                                  self?.user_id
+                                )
+                                  ? "fill-black"
+                                  : ""
+                              }`}
                             />
-                          </svg>
-                          {comment.replies} Replies
-                        </button>
-                      )}
+                            <span className="text-xs">
+                              {comment.likes_count}
+                            </span>
+                          </button>
+                          <button
+                            className="text-xs text-gray-600 hover:text-gray-800 font-medium"
+                            onClick={() =>
+                              setReplyOpen((prev) => ({
+                                ...prev,
+                                [comment.comment_id]: !prev[comment.comment_id],
+                              }))
+                            }
+                          >
+                            Reply
+                          </button>
+                        </div>
+                        {/* Reply input */}
+                        {replyOpen[comment.comment_id] && (
+                          <div className="flex gap-3 items-center py-3 px-4 bg-gray-100 rounded-xl mt-2 w-full max-w-full">
+                            <img
+                              src={self?.profile_img_url}
+                              alt="User avatar"
+                              className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                            />
+                            <textarea
+                              placeholder="Write a reply"
+                              className="flex-1 bg-gray-100 border-none outline-none resize-none text-sm px-3 py-2 placeholder-gray-500 no-scrollbar"
+                              value={replyText[comment.comment_id] || ""}
+                              onChange={(e) =>
+                                setReplyText((prev) => ({
+                                  ...prev,
+                                  [comment.comment_id]: e.target.value,
+                                }))
+                              }
+                            />
+                            <button
+                              disabled={
+                                !(replyText[comment.comment_id] || "").trim()
+                              }
+                              onClick={() => handleComment(comment.comment_id)}
+                              className="bg-blue-600 text-white px-5 py-2 rounded-full font-semibold text-sm transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                            >
+                              Reply
+                            </button>
+                          </div>
+                        )}
+                        {/* Replies */}
+                        {getReplies(comment.comment_id).length > 0 && (
+                          <button
+                            onClick={() =>
+                              setShowReplies((prev) => ({
+                                ...prev,
+                                [comment.comment_id]: !prev[comment.comment_id],
+                              }))
+                            }
+                            className="flex items-center gap-2 mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                            {getReplies(comment.comment_id).length} Replies
+                          </button>
+                        )}
+                        {showReplies[comment.comment_id] &&
+                          getReplies(comment.comment_id).map((reply) => (
+                            <div
+                              key={reply.comment_id}
+                              className="ml-8 flex gap-3 mt-3"
+                            >
+                              <div className="w-8 h-8 bg-gray-300 rounded-full flex-shrink-0">
+                                <img
+                                  src={reply.profile_img_url}
+                                  alt="User avatar"
+                                  className="w-full h-full rounded-full object-cover"
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-semibold text-sm">
+                                    {reply.username}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    • {getTimeAgo(reply.created_at)}
+                                  </span>
+                                  <div className="relative ml-auto">
+                                    <button
+                                      onClick={() =>
+                                        setMoreMenuOpen((prev) => ({
+                                          ...prev,
+                                          [reply.comment_id]:
+                                            !prev[reply.comment_id],
+                                        }))
+                                      }
+                                    >
+                                      <MoreHorizontal className="w-4 h-4 text-gray-500" />
+                                    </button>
+                                    {moreMenuOpen[reply.comment_id] && (
+                                      <div className="absolute right-0 mt-2 bg-white border rounded shadow z-10">
+                                        <button
+                                          className="block px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-left"
+                                          onClick={() => {
+                                            setMoreMenuOpen({});
+                                            handleDeleteComment(
+                                              reply.comment_id
+                                            );
+                                          }}
+                                        >
+                                          Delete
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                <p className="text-sm text-gray-700 mb-2 leading-relaxed">
+                                  {reply.text}
+                                </p>
+                                <div className="flex items-center gap-4">
+                                  <button
+                                    onClick={() => handleLike(reply.comment_id)}
+                                    className={`flex items-center gap-1 ${
+                                      commentLikes[reply.comment_id]?.includes(
+                                        self?.user_id
+                                      )
+                                        ? "text-black"
+                                        : "text-gray-600 hover:text-gray-800"
+                                    }`}
+                                    disabled={!!likeTimeouts[reply.comment_id]}
+                                  >
+                                    <ThumbsUp
+                                      className={`w-4 h-4 ${
+                                        commentLikes[
+                                          reply.comment_id
+                                        ]?.includes(self?.user_id)
+                                          ? "fill-black"
+                                          : ""
+                                      }`}
+                                    />
+                                    <span className="text-xs">
+                                      {reply.likes_count}
+                                    </span>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           </div>
