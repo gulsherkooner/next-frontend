@@ -80,18 +80,18 @@ const ImageView = ({ post, image }) => {
   }, [dispatch, post?.post_id]);
 
   useEffect(() => {
-    if (!post.url) {
+    if (!post?.url) {
       dispatch(fetchPublicPosts());
     }
   }, [post?.url, dispatch]);
 
   const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % post.url.length);
+    setCurrentImageIndex((prev) => (prev + 1) % post?.url.length);
   };
 
   const prevImage = () => {
     setCurrentImageIndex(
-      (prev) => (prev - 1 + post.url.length) % post.url.length
+      (prev) => (prev - 1 + post?.url.length) % post?.url.length
     );
   };
 
@@ -222,7 +222,7 @@ const ImageView = ({ post, image }) => {
           )}
 
           <img
-            src={post.url[currentImageIndex]}
+            src={post?.url[currentImageIndex]}
             alt="Post content"
             className="w-full h-full object-contain"
           />
@@ -238,7 +238,7 @@ const ImageView = ({ post, image }) => {
 
           {/* Image indicators */}
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-            {post.url.map((_, index) => (
+            {post?.url.map((_, index) => (
               <div
                 key={index}
                 className={`w-2 h-2 rounded-full transition-all ${

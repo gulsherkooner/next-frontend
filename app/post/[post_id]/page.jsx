@@ -39,7 +39,11 @@ const Page = () => {
     <div className="bg-gray-100 min-h-screen pb-14 md:pb-0 w-full">
       <Header setMenu={setMenu} menu={menu} />
       {/* <Sidebar setMenu={setMenu} menu={menu} /> */}
-      {post?.post_type === "video" ? (
+      {!post ? (
+        <div className="flex justify-center items-center h-96 text-gray-500">
+          Loading...
+        </div>
+      ) : post?.post_type === "video" ? (
         <VideoView post={post} />
       ) : post?.post_type === "image" ? (
         <ImageView postMain={post} image={true} />
