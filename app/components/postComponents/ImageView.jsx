@@ -39,6 +39,8 @@ const ImageView = ({ post, image }) => {
   const touchStartX = useRef(null);
   const [postComments, setPostComments] = useState();
   const [moreMenuOpen, setMoreMenuOpen] = useState({});
+
+  console.log("post:", post);
   
 
   const fetchComments = async () => {
@@ -274,7 +276,7 @@ const ImageView = ({ post, image }) => {
               <div className="flex items-center gap-2 mb-1">
                 <div className="flex flex-col">
                   <span className="font-semibold text-sm">
-                    {post.user?.username}
+                    {post?.user?.username}
                   </span>
                   <span className="text-gray-500 text-xs">
                     {getTimeAgo(post.created_at)}
