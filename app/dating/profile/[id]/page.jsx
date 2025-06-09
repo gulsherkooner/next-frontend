@@ -185,7 +185,7 @@ export default function ProfilePage({ params }) {
           <div className="absolute left-6 bottom-[-40px]">
             <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white" >
               <img
-                src={profile.profile_img_url[0]}
+                src={"https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"}
                 alt="Banner"
                 className="w-full h-full rounded-full object-cover cursor-pointer"
                 onClick={() => setShowFullImage(true)}
@@ -402,7 +402,7 @@ export default function ProfilePage({ params }) {
         >
           <div className="animate-pop rounded-xl shadow-2xl p-2 bg-white/5">
             <img
-              src={profile.profile_img_url[0]}
+              src={  "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"}
               alt="Full Profile"
               className="max-w-[70vw] max-h-[70vh] rounded-lg object-contain pointer-events-none"
             />

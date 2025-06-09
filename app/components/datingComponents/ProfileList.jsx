@@ -2,6 +2,13 @@ import React, { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { getCookie } from '../../lib/utils/cookie';
+const girlProfilePics = [
+  "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1552058544-f2b08422138a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+];
+
 const tagEmojis = {
   "Painting": "🖌️",
   "Art": "🖌️",
@@ -57,21 +64,22 @@ const tagEmojis = {
   "Ski Resort Lover": "🎿"
 };
 const ProfileCard = ({
-  _id,
+  id,
   firstName,
   describeSelf,
   likes,
-  banner_img_url,
+  gender,
   profile_img_url,
   hasProfile,
   onViewRestrictedProfile,
+  index,
 }) => (
   <div className="bg-white border border-gray-300 rounded-xl w-full flex flex-col md:flex-row overflow-hidden shadow-sm">
     {/* Left gray section (profile placeholder or image) */}
     <div className="w-full md:w-2/5 bg-gray-300">
       <img
-        src={profile_img_url[0]}
-        alt="Profile"
+        src={girlProfilePics[1]}
+        alt={gender}
         className="w-full h-full rounded object-cover cursor-pointer"
       />
     </div>
@@ -106,7 +114,7 @@ const ProfileCard = ({
           if (!hasProfile) {
             onViewRestrictedProfile();
           } else {
-            window.location.href = `/dating/profile/${_id}`;
+            window.location.href = `/dating/profile/${id}`;
           }
         }}
         className="text-sm text-gray-700 font-medium hover:underline mt-1 text-left"
@@ -154,6 +162,7 @@ const ProfileList = ({
         });
 
         const data = await res.json();
+        console.log(data);
         setProfiles(data.profiles);
       } catch (err) {
         console.error("Error fetching matches:", err);
@@ -169,7 +178,7 @@ const ProfileList = ({
     lookingForFilters,
     likesFilters,
   ]);
-
+  const randomIndex = Math.floor(Math.random() * girlProfilePics.length);
   return (
     <div className="max-w-lg -mx-7 p-4">
       {/* Filters UI Display */}
@@ -199,8 +208,8 @@ const ProfileList = ({
       {/* Profiles List */}
       <div className="flex flex-col gap-4">
         {profiles?.length > 0 ? (
-          profiles.map((profile) => <ProfileCard key={profile._id} {...profile} hasProfile={hasProfile}
-            onViewRestrictedProfile={onViewRestrictedProfile} />)
+          profiles.map((profile) => <ProfileCard key={profile.id} {...profile} hasProfile={hasProfile}
+            onViewRestrictedProfile={onViewRestrictedProfile} randomIndex />)
         ) : (
           <div className="text-center py-8 text-gray-500">
             No profiles match your current filters
