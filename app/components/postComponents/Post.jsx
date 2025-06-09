@@ -7,8 +7,14 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import getTimeAgo  from "../../lib/utils/getTimeAgo";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
+import {
+  likePost,
+  unlikePost,
+  fetchUserLikeForPost,
+} from "../../features/posts/postsLikesSlice";
+import { fetchPublicPosts } from "../../features/posts/postsSlice";
 
 const Post = ({
   post_id,
@@ -26,6 +32,15 @@ const Post = ({
   const [saved, setSaved] = useState(false);
   const [showFullContent, setShowFullContent] = useState(false);
   const videoRef = useRef(null);
+  const dispatch = useDispatch();
+  const state = useSelector((state) => state?.auth?.user);
+  const userLikes = useSelector((state) => state.postLikes.userLikes);
+
+  useEffect(() => {
+    if (state?.user_id && post_id) {
+      dispatch(fetchUserLikeForPost(post_id));
+    }
+  }, [state?.user_id, post_id, dispatch]);
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -53,8 +68,6 @@ const Post = ({
   const toggleLike = () => setLiked(!liked);
   const toggleSave = () => setSaved(!saved);
 
-  const state = useSelector((state) => state?.auth?.user)
-
   const router = useRouter();
 
   const shortenedContent =
@@ -63,6 +76,17 @@ const Post = ({
   const handleClick = () => {
     user_id && user_id === state.user_id ? router.push("/profile") : router.push(`/${user_id}`)
   }
+
+  const handleLike = async () => {
+    if (!state?.user_id) return; // Optionally show login prompt
+    if (userLikes[post_id]) {
+      await dispatch(unlikePost(post_id));
+    } else {
+      await dispatch(likePost(post_id));
+    }
+    // Fetch updated posts to get the new likes_count
+    dispatch(fetchPublicPosts());
+  };
 
   return (
     <div className="bg-white rounded-lg shadow mb-4">
@@ -133,14 +157,14 @@ const Post = ({
       <div className="p-4 flex justify-between items-center">
         <div className="flex space-x-4">
           <button
-            onClick={toggleLike}
+            onClick={handleLike}
             className={`flex items-center text-sm font-medium ${
-              liked ? "text-red-500" : "text-gray-500"
+              userLikes[post_id] ? "text-red-500" : "text-gray-500"
             }`}
           >
             <Heart
               size={18}
-              className={`mr-1 ${liked ? "fill-red-500" : ""}`}
+              className={`mr-1 ${userLikes[post_id] ? "fill-red-500" : ""}`}
             />{" "}
             {likes_count}
           </button>

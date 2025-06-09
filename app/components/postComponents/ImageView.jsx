@@ -23,6 +23,11 @@ import {
   likeComment,
   unlikeComment,
 } from "../../features/comments/commentSlice";
+import {
+  likePost,
+  unlikePost,
+  fetchUserLikeForPost,
+} from "../../features/posts/postsLikesSlice";
 
 const ImageView = ({ post, image }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -39,9 +44,9 @@ const ImageView = ({ post, image }) => {
   const touchStartX = useRef(null);
   const [postComments, setPostComments] = useState();
   const [moreMenuOpen, setMoreMenuOpen] = useState({});
+  const userLikes = useSelector((state) => state.postLikes.userLikes);
 
   console.log("post:", post);
-  
 
   const fetchComments = async () => {
     try {
@@ -86,6 +91,12 @@ const ImageView = ({ post, image }) => {
       dispatch(fetchPublicPosts());
     }
   }, [post?.url, dispatch]);
+
+  useEffect(() => {
+    if (self?.user_id && post?.post_id) {
+      dispatch(fetchUserLikeForPost(post.post_id));
+    }
+  }, [self?.user_id, post?.post_id, dispatch]);
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % post?.url.length);
@@ -187,22 +198,16 @@ const ImageView = ({ post, image }) => {
     });
   };
 
-  // Like/Unlike handler for the post itself
-  // const handlePostLike = () => {
-  //   debounceAction(post.post_id, () => {
-  //     if (postLikes[post.post_id]) {
-  //       dispatch(unlikeComment(post.post_id)).then(() => {
-  //         fetchComments();
-  //         fetchLikes();
-  //       });
-  //     } else {
-  //       dispatch(likeComment(post.post_id)).then(() => {
-  //         fetchComments();
-  //         fetchLikes();
-  //       });
-  //     }
-  //   });
-  // };
+  const handlePostLike = async () => {
+    if (!self?.user_id) return;
+    if (userLikes[post.post_id]) {
+      await dispatch(unlikePost(post.post_id));
+    } else {
+      await dispatch(likePost(post.post_id));
+    }
+    // Optionally, fetch updated post data if you want to update likes_count
+    // dispatch(fetchPublicPosts());
+  };
 
   return (
     <div className="flex-1 flex pt-14 flex-col md:flex-row h-full md:max-w-screen  w-screen overflow-hidden">
@@ -266,11 +271,11 @@ const ImageView = ({ post, image }) => {
           {/* Comments header */}
           <div className="p-4 border-b border-gray-200 flex gap-4">
             <div className="w-10 h-10 bg-gray-300 rounded-full flex-shrink-0">
-              <img
+              {post?.user?.profile_img_url && <img
                 src={post?.user?.profile_img_url}
                 alt="User avatar"
                 className="w-full h-full rounded-full object-cover"
-              />
+              />}
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
@@ -518,10 +523,17 @@ const ImageView = ({ post, image }) => {
           <div className="p-4 border-t border-gray-200 w-full h-fit order-2 lg:order-3">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-4">
+                <button
+                  onClick={handlePostLike}
+                  className={`flex items-center gap-1 ${
+                    userLikes[post.post_id] ? "text-blue-600" : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
                   <ThumbsUp
-                    className={`w-5 h-5 `}
+                    className={`w-5 h-5 ${userLikes[post.post_id] ? "fill-blue-600" : ""}`}
                   />
-                  {formatNumber(post.likes_count)}
+                </button>
+                <span>{formatNumber(post.likes_count)}</span>
                 <button className="flex items-center gap-1 text-gray-500 hover:text-gray-700">
                   <Share className="w-5 h-5" />
                   Share

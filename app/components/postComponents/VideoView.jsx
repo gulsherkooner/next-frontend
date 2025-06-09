@@ -17,6 +17,11 @@ import {
   unlikeComment,
   deleteComment,
 } from "../../features/comments/commentSlice";
+import {
+  likePost,
+  unlikePost,
+  fetchUserLikeForPost,
+} from "../../features/posts/postsLikesSlice";
 
 const VideoView = ({ post }) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -39,6 +44,7 @@ const VideoView = ({ post }) => {
   const videoContainerRef = useRef(null);
   const self = useSelector((state) => state.auth?.user);
   const dispatch = useDispatch();
+  const userLikes = useSelector((state) => state.postLikes.userLikes);
 
   const suggestedVideos = [
     {
@@ -276,6 +282,13 @@ const VideoView = ({ post }) => {
     // eslint-disable-next-line
   }, [post?.post_id]);
 
+  // Fetch like status for this post and user
+  useEffect(() => {
+    if (self?.user_id && post?.post_id) {
+      dispatch(fetchUserLikeForPost(post.post_id));
+    }
+  }, [self?.user_id, post?.post_id, dispatch]);
+
   // Utility to debounce actions per comment/reply
   const debounceAction = (id, action) => {
     if (likeTimeouts[id]) return;
@@ -306,6 +319,17 @@ const VideoView = ({ post }) => {
         });
       }
     });
+  };
+
+  const handlePostLike = async () => {
+    if (!self?.user_id) return;
+    if (userLikes[post.post_id]) {
+      await dispatch(unlikePost(post.post_id));
+    } else {
+      await dispatch(likePost(post.post_id));
+    }
+    // Optionally, fetch updated post data if you want to update likes_count
+    // dispatch(fetchPublicPosts());
   };
 
   const handleComment = (parent_comment_id = null) => {
@@ -501,14 +525,17 @@ const VideoView = ({ post }) => {
 
               <div className="flex items-center gap-2">
                 <div className="flex items-center bg-gray-100 rounded-full overflow-hidden">
-                  <button className="px-4 py-2 hover:bg-gray-200 transition-colors flex items-center gap-2">
-                    <svg
-                      className="w-5 h-5"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
-                    </svg>
+                  <button
+                    onClick={handlePostLike}
+                    className={`px-4 py-2 hover:bg-gray-200 transition-colors flex items-center gap-2 ${
+                      userLikes[post.post_id] ? "text-blue-600" : "text-gray-500"
+                    }`}
+                  >
+                    <ThumbsUp
+                      className={`w-5 h-5 ${
+                        userLikes[post.post_id] ? "fill-blue-600" : ""
+                      }`}
+                    />
                     {post.likes_count || 0}
                   </button>
                 </div>
