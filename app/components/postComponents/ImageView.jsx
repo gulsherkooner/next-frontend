@@ -208,6 +208,7 @@ const ImageView = ({ post, image }) => {
       await dispatch(likePost(post.post_id));
     }
     // Optionally, fetch updated post data if you want to update likes_count
+    dispatch(fetchUserLikeForPost(post.post_id));
     dispatch(fetchPublicPosts());
   };
 
