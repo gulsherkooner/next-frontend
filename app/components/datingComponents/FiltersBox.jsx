@@ -374,7 +374,6 @@ const FiltersBox = ({
                 </div>
             </div>
 
-
             {/* Likes Search with Suggestions */}
             <div className="relative">
                 <label className="font-bold block mb-2">Likes</label>
