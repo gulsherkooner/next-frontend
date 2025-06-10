@@ -28,6 +28,8 @@ import {
   unlikePost,
   fetchUserLikeForPost,
 } from "../../features/posts/postsLikesSlice";
+import { getCookie } from "../../lib/utils/cookie";
+import { fetchUserData, updateAccessToken } from "../../features/auth/authSlice";
 
 const ImageView = ({ post, image }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -206,8 +208,46 @@ const ImageView = ({ post, image }) => {
       await dispatch(likePost(post.post_id));
     }
     // Optionally, fetch updated post data if you want to update likes_count
-    // dispatch(fetchPublicPosts());
+    dispatch(fetchPublicPosts());
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const accessToken = getCookie("accessToken");
+      if (!accessToken) {
+        const refreshToken = getCookie("refreshToken");
+        if (!refreshToken) {
+          router.push("/login");
+        }
+        try {
+          const apiGatewayUrl =
+            process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://localhost:3001";
+          const res = await fetch(`${apiGatewayUrl}/auth/refresh`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refreshToken }),
+            credentials: "include",
+          });
+          const data = await res.json();
+          if (res.ok) {
+            dispatch(
+              updateAccessToken({
+                accessToken: data.accessToken,
+                refreshToken: data.refreshToken,
+              })
+            );
+            router.push("/");
+          } else {
+          }
+        } catch (err) {
+          console.error("Login error:", err);
+        }
+      } else {
+        dispatch(fetchUserData());
+      }
+    };
+    fetchData();
+  }, [self?.user_id, dispatch, router]);
 
   return (
     <div className="flex-1 flex pt-14 flex-col md:flex-row h-full md:max-w-screen  w-screen overflow-hidden">
@@ -271,11 +311,13 @@ const ImageView = ({ post, image }) => {
           {/* Comments header */}
           <div className="p-4 border-b border-gray-200 flex gap-4">
             <div className="w-10 h-10 bg-gray-300 rounded-full flex-shrink-0">
-              {post?.user?.profile_img_url && <img
-                src={post?.user?.profile_img_url}
-                alt="User avatar"
-                className="w-full h-full rounded-full object-cover"
-              />}
+              {post?.user?.profile_img_url && (
+                <img
+                  src={post?.user?.profile_img_url}
+                  alt="User avatar"
+                  className="w-full h-full rounded-full object-cover"
+                />
+              )}
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
@@ -303,7 +345,10 @@ const ImageView = ({ post, image }) => {
             <div className="p-4 space-y-4">
               {postComments &&
                 postComments
-                  ?.filter((comment) => comment.parent_comment_id === null && !comment.is_deleted) // Only top-level and not deleted
+                  ?.filter(
+                    (comment) =>
+                      comment.parent_comment_id === null && !comment.is_deleted
+                  ) // Only top-level and not deleted
                   .map((comment) => (
                     <div key={comment.comment_id} className="space-y-3">
                       {/* Main comment */}
@@ -359,7 +404,9 @@ const ImageView = ({ post, image }) => {
                               <button
                                 onClick={() => handleLike(comment.comment_id)}
                                 className={`flex items-center gap-1 ${
-                                  commentLikes[comment.comment_id]?.includes(self?.user_id)
+                                  commentLikes[comment.comment_id]?.includes(
+                                    self?.user_id
+                                  )
                                     ? "text-black"
                                     : "text-gray-500 hover:text-gray-700"
                                 }`}
@@ -367,7 +414,9 @@ const ImageView = ({ post, image }) => {
                               >
                                 <ThumbsUp
                                   className={`w-4 h-4 ${
-                                    commentLikes[comment.comment_id]?.includes(self?.user_id)
+                                    commentLikes[comment.comment_id]?.includes(
+                                      self?.user_id
+                                    )
                                       ? "fill-black"
                                       : ""
                                   }`}
@@ -444,7 +493,10 @@ const ImageView = ({ post, image }) => {
                         getReplies(comment.comment_id)
                           .filter((reply) => !reply.is_deleted) // Only show replies that are not deleted
                           .map((reply) => (
-                            <div key={reply.comment_id} className="ml-8 flex gap-3">
+                            <div
+                              key={reply.comment_id}
+                              className="ml-8 flex gap-3"
+                            >
                               <div className="w-8 h-8 bg-gray-300 rounded-full flex-shrink-0">
                                 <img
                                   src={reply.profile_img_url}
@@ -457,7 +509,9 @@ const ImageView = ({ post, image }) => {
                                   <span className="font-semibold text-sm">
                                     {reply.username}
                                   </span>
-                                  <span className="text-gray-500 text-xs">•</span>
+                                  <span className="text-gray-500 text-xs">
+                                    •
+                                  </span>
                                   <span className="text-gray-500 text-xs">
                                     {getTimeAgo(reply.created_at)}
                                   </span>
@@ -479,7 +533,9 @@ const ImageView = ({ post, image }) => {
                                           className="block px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-left"
                                           onClick={() => {
                                             setMoreMenuOpen({});
-                                            handleDeleteComment(reply.comment_id);
+                                            handleDeleteComment(
+                                              reply.comment_id
+                                            );
                                           }}
                                         >
                                           Delete
@@ -495,7 +551,9 @@ const ImageView = ({ post, image }) => {
                                   <button
                                     onClick={() => handleLike(reply.comment_id)}
                                     className={`flex items-center gap-1 ${
-                                      commentLikes[reply.comment_id]?.includes(self?.user_id)
+                                      commentLikes[reply.comment_id]?.includes(
+                                        self?.user_id
+                                      )
                                         ? "text-black"
                                         : "text-gray-500 hover:text-gray-700"
                                     }`}
@@ -503,12 +561,15 @@ const ImageView = ({ post, image }) => {
                                   >
                                     <ThumbsUp
                                       className={`w-4 h-4 ${
-                                        commentLikes[reply.comment_id]?.includes(self?.user_id)
+                                        commentLikes[
+                                          reply.comment_id
+                                        ]?.includes(self?.user_id)
                                           ? "fill-black"
                                           : ""
                                       }`}
                                     />
-                                    {reply.likes_count > 0 && formatNumber(reply.likes_count)}
+                                    {reply.likes_count > 0 &&
+                                      formatNumber(reply.likes_count)}
                                   </button>
                                 </div>
                               </div>
@@ -526,11 +587,15 @@ const ImageView = ({ post, image }) => {
                 <button
                   onClick={handlePostLike}
                   className={`flex items-center gap-1 ${
-                    userLikes[post.post_id] ? "text-blue-600" : "text-gray-500 hover:text-gray-700"
+                    userLikes[post.post_id]
+                      ? "text-blue-600"
+                      : "text-gray-500 hover:text-gray-700"
                   }`}
                 >
                   <ThumbsUp
-                    className={`w-5 h-5 ${userLikes[post.post_id] ? "fill-blue-600" : ""}`}
+                    className={`w-5 h-5 ${
+                      userLikes[post.post_id] ? "fill-blue-600" : ""
+                    }`}
                   />
                 </button>
                 <span>{formatNumber(post.likes_count)}</span>

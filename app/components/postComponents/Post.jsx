@@ -6,7 +6,7 @@ import {
   Bookmark,
   MoreHorizontal,
 } from "lucide-react";
-import getTimeAgo  from "../../lib/utils/getTimeAgo";
+import getTimeAgo from "../../lib/utils/getTimeAgo";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import {
@@ -26,9 +26,8 @@ const Post = ({
   post_type,
   user,
   title,
-  user_id
+  user_id,
 }) => {
-  const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showFullContent, setShowFullContent] = useState(false);
   const videoRef = useRef(null);
@@ -57,7 +56,7 @@ const Post = ({
     };
 
     const observer = new window.IntersectionObserver(handleIntersection, {
-      threshold: 0.5, // 50% visible
+      threshold: 0.5,
     });
 
     observer.observe(video);
@@ -65,17 +64,20 @@ const Post = ({
     return () => observer.disconnect();
   }, []);
 
-  const toggleLike = () => setLiked(!liked);
-  const toggleSave = () => setSaved(!saved);
+  const toggleSave = () => setSaved((prev) => !prev);
 
   const router = useRouter();
 
   const shortenedContent =
-  description?.length > 150 ? description?.substring(0, 150) + "..." : description;
+    description?.length > 150
+      ? description?.substring(0, 150) + "..."
+      : description;
 
   const handleClick = () => {
-    user_id && user_id === state.user_id ? router.push("/profile") : router.push(`/${user_id}`)
-  }
+    user_id && user_id === state.user_id
+      ? router.push("/profile")
+      : router.push(`/${user_id}`);
+  };
 
   const handleLike = async () => {
     if (!state?.user_id) return; // Optionally show login prompt
@@ -86,22 +88,26 @@ const Post = ({
     }
     // Fetch updated posts to get the new likes_count
     dispatch(fetchPublicPosts());
+    // No setLiked here!
   };
 
   return (
     <div className="bg-white rounded-lg shadow mb-4">
       <div className="p-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center cursor-pointer"
-            onClick={()=>handleClick()}
+          <div
+            className="flex items-center cursor-pointer"
+            onClick={handleClick}
           >
             <div className="w-10 h-10 bg-gray-200 rounded-full flex-shrink-0">
-              {user?.profile_img_url && 
+              {user?.profile_img_url && (
                 <img className="rounded-full" src={user.profile_img_url} alt="*" />
-              }
+              )}
             </div>
             <div className="ml-3">
-              <div className="font-medium">{user?.username ? user.username : "Username"}</div>
+              <div className="font-medium">
+                {user?.username ? user.username : "Username"}
+              </div>
               <div className="text-gray-500 text-xs">{getTimeAgo(created_at)}</div>
             </div>
           </div>
@@ -116,26 +122,21 @@ const Post = ({
             {showFullContent ? description : shortenedContent}
             {description?.length > 150 && (
               <button
-                onClick={() => setShowFullContent(!showFullContent)}
+                onClick={() => setShowFullContent((prev) => !prev)}
                 className="text-gray-500 hover:text-gray-700 ml-1 text-xs font-medium"
               >
                 {showFullContent ? "See less" : "See more"}
               </button>
             )}
-            {/* {views && (
-            <div className="absolute bottom-4 left-4 right-4 flex items-center text-white text-xs">
-              <div className="flex-1 h-1 bg-white/30 rounded-full relative">
-                <div className="absolute h-1 w-1/4 bg-white rounded-full"></div>
-              </div>
-              <div className="ml-2">{views} views</div>
-            </div>
-          )} */}
           </p>
         </div>
       </div>
 
-      {post_type == "image" && (
-        <div className="w-full  h-auto   bg-gray-200 flex items-center justify-center" onClick={() => router.push(`/post/${post_id}`)}>
+      {post_type === "image" && (
+        <div
+          className="w-full h-auto bg-gray-200 flex items-center justify-center"
+          onClick={() => router.push(`/post/${post_id}`)}
+        >
           <img
             src={url[0]}
             alt="Post"
@@ -144,8 +145,11 @@ const Post = ({
         </div>
       )}
 
-      {post_type == "video" && (
-        <div className="w-full h-auto bg-gray-200 flex items-center justify-center relative" onClick={() => router.push(`/post/${post_id}`)}>
+      {post_type === "video" && (
+        <div
+          className="w-full h-auto bg-gray-200 flex items-center justify-center relative"
+          onClick={() => router.push(`/post/${post_id}`)}
+        >
           <video
             ref={videoRef}
             src={url[0]}
