@@ -5,7 +5,8 @@ export default function useSocket() {
   const socketRef = useRef(null);
 
   useEffect(() => {
-    socketRef.current = io(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages`, {
+    socketRef.current = io("https://cent-stage.duckdns.org", {
+      path: '/api/socket.io',
       transports: ["websocket"],
     });
 
