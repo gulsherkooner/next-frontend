@@ -6,8 +6,8 @@ export default function useSocket() {
 
   useEffect(() => {
     socketRef.current = io("https://cent-stage.duckdns.org", {
-      path: '/api/socket.io',
-      transports: ["websocket"],
+      path: '/messages/socket.io',
+      transports: ["websocket"], // use 'websocket' if supported
     });
 
     socketRef.current.on("connect", () => {
