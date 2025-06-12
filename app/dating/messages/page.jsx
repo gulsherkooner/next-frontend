@@ -32,7 +32,6 @@ export default function MessagesPage() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/dating-profile/${userId}`);
         if (!res.ok) throw new Error('Failed to fetch profile');
         const data = await res.json();
-        console.log(data);
         setUser(data);
         const people = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/profiles`, {
           method: 'GET',
@@ -44,9 +43,8 @@ export default function MessagesPage() {
         });
         if (!people.ok) throw new Error('Failed to fetch profile');
         const contactdata = await people.json();
-        console.log(contactdata);
         setContacts(contactdata);
-        const countsRes = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/messages/unread-counts/${userId}`, {
+        const countsRes = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/unread-counts/${userId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -107,7 +105,6 @@ export default function MessagesPage() {
 
     // Listen for typing events
     socket.on('typing', ({ userId, isTyping }) => {
-      console.log(`${userId} is ${isTyping ? 'typing...' : 'not typing'}`);
       setTypingUsers((prev) => {
         if (isTyping) {
           return [...new Set([...prev, userId])];
@@ -186,8 +183,7 @@ export default function MessagesPage() {
     if (currentChat) {
       const fetchConversation = async () => {
         try {
-          console.log(currentChat);
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/messages/conversation/${currentChat.user_id}/${userId}`, {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/conversation/${currentChat.user_id}/${userId}`, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -196,7 +192,7 @@ export default function MessagesPage() {
           const data = await response.json();
           setMessages(Array.isArray(data) ? data : []);
           // Mark messages as read
-          await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/messages/mark-read/${currentChat.user_id}/${userId}`, {
+          await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/mark-read/${currentChat.user_id}/${userId}`, {
             method: 'PUT',
             headers: {
               'Authorization': `Bearer ${token}`,
