@@ -118,7 +118,7 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
     formData.append('image', file); // even for videos (rename this on server later)
 
     try {
-      const res = await fetch(`${NEXT_PUBLIC_API_GATEWAY_URL}/date/messages/upload-image`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/upload-image`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -372,7 +372,7 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
                   formData.append("audio", audioBlob, "voice.webm");
 
                   try {
-                    const res = await fetch(`${NEXT_PUBLIC_API_GATEWAY_URL}/date/messages/upload-audio`, {
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/upload-audio`, {
                       method: "POST",
                       headers: {
                         'Authorization': `Bearer ${token}`,
@@ -420,7 +420,7 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
               formData.append('image', file);
 
               try {
-                const res = await fetch(`${NEXT_PUBLIC_API_GATEWAY_URL}/date/messages/upload-image`, {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/upload-image`, {
                   method: 'POST',
                   headers: {
                     'Authorization': `Bearer ${token}`,

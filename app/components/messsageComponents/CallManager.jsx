@@ -29,14 +29,12 @@ const CallManager = ({
 
   // Debug logs for stream states
   useEffect(() => {
-    console.log('Local stream updated - tracks:', stream?.getTracks());
     if (stream && myVideo.current) {
       myVideo.current.srcObject = stream;
     }
   }, [stream]);
 
   useEffect(() => {
-    console.log('Remote stream updated - tracks:', remoteStream?.getTracks());
     if (remoteStream && userVideo.current) {
       userVideo.current.srcObject = remoteStream;
     }
@@ -93,7 +91,6 @@ const CallManager = ({
     if (!socket) return;
 
     const handleIncomingCall = (data) => {
-      console.log('Incoming call received:', data);
       if (callAccepted || callEnded) return;
 
       setReceivingCall(true);
@@ -103,7 +100,6 @@ const CallManager = ({
     };
 
     const handleCallAccepted = (data) => {
-      console.log('Call accepted signal received', data);
       if (!peerConnection || peerConnection.destroyed) {
         console.warn('No active peer connection to signal');
         return;
@@ -119,7 +115,6 @@ const CallManager = ({
     };
 
     const handleCallEnded = () => {
-      console.log('Call ended signal received');
       leaveCall();
     };
 
@@ -137,14 +132,12 @@ const CallManager = ({
   // 3. Initialize outgoing call when ready
   useEffect(() => {
     if (remoteUserId && !receivingCall && !caller && stream && callStatus === 'Ready to call') {
-      console.log('Conditions met, initiating call...');
       callUser();
     }
   }, [remoteUserId, receivingCall, caller, stream, callStatus]);
 
   // 4. Create peer connection
   const createPeer = useCallback((initiator) => {
-    console.log(`Creating peer as ${initiator ? 'initiator' : 'receiver'}`);
     const peer = new Peer({
       initiator,
       stream: stream,
@@ -159,7 +152,6 @@ const CallManager = ({
     });
 
     peer.on('signal', (data) => {
-      console.log('Peer signal generated:', data);
       if (initiator) {
         socket.emit('call-user', {
           userToCall: remoteUserId,
@@ -178,7 +170,6 @@ const CallManager = ({
     });
 
     peer.on('stream', (incomingStream) => {
-      console.log('Remote stream received - tracks:', incomingStream.getTracks());
       setRemoteStream(incomingStream);
       if (userVideo.current) {
         userVideo.current.srcObject = incomingStream;
@@ -191,9 +182,7 @@ const CallManager = ({
       startCallTimer();
     });
 
-    peer.on('connect', () => {
-      console.log('Peer connection established');
-    });
+    
 
     peer.on('error', (err) => {
       console.error('Peer connection error:', err);
@@ -201,9 +190,7 @@ const CallManager = ({
       leaveCall();
     });
 
-    peer.on('iceStateChange', (state) => {
-      console.log('ICE state changed:', state);
-    });
+   
 
     setPeerConnection(peer);
     return peer;
@@ -212,11 +199,9 @@ const CallManager = ({
   // 5. Initiate call
   const callUser = useCallback(() => {
     if (!stream) {
-      console.log('Cannot call - no local stream');
       return;
     }
 
-    console.log('Initiating call to', remoteUserId);
     setCallStatus('Starting call...');
     const peer = createPeer(true);
     connectionRef.current = peer;
@@ -225,11 +210,9 @@ const CallManager = ({
   // 6. Answer call
   const answerCall = useCallback(() => {
     if (!stream || !callerSignal) {
-      console.log('Cannot answer - missing stream or signal');
       return;
     }
 
-    console.log('Answering call from', caller);
     setCallStatus('Connecting...');
     const peer = createPeer(false);
     peer.signal(callerSignal);
@@ -238,7 +221,6 @@ const CallManager = ({
 
   // 7. End call
   const leaveCall = useCallback(() => {
-    console.log('Cleaning up call');
     setCallEnded(true);
     clearInterval(timerRef.current);
 
