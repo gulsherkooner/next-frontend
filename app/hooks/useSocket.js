@@ -5,7 +5,7 @@ export default function useSocket() {
   const socketRef = useRef(null);
 
   useEffect(() => {
-    socketRef.current = io("http://localhost:5000", {
+    socketRef.current = io(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date`, {
       transports: ["websocket"],
     });
 

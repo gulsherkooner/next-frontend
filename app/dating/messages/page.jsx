@@ -46,10 +46,10 @@ export default function MessagesPage() {
         const contactdata = await people.json();
         console.log(contactdata);
         setContacts(contactdata);
-        const countsRes = await fetch(`http://localhost:5000/api/messages/unread-counts/${userId}`, {
+        const countsRes = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/messages/unread-counts/${userId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
-            'x-user-id': user.user_id
+            'Content-Type': 'application/json'
           }
         });
         const counts = await countsRes.json();
@@ -187,18 +187,20 @@ export default function MessagesPage() {
       const fetchConversation = async () => {
         try {
           console.log(currentChat);
-          const response = await fetch(`http://localhost:5000/api/messages/conversation/${currentChat.user_id}/${userId}`, {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/messages/conversation/${currentChat.user_id}/${userId}`, {
             headers: {
               'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
             },
           });
           const data = await response.json();
           setMessages(Array.isArray(data) ? data : []);
           // Mark messages as read
-          await fetch(`http://localhost:5000/api/messages/mark-read/${currentChat.user_id}/${userId}`, {
+          await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/messages/mark-read/${currentChat.user_id}/${userId}`, {
             method: 'PUT',
             headers: {
               'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
             }
           });
 

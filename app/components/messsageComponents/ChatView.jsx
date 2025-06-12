@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import EmojiPicker from 'emoji-picker-react';
+import { getCookie } from '../../lib/utils/cookie';
 import CallManager from './CallManager';
 import { useReactMediaRecorder } from "react-media-recorder";
 import {
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react';
 const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onStopTyping, onStartTyping, userpic, user_id, socket }) => {
   const [message, setMessage] = useState('');
+  const token = getCookie("accessToken");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
@@ -116,9 +118,14 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
     formData.append('image', file); // even for videos (rename this on server later)
 
     try {
-      const res = await fetch('http://localhost:5000/api/messages/upload-image', {
+      const res = await fetch(`${NEXT_PUBLIC_API_GATEWAY_URL}/date/messages/upload-image`, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
         body: formData,
+
       });
 
       const data = await res.json();
@@ -179,7 +186,7 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
   useEffect(() => {
     if (!socket || activeCall) return;
 
-    const handleIncomingCall = ({ signal, from ,isVideo}) => {
+    const handleIncomingCall = ({ signal, from, isVideo }) => {
       if (from === contact.user_id) {
         setIncomingCall({ signal, from });
         setIsVideoCall(isVideo);
@@ -365,8 +372,12 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
                   formData.append("audio", audioBlob, "voice.webm");
 
                   try {
-                    const res = await fetch("http://localhost:5000/api/messages/upload-audio", {
+                    const res = await fetch(`${NEXT_PUBLIC_API_GATEWAY_URL}/date/messages/upload-audio`, {
                       method: "POST",
+                      headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                      },
                       body: formData,
                     });
 
@@ -409,8 +420,12 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
               formData.append('image', file);
 
               try {
-                const res = await fetch('http://localhost:5000/api/messages/upload-image', {
+                const res = await fetch(`${NEXT_PUBLIC_API_GATEWAY_URL}/date/messages/upload-image`, {
                   method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  },
                   body: formData,
                 });
                 const data = await res.json();
