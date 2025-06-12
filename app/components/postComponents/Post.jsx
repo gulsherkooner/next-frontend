@@ -13,8 +13,8 @@ import {
   likePost,
   unlikePost,
   fetchUserLikeForPost,
+  fetchAllLikesForPost, // <-- import the function
 } from "../../features/posts/postsLikesSlice";
-import { fetchPublicPosts } from "../../features/posts/postsSlice";
 
 const Post = ({
   post_id,
@@ -30,6 +30,7 @@ const Post = ({
 }) => {
   const [saved, setSaved] = useState(false);
   const [showFullContent, setShowFullContent] = useState(false);
+  const [allLikes, setAllLikes] = useState([]); // <-- state for all likes
   const videoRef = useRef(null);
   const dispatch = useDispatch();
   const state = useSelector((state) => state?.auth?.user);
@@ -40,6 +41,21 @@ const Post = ({
       dispatch(fetchUserLikeForPost(post_id));
     }
   }, [state?.user_id, post_id, dispatch]);
+
+  // Fetch all likes for this post (public)
+  useEffect(() => {
+    let isMounted = true;
+    fetchAllLikesForPost(post_id)
+      .then((likes) => {
+        if (isMounted) setAllLikes(likes || []);
+      })
+      .catch(() => {
+        if (isMounted) setAllLikes([]);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [post_id, userLikes[post_id]]); // refetch when like status changes
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -86,9 +102,8 @@ const Post = ({
     } else {
       await dispatch(likePost(post_id));
     }
-    // Fetch updated posts to get the new likes_count
-    dispatch(fetchPublicPosts());
-    // No setLiked here!
+    dispatch(fetchUserLikeForPost(post_id));
+    dispatch(fetchAllLikesForPost(post_id));
   };
 
   return (
@@ -170,7 +185,7 @@ const Post = ({
               size={18}
               className={`mr-1 ${userLikes[post_id] ? "fill-red-500" : ""}`}
             />{" "}
-            {likes_count}
+            {allLikes.length}
           </button>
 
           <button className="flex items-center text-sm font-medium text-gray-500">

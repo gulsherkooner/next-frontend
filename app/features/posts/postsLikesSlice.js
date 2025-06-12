@@ -115,6 +115,25 @@ export const fetchUserLikeForPost = createAsyncThunk(
   }
 );
 
+// Fetch all likes for a specific post (public, no user required)
+export const fetchAllLikesForPost = async (post_id) => {
+  try {
+    const apiGatewayUrl = process.env.NEXT_PUBLIC_API_GATEWAY_URL || 'http://localhost:3001';
+    const response = await fetch(`${apiGatewayUrl}/postLikes/${post_id}/all`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch all likes for post');
+    }
+    return data.likes; // [{ user_id, created_at }]
+  } catch (error) {
+    throw error;
+  }
+};
+
 const postsLikesSlice = createSlice({
   name: 'postLikes',
   initialState: {

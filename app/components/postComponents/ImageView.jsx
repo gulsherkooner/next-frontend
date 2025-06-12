@@ -27,9 +27,11 @@ import {
   likePost,
   unlikePost,
   fetchUserLikeForPost,
+  fetchAllLikesForPost,
 } from "../../features/posts/postsLikesSlice";
 import { getCookie } from "../../lib/utils/cookie";
 import { fetchUserData, updateAccessToken } from "../../features/auth/authSlice";
+// import { fetchPublicPosts } from "../../features/posts/postsSlice";
 
 const ImageView = ({ post, image }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -40,6 +42,7 @@ const ImageView = ({ post, image }) => {
   const [replyText, setReplyText] = useState({});
   const [likeTimeouts, setLikeTimeouts] = useState({});
   const [commentLikes, setCommentLikes] = useState({}); // { [commentId]: [userId, ...] }
+  const [allLikes, setAllLikes] = useState([]);
   const self = useSelector((state) => state.auth?.user);
   const router = useRouter();
   const dispatch = useDispatch();
@@ -47,8 +50,6 @@ const ImageView = ({ post, image }) => {
   const [postComments, setPostComments] = useState();
   const [moreMenuOpen, setMoreMenuOpen] = useState({});
   const userLikes = useSelector((state) => state.postLikes.userLikes);
-
-  console.log("post:", post);
 
   const fetchComments = async () => {
     try {
@@ -82,17 +83,34 @@ const ImageView = ({ post, image }) => {
     }
   };
 
+  // Fetch all likes for this post (public)
+  useEffect(() => {
+    let isMounted = true;
+    if (post?.post_id) {
+      fetchAllLikesForPost(post.post_id)
+        .then((likes) => {
+          if (isMounted) setAllLikes(likes || []);
+        })
+        .catch(() => {
+          if (isMounted) setAllLikes([]);
+        });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [post?.post_id, userLikes[post?.post_id]]); // refetch when like status changes
+
   useEffect(() => {
     fetchComments();
     fetchLikes();
     // eslint-disable-next-line
   }, [dispatch, post?.post_id]);
 
-  useEffect(() => {
-    if (!post?.url) {
-      dispatch(fetchPublicPosts());
-    }
-  }, [post?.url, dispatch]);
+  // useEffect(() => {
+  //   if (!post?.url) {
+  //     dispatch(fetchPublicPosts());
+  //   }
+  // }, [post?.url, dispatch]);
 
   useEffect(() => {
     if (self?.user_id && post?.post_id) {
@@ -209,7 +227,7 @@ const ImageView = ({ post, image }) => {
     }
     // Optionally, fetch updated post data if you want to update likes_count
     dispatch(fetchUserLikeForPost(post.post_id));
-    dispatch(fetchPublicPosts());
+    dispatch(fetchAllLikesForPost(post_id));
   };
 
   useEffect(() => {
@@ -599,7 +617,7 @@ const ImageView = ({ post, image }) => {
                     }`}
                   />
                 </button>
-                <span>{formatNumber(post.likes_count)}</span>
+                <span>{allLikes.length}</span>
                 <button className="flex items-center gap-1 text-gray-500 hover:text-gray-700">
                   <Share className="w-5 h-5" />
                   Share

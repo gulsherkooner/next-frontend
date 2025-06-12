@@ -83,8 +83,8 @@ export default function Home() {
   //   },
   // ];
 
-    // const state = useSelector((state) => state)
-    // console.log("state:", state);
+    const state = useSelector((state) => state)
+    console.log("state:", state);
 
   return (
     <div className="bg-gray-100 min-h-screen pb-14 md:pb-0 w-full">

@@ -21,6 +21,7 @@ import {
   likePost,
   unlikePost,
   fetchUserLikeForPost,
+  fetchAllLikesForPost,
 } from "../../features/posts/postsLikesSlice";
 import { getCookie } from "../../lib/utils/cookie";
 import { fetchUserData, updateAccessToken } from "../../features/auth/authSlice";
@@ -42,6 +43,7 @@ const VideoView = ({ post }) => {
   const [showControls, setShowControls] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [allLikes, setAllLikes] = useState([]);
   const hideControlsTimeout = useRef(null);
   const videoRef = useRef(null);
   const videoContainerRef = useRef(null);
@@ -331,6 +333,23 @@ const VideoView = ({ post }) => {
     }
   }, [self?.user_id, post?.post_id, dispatch]);
 
+  // Fetch all likes for this post (public)
+  useEffect(() => {
+    let isMounted = true;
+    if (post?.post_id) {
+      fetchAllLikesForPost(post.post_id)
+        .then((likes) => {
+          if (isMounted) setAllLikes(likes || []);
+        })
+        .catch(() => {
+          if (isMounted) setAllLikes([]);
+        });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [post?.post_id, userLikes[post?.post_id]]); // refetch when like status changes
+
   // Utility to debounce actions per comment/reply
   const debounceAction = (id, action) => {
     if (likeTimeouts[id]) return;
@@ -372,7 +391,7 @@ const VideoView = ({ post }) => {
     }
     // Optionally, fetch updated post data if you want to update likes_count
     dispatch(fetchUserLikeForPost(post.post_id));
-    dispatch(fetchPublicPosts());
+    dispatch(fetchAllLikesForPost(post_id));
   };
 
   const handleComment = (parent_comment_id = null) => {
@@ -581,7 +600,7 @@ const VideoView = ({ post }) => {
                         userLikes[post.post_id] ? "fill-blue-600" : ""
                       }`}
                     />
-                    {post.likes_count || 0}
+                    {allLikes.length}
                   </button>
                 </div>
 
@@ -1246,7 +1265,8 @@ const VideoView = ({ post }) => {
                                 </p>
                                 <div className="flex items-center gap-4">
                                   <button
-                                    onClick={() => handleLike(reply.comment_id)}
+                                    onClick={() => handleLike(reply.comment_id)
+                                    }
                                     className={`flex items-center gap-1 ${
                                       commentLikes[reply.comment_id]?.includes(
                                         self?.user_id
