@@ -20,7 +20,7 @@ const MessagesList = ({ contacts, currentChat, setCurrentChat, typingUsers }) =>
   };
 
   return (
-    <div className="h-full overflow-y-auto">
+    <div className="h-[100vh] overflow-y-auto mb-12">
       {contacts.map((contact) => (
         <div
           key={contact.user_id}

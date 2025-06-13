@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import MessagesList from '../../components/messsageComponents/MessagesList';
 import dynamic from 'next/dynamic';
-
+import { useisDesktop } from '../../hooks/use-mobile';
 const ChatView = dynamic(() => import('../../components/messsageComponents/ChatView'), {
   ssr: false,
 });
@@ -23,7 +23,16 @@ export default function MessagesPage() {
   const token = typeof window !== "undefined" && localStorage.getItem("token");
   const socket = useSocket();
   const [contacts, setContacts] = useState([]);
-
+  const [isDesktop, setIsDesktop] = useState(true);
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const isNowDesktop = window.innerWidth >= 1024;
+      setIsDesktop(isNowDesktop);
+    };
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
   useEffect(() => {
     if (!userId) return;
 
@@ -222,10 +231,10 @@ export default function MessagesPage() {
       <Sidebar />
 
       <div className="md:ml-64 pt-16 px-0 lg:px-0">
-        <main className="flex flex-col md:flex-row h-[calc(100vh-4rem)] w-full bg-white">
+        <main className="flex flex-col md:flex-row h-[calc(100vh-4rem)] w-full bg-white ">
           {/* Contacts list */}
-          <div className="w-full md:w-80 border-r border-gray-200 flex flex-col">
-            <div className="p-4 border-b border-gray-200">
+          {isDesktop ? <><div className="w-full md:w-80 border-r border-gray-200 flex flex-col ">
+            <div className="p-4 border-b border-gray-200 ">
               <h2 className="text-xl font-semibold text-gray-800">Messages</h2>
               <div className="mt-2 relative">
                 <input
@@ -255,10 +264,41 @@ export default function MessagesPage() {
               setCurrentChat={setCurrentChat}
               typingUsers={typingUsers}
             />
-          </div>
+          </div></> : <>{currentChat ? <></> : <div className="w-full lg:w-80 border-r border-gray-200 flex flex-col ">
+            <div className="p-4 border-b border-gray-200 ">
+              <h2 className="text-xl font-semibold text-gray-800">Messages</h2>
+              <div className="mt-2 relative">
+                <input
+                  type="text"
+                  placeholder="Search contacts..."
+                  className="w-full p-2 pl-8 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <svg
+                  className="absolute left-2 top-3 h-4 w-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <MessagesList
+              contacts={contacts}
+              currentChat={currentChat}
+              setCurrentChat={setCurrentChat}
+              typingUsers={typingUsers}
+            />
+          </div>}</>}
 
           {/* Chat view */}
-          <div className="flex-1 flex flex-col border-t md:border-t-0 border-gray-200">
+          {isDesktop ? (<div className="flex-1 flex flex-col border-t md:border-t-0 border-gray-200">
             {currentChat ? (
               <ChatView
                 contact={currentChat}
@@ -271,6 +311,7 @@ export default function MessagesPage() {
                 userpic={user.profile_img_url[0]}
                 user_id={userId}
                 socket={socket}
+                onback={() => setCurrentChat(null)}
               />
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 p-4">
@@ -296,7 +337,22 @@ export default function MessagesPage() {
                 </p>
               </div>
             )}
-          </div>
+          </div>) : <> {currentChat ? (
+            <ChatView
+              currentChat={currentChat}
+              contact={currentChat}
+              messages={messages}
+              onSendMessage={handleSendMessage}
+              onStartTyping={handleStartTyping}
+              onStopTyping={handleStopTyping}
+              isTyping={typingUsers.includes(currentChat?.user_id)}
+              typingUser={contacts.find(c => c.user_id === currentChat?.user_id)?.firstName}
+              userpic={user.profile_img_url[0]}
+              user_id={userId}
+              socket={socket}
+              onback={() => setCurrentChat(null)}
+            />) : <></>} </>}
+
         </main>
       </div>
       <MobileNav />

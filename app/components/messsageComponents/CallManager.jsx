@@ -295,13 +295,13 @@ const CallManager = ({
 
         {/* Local Video */}
         {isVideo && stream && (
-          <div className="absolute top-4 right-4 w-48 h-32 rounded-lg overflow-hidden border-2 border-white shadow-lg z-20">
+          <div className="absolute top-4 right-4 w-40 h-28 md:w-48 md:h-32 rounded-lg overflow-hidden border-2 border-white shadow-lg z-20">
             <video
               ref={myVideo}
               autoPlay
               playsInline
               muted
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain md:object-cover"
             />
             <div className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 rounded">
               You
@@ -311,7 +311,7 @@ const CallManager = ({
       </div>
 
       {/* Controls */}
-      <div className="bg-gray-800 bg-opacity-70 p-4 flex justify-center items-center space-x-6">
+      <div className="bg-gray-800 bg-opacity-70 p-4 flex justify-center items-center space-x-6 flex-wrap">
         {!callAccepted && receivingCall ? (
           <>
             <button
