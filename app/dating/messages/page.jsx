@@ -38,21 +38,25 @@ export default function MessagesPage() {
 
     const fetchProfile = async () => {
       try {
+        // Step 1: Fetch user profile
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/dating-profile/${userId}`);
         if (!res.ok) throw new Error('Failed to fetch profile');
         const data = await res.json();
         setUser(data);
+
+        // Step 2: Fetch all profiles
         const people = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/profiles`, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`, // or use cookies/session if needed
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
-          credentials: 'include' // if you're using cookies for auth
+          credentials: 'include'
         });
-        if (!people.ok) throw new Error('Failed to fetch profile');
+        if (!people.ok) throw new Error('Failed to fetch contacts');
         const contactdata = await people.json();
-        setContacts(contactdata);
+
+        // Step 3: Fetch unread counts
         const countsRes = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/unread-counts/${userId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -60,6 +64,12 @@ export default function MessagesPage() {
           }
         });
         const counts = await countsRes.json();
+        const countMap = counts.reduce((map, c) => {
+          map[c.sender] = parseInt(c.count, 10);
+          return map;
+        }, {});
+
+        // Step 4: Fetch last messages
         const lastMessagesRes = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/last-messages/${userId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -68,36 +78,28 @@ export default function MessagesPage() {
         });
         const lastMessages = await lastMessagesRes.json();
 
-        const contactsWithLastMsg = contactdata.map(contact => {
+        // ✅ Step 5: Merge everything
+        const finalContacts = contactdata.map(contact => {
           const last = lastMessages.find(m => m.contactId === contact.user_id);
           return {
             ...contact,
+            unreadCount: countMap[contact.user_id] || 0,
             lastMessage: last?.lastMessage || '',
             lastMessageTime: last?.timestamp || ''
           };
         });
-        setContacts(contactsWithLastMsg);
 
-        // Merge counts into contacts
-        const contactMap = counts.reduce((map, c) => {
-          map[c.sender] = parseInt(c.count, 10);
-          return map;
-        }, {});
-
-        const updatedContacts = contactdata.map(contact => ({
-          ...contact,
-          unreadCount: contactMap[contact.user_id] || 0
-        }));
-
-        setContacts(updatedContacts);
-
+        // ✅ Final setContacts
+        console.log("✅ Final merged contacts:", finalContacts);
+        setContacts(finalContacts);
       } catch (err) {
-        console.error(err);
+        console.error('❌ Error in fetchProfile:', err);
       }
     };
 
     fetchProfile();
   }, [userId]);
+
 
   useEffect(() => {
     if (!socket || !user) return;

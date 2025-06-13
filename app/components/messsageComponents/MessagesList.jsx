@@ -1,4 +1,19 @@
 import React, { useState } from 'react';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import calendar from 'dayjs/plugin/calendar';
+
+dayjs.extend(relativeTime);
+dayjs.extend(calendar);
+
+function formatLastSeen(timestamp) {
+  return dayjs(timestamp).calendar(null, {
+    sameDay: 'h:mm A',      // today
+    lastDay: '[Yesterday]',
+    lastWeek: 'ddd',        // Mon, Tue...
+    sameElse: 'DD MMM YYYY' // older
+  });
+}
 
 const girlProfilePics = [
   "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
@@ -10,9 +25,10 @@ function isImageMessage(text) {
   return text?.startsWith('http') && text.includes('/uploads/');
 }
 
-const MessagesList = ({ contacts, currentChat, setCurrentChat, typingUsers,messages }) => {
+const MessagesList = ({ contacts, currentChat, setCurrentChat, typingUsers }) => {
+          console.log(contacts);
+
   const [fallbackImages, setFallbackImages] = useState({});
-  console.log("Messages",messages);
   const handleError = (contactId) => {
     const randomFallback =
       girlProfilePics[Math.floor(Math.random() * girlProfilePics.length)];
@@ -43,7 +59,7 @@ const MessagesList = ({ contacts, currentChat, setCurrentChat, typingUsers,messa
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-gray-800">{contact.firstName}</h3>
               <span className="text-xs text-gray-500">
-                {contact.lastMessageTime}
+                {formatLastSeen(contact.lastMessageTime)}
               </span>
             </div>
             <p className="text-sm text-gray-600 truncate">
