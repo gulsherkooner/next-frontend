@@ -10,9 +10,9 @@ function isImageMessage(text) {
   return text?.startsWith('http') && text.includes('/uploads/');
 }
 
-const MessagesList = ({ contacts, currentChat, setCurrentChat, typingUsers }) => {
+const MessagesList = ({ contacts, currentChat, setCurrentChat, typingUsers,messages }) => {
   const [fallbackImages, setFallbackImages] = useState({});
-
+  console.log("Messages",messages);
   const handleError = (contactId) => {
     const randomFallback =
       girlProfilePics[Math.floor(Math.random() * girlProfilePics.length)];
@@ -20,7 +20,7 @@ const MessagesList = ({ contacts, currentChat, setCurrentChat, typingUsers }) =>
   };
 
   return (
-    <div className="h-[100vh] overflow-y-auto mb-12">
+    <div className="h-[100vh] overflow-y-auto mb-12 md:mb-0">
       {contacts.map((contact) => (
         <div
           key={contact.user_id}

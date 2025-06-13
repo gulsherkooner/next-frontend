@@ -60,6 +60,23 @@ export default function MessagesPage() {
           }
         });
         const counts = await countsRes.json();
+        const lastMessagesRes = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/last-messages/${userId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        const lastMessages = await lastMessagesRes.json();
+
+        const contactsWithLastMsg = contactdata.map(contact => {
+          const last = lastMessages.find(m => m.contactId === contact.user_id);
+          return {
+            ...contact,
+            lastMessage: last?.lastMessage || '',
+            lastMessageTime: last?.timestamp || ''
+          };
+        });
+        setContacts(contactsWithLastMsg);
 
         // Merge counts into contacts
         const contactMap = counts.reduce((map, c) => {
@@ -259,6 +276,7 @@ export default function MessagesPage() {
               </div>
             </div>
             <MessagesList
+              messages={messages}
               contacts={contacts}
               currentChat={currentChat}
               setCurrentChat={setCurrentChat}
@@ -290,6 +308,7 @@ export default function MessagesPage() {
               </div>
             </div>
             <MessagesList
+              messages={messages}
               contacts={contacts}
               currentChat={currentChat}
               setCurrentChat={setCurrentChat}
