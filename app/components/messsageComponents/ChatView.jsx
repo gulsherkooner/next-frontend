@@ -122,7 +122,6 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
         },
         body: formData,
 
@@ -376,7 +375,6 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
                       method: "POST",
                       headers: {
                         'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
                       },
                       body: formData,
                     });
