@@ -245,7 +245,7 @@ export default function MessagesPage() {
     }
   }, [currentChat, token]);
   return (
-    <div className="bg-gray-50 min-h-screen w-full pb-14 md:pb-0">
+    <div className="bg-gray-50 min-h-screen w-full pb-14 md:pb-0 overflow-hidden">
       <Header />
       <Sidebar />
 

@@ -18,7 +18,7 @@ import {
   Phone,
   PhoneOff
 } from 'lucide-react';
-const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onStopTyping, onStartTyping, userpic, user_id, socket ,onback}) => {
+const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onStopTyping, onStartTyping, userpic, user_id, socket, onback }) => {
   const [message, setMessage] = useState('');
   const token = getCookie("accessToken");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -30,6 +30,7 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [waveformData, setWaveformData] = useState([]);
   const canvasRef = useRef(null);
+  const bottomRef = useRef(null);
   const intervalRef = useRef(null);
   const [audioBlob, setAudioBlob] = useState(null);
   const [showCall, setShowCall] = useState(false);
@@ -199,13 +200,19 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
     };
   }, [socket, contact.user_id, activeCall]);
 
+  useEffect(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
   return (
-    <div className="flex flex-col lg:h-[100vh] mb-12 md:mb-0 w-full ">
+    <div className="flex flex-col lg:h-[100vh] w-full relative">
       {/* Chat header */}
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-white">
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-white fixed top-13 w-full z-10">
         {/* Left: Profile and name */}
         <div className="flex items-center">
-            <ArrowLeft className='mr-2' onClick={onback}/>
+          <ArrowLeft className='mr-2' onClick={onback} />
           <div className="relative">
             <img
               src={contact.profile_img_url[0]}
@@ -245,7 +252,7 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
         </div>
       </div>
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+      <div className="flex-1 overflow-y-auto pt-[72px] pb-[150px] px-4 bg-gray-50 hide-scrollbar">
         {messages.map((msg, index) => (
           <div
             key={msg.id || `${msg.sender}-${msg.timestamp}-${index}`}
@@ -294,7 +301,7 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
             </div>)}
           </div>
         ))}
-
+        <div ref={bottomRef} />
       </div>
       {isTyping && (
         <div className="px-4 py-2 flex items-center space-x-2 w-min">
@@ -306,7 +313,7 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
         </div>
       )}
       {/* Message input */}
-      <div className="p-4 border-t border-gray-200 bg-white relative">
+      <div className="p-4 border-t border-gray-200 bg-white fixed bottom-12 md:bottom-0 w-full z-10">
         <form onSubmit={handleSubmit} className="flex items-center gap-2">
 
           {/* Emoji Button */}
