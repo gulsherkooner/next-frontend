@@ -72,7 +72,7 @@ const UserProfile = () => {
           setIsFollowing={setIsFollowing}
           fetchData={fetchData} // Now `fetchData` is properly passed
         />
-        <ProfileContent userPosts={userPosts} />
+        <ProfileContent userPosts={userPosts} data={data} />
       </div>
       <MobileNav />
     </div>

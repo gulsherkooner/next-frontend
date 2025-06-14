@@ -1,29 +1,39 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchPublicReels } from "../features/posts/postsSlice";
 
 const ReelCarousel = () => {
-  const img =
-    "https://images.unsplash.com/photo-1602492665157-639323eadd31?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8aW5zdGFncmFtJTIwcmVlbHN8ZW58MHx8MHx8fDA%3D";
-  // Normally we would fetch these from an API
-  const reels = [
-    { id: 1, imageUrl: `${img}` },
-    { id: 2, imageUrl: `${img}` },
-    { id: 3, imageUrl: `` },
-    { id: 4, imageUrl: `${img}` },
-    { id: 5, imageUrl: `` },
-    { id: 6, imageUrl: `${img}` },
-    { id: 7, imageUrl: `${img}` },
-    { id: 8, imageUrl: `${img}` },
-    { id: 9, imageUrl: `${img}` },
-    { id: 10, imageUrl: `${img}` },
-  ];
-
   const containerRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const isMobile = useIsMobile();
+  const router = useRouter();
+  const dispatch = useDispatch();
+
+  // Generate a seed once per session/feed
+  const [seed] = useState(() => Math.random().toString(36).slice(2));
+  const [page] = useState(1);
+  const [limit] = useState(10);
+
+  // Local state for reels
+  const [reels, setReels] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch public reels on mount
+  useEffect(() => {
+    setLoading(true);
+    dispatch(fetchPublicReels({ page, limit, seed }))
+      .then((action) => {
+        if (action.payload && action.payload.reels) {
+          setReels(action.payload.reels);
+        }
+        setLoading(false);
+      });
+    // eslint-disable-next-line
+  }, [dispatch, page, limit, seed]);
 
   const scroll = (direction) => {
     if (!containerRef.current) return;
@@ -39,7 +49,6 @@ const ReelCarousel = () => {
       behavior: "smooth",
     });
 
-    // We need to wait for the scroll to finish to check scroll position
     setTimeout(() => {
       checkScrollPosition();
     }, 300);
@@ -49,17 +58,11 @@ const ReelCarousel = () => {
     if (!containerRef.current) return;
 
     const container = containerRef.current;
-
-    // Check if we can scroll left (not at the start)
     setCanScrollLeft(container.scrollLeft > 0);
-
-    // Check if we can scroll right (not at the end)
     setCanScrollRight(
-      container.scrollLeft < container.scrollWidth - container.clientWidth - 5 // 5px buffer for rounding errors
+      container.scrollLeft < container.scrollWidth - container.clientWidth - 5
     );
   };
-
-  const router = useRouter();
 
   return (
     <div className="mb-4">
@@ -70,34 +73,41 @@ const ReelCarousel = () => {
           ref={containerRef}
           onScroll={checkScrollPosition}
         >
-          {reels.map((reel) => (
-            <div
-              key={reel.id}
-              onClick={() => router.push(`/reels?id=${reel.id}`)}
-              className="w-36 h-52 flex-shrink-0 bg-gray-200 rounded-lg flex items-center justify-center relative overflow-hidden cursor-pointer"
-            >
-              {reel.imageUrl ? (
-                <img
-                  src={reel.imageUrl}
-                  alt="Reel thumbnail"
-                  className="w-full h-full object-cover"
-                />
-              ) : reel.videoUrl ? (
-                <video
-                  src={reel.videoUrl}
-                  className="w-full h-full object-cover"
-                  autoPlay
-                  controls
-                  loop
-                  muted
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white/40">
-                  <div className="w-5 h-5 border-t-transparent border-l-2 border-r-2 border-b-2 border-white"></div>
-                </div>
-              )}
-            </div>
-          ))}
+          {loading ? (
+            <div className="text-gray-500 px-4 py-8">Loading reels...</div>
+          ) : reels.length === 0 ? (
+            <div className="text-gray-500 px-4 py-8">No reels found.</div>
+          ) : (
+            reels.map((reel) => (
+              <div
+                key={reel.post_id}
+                onClick={() => router.push(`/reels?id=${reel.post_id}`)}
+                className="w-36 h-52 flex-shrink-0 bg-gray-200 rounded-lg flex items-center justify-center relative overflow-hidden cursor-pointer"
+              >
+                {reel.url && reel.url[0] ? (
+                  reel.post_type === "video" ? (
+                    <video
+                      src={reel.url[0]}
+                      className="w-full h-full object-cover"
+                      autoPlay={false}
+                      preload="metadata"
+                      muted
+                    />
+                  ) : (
+                    <img
+                      src={reel.url[0]}
+                      alt="Reel thumbnail"
+                      className="w-full h-full object-cover"
+                    />
+                  )
+                ) : (
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white/40">
+                    <div className="w-5 h-5 border-t-transparent border-l-2 border-r-2 border-b-2 border-white"></div>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
         </div>
 
         {/* Navigation buttons */}
