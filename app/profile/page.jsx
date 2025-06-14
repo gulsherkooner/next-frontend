@@ -73,7 +73,7 @@ export default function profile() {
       {/* Main content column */}
       <div className="pt-14 pr-2 md:pl-58 md:flex-row flex-1">
         <ProfileInfo data={data} profile={true} />
-        <ProfileContent userPosts={userPosts} />
+        <ProfileContent userPosts={userPosts} data={data} />
       </div>
       <MobileNav />
     </div>

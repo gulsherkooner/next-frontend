@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
 import CreatePost from "./components/postComponents/CreatePost";
@@ -21,18 +21,47 @@ import { fetchUserData } from "./features/auth/authSlice";
 export default function Home() {
   const isMobile = useIsMobile();
   const [menu, setMenu] = useState(false);
-  const { posts, status, error } = useSelector((state) => state.posts);
+  const { posts, status, error, page, totalPages } = useSelector((state) => state.posts);
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  const [isFetchingNext, setIsFetchingNext] = useState(false);
+  const sentinelRef = useRef(null);
+
+  // Generate a seed once per session/feed
+  const [seed] = useState(() => Math.random().toString(36).slice(2));
 
   useEffect(() => {
     dispatch(fetchUserData());
-    dispatch(fetchPublicPosts());
-  }, [dispatch]);
+    dispatch(fetchPublicPosts({ page: 1, limit: 2, seed }));
+  }, [dispatch, seed]);
 
   useEffect(() => {
-    if(user?.user_id) dispatch(fetchUserPosts(user?.user_id));
-  }, [user?.user_id]);
+    if (user?.user_id) dispatch(fetchUserPosts(user?.user_id));
+  }, [user?.user_id, dispatch]);
+
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    if (status === "loading" || isFetchingNext) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          page < totalPages &&
+          !isFetchingNext
+        ) {
+          setIsFetchingNext(true);
+          dispatch(fetchPublicPosts({ page: page + 1, limit: 2, seed }))
+            .finally(() => setIsFetchingNext(false));
+        }
+      },
+      { threshold: 1 }
+    );
+
+    observer.observe(sentinelRef.current);
+
+    return () => observer.disconnect();
+  }, [sentinelRef, page, totalPages, dispatch, status, isFetchingNext, seed]);
 
   // Sample data for trending profiles
   const trendingProfiles = [
@@ -83,8 +112,8 @@ export default function Home() {
   //   },
   // ];
 
-    const state = useSelector((state) => state)
-    console.log("state:", state);
+    // const state = useSelector((state) => state)
+    // console.log("state:", state);
 
   return (
     <div className="bg-gray-100 min-h-screen pb-14 md:pb-0 w-full">
@@ -103,6 +132,8 @@ export default function Home() {
             {posts.map((post) => (
               <Post key={post.post_id} {...post} />
             ))}
+            <div ref={sentinelRef} style={{ height: 1 }} />
+            {isFetchingNext && <div>Loading more...</div>}
 
             <SponsoredProducts />
 

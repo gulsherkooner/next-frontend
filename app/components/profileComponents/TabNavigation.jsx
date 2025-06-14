@@ -31,9 +31,9 @@ const TabNavigation = ({ activeTab, setActiveTab }) => {
           onClick={() => setActiveTab('collections')} 
         />
         <TabButton 
-          label="About" 
-          active={activeTab === 'about'} 
-          onClick={() => setActiveTab('about')} 
+          label="Account" 
+          active={activeTab === 'account'} 
+          onClick={() => setActiveTab('account')} 
         />
         <div className={`ml-auto ${isMobile?"pr-0":"pr-4"} flex items-center`}>
           <button className="p-2">

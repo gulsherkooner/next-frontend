@@ -73,7 +73,7 @@ const ReelCarousel = () => {
           {reels.map((reel) => (
             <div
               key={reel.id}
-              onClick={()=>router.push('/reels')}
+              onClick={() => router.push(`/reels?id=${reel.id}`)}
               className="w-36 h-52 flex-shrink-0 bg-gray-200 rounded-lg flex items-center justify-center relative overflow-hidden cursor-pointer"
             >
               {reel.imageUrl ? (

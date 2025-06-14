@@ -36,7 +36,6 @@ const CreatePost = () => {
   const dispatch = useDispatch();
 
   const handlePostSubmit = () => {
-    console.log("Post submitted:", postText);
     dispatch(createPost(postText)).unwrap();
     setPostText({
       title: "",

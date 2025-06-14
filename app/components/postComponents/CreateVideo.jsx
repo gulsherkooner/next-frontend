@@ -43,7 +43,6 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog, user }) => {
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      // console.log("VideoFile:",e.target.files[0])
       setPostFile(e.target.files[0]);
     }
   };
@@ -68,7 +67,6 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog, user }) => {
           reject(new Error("No file provided"));
           return;
         }
-        console.log("getVideoDimensions called with:", file);
         const url = URL.createObjectURL(file);
         const video = document.createElement("video");
         video.preload = "metadata";
@@ -83,7 +81,6 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog, user }) => {
 
         video.onloadedmetadata = function () {
           clearTimeout(timeoutId);
-          console.log("onloadedmetadata fired", video.videoWidth, video.videoHeight);
           URL.revokeObjectURL(url);
           resolve({ width: video.videoWidth, height: video.videoHeight });
           video.remove();
@@ -106,7 +103,6 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog, user }) => {
         Math.abs(width / height - 9 / 16) < 0.01 ||
         Math.abs(height / width - 16 / 9) < 0.01;
 
-      console.log("isReel:", isReel);
 
       const reader = new FileReader();
       reader.onload = async () => {
@@ -127,15 +123,15 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog, user }) => {
           is_reel: isReel,
         };
         try {
-          // await dispatch(createPost(postData)).unwrap();
-          // dispatch(fetchPublicPosts());
-          // setLoading(false);
-          // setPostTitle("");
-          // setPostDescription("");
-          // setPostTags("");
-          // setPostVisibility("public");
-          // setPostFile(null);
-          // setOpenVideoDialog(false);
+          await dispatch(createPost(postData)).unwrap();
+          dispatch(fetchPublicPosts());
+          setLoading(false);
+          setPostTitle("");
+          setPostDescription("");
+          setPostTags("");
+          setPostVisibility("public");
+          setPostFile(null);
+          setOpenVideoDialog(false);
         } catch (err) {
           console.error("Create post error:", err);
           setError(err.message || "Failed to create post");

@@ -56,14 +56,14 @@ const ReelItem = ({ reel, isActive, isLiked, setIsLiked, isSaved, setIsSaved, fo
       {/* Video */}
       <video
         ref={videoRef}
-        className=" w-full h-full max-h-[calc(100vh-112px)] object-center object-contain md:rounded-lg"
+        className=" w-full h-full max-h-[calc(100vh-112px)] object-center object-contain "
         loop
         playsInline
         preload="metadata"
         onClick={togglePlayPause}
         style={{ cursor: "pointer" }}
       >
-        <source src={reel.videoUrl} type="video/mp4" />
+        <source src={reel.url[0]} type="video/mp4" />
         Your browser does not support the video tag.
       </video>
 
@@ -100,7 +100,7 @@ const ReelItem = ({ reel, isActive, isLiked, setIsLiked, isSaved, setIsSaved, fo
               <ThumbsUp size={20} />
             </button>
             <span className="text-white text-xs mt-1 font-medium">
-              {formatCount(reel.likes + (isLiked ? 1 : 0))}
+              {formatCount(reel.likes_count + (isLiked ? 1 : 0))}
             </span>
           </div>
 
@@ -113,19 +113,19 @@ const ReelItem = ({ reel, isActive, isLiked, setIsLiked, isSaved, setIsSaved, fo
               <MessageSquareText size={20} />
             </button>
             <span className="text-white text-xs mt-1 font-medium">
-              {formatCount(reel.comments)}
+              {formatCount(reel.comments_count)}
             </span>
           </div>
 
           {/* Share Button */}
-          <div className="flex flex-col items-center">
+          {/* <div className="flex flex-col items-center">
             <button className="p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-all duration-200 backdrop-blur-sm">
               <Share2 size={20} />
             </button>
             <span className="text-white text-xs mt-1 font-medium">
               {formatCount(reel.shares)}
             </span>
-          </div>
+          </div> */}
 
           {/* Save Button */}
           <div className="flex flex-col items-center">
@@ -188,12 +188,14 @@ const ReelItem = ({ reel, isActive, isLiked, setIsLiked, isSaved, setIsSaved, fo
         {/* User Info */}
         <div className="flex items-center gap-2 mb-2">
           <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center">
-            <span className="text-white font-bold text-xs">
-              {reel.username.charAt(0).toUpperCase()}
-            </span>
+            <img
+              src={reel.user.profile_img_url}
+              alt={reel.user.username.charAt(0).toUpperCase()}
+              className="w-full h-full rounded-full object-cover"
+            />
           </div>
           <span className="text-white font-semibold text-sm">
-            {reel.username}
+            {reel.user.username}
           </span>
           <button className="px-3 py-0.5 bg-red-600 text-white text-xs rounded-full hover:bg-red-700 transition-colors">
             Follow
@@ -216,7 +218,7 @@ const ReelItem = ({ reel, isActive, isLiked, setIsLiked, isSaved, setIsSaved, fo
               <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
             </svg>
             <span className="text-white text-xs opacity-90">
-              {reel.backgroundSound}
+              backgroundSound
             </span>
           </div>
 
@@ -242,7 +244,7 @@ const ReelItem = ({ reel, isActive, isLiked, setIsLiked, isSaved, setIsSaved, fo
               />
             </svg>
             <span className="text-white text-xs opacity-90">
-              {reel.location}
+              reel.location
             </span>
           </div>
         </div>

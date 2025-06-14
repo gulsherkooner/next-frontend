@@ -7,7 +7,7 @@ import VideosGrid from "./VideosGrid";
 import CollectionsGrid from "./CollectionsGrid";
 import AboutTab from "./AboutTab";
 
-const ProfileContent = ({userPosts}) => {
+const ProfileContent = ({userPosts, data}) => {
   const [activeTab, setActiveTab] = useState("posts");
   const [imgPosts, setImgPosts] = useState(null);
   const [videoPosts, setVideoPosts] = useState(null);
@@ -39,7 +39,7 @@ const ProfileContent = ({userPosts}) => {
       case "collections":
         return <CollectionsGrid />;
       case "account":
-        return <AboutTab />;
+        return <AboutTab data={data} />;
       default:
         return <PostsGrid />;
     }
