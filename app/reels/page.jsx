@@ -5,11 +5,9 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import MobileNav from "../components/MobileNav";
 import ReelsModal from "../components/reelComponents/ReelsModel";
-import { useSearchParams } from "next/navigation";
 
-export default function ReelsPage() {
-  const searchParams = useSearchParams();
-  const id = searchParams.get("id");
+export default function ReelsPage({ searchParams }) {
+  const id = searchParams?.id;
 
   const [menu, setMenu] = useState(false);
 
