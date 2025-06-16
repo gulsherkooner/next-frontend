@@ -27,6 +27,7 @@ const Post = ({
   user,
   title,
   user_id,
+  is_reel
 }) => {
   const [saved, setSaved] = useState(false);
   const [showFullContent, setShowFullContent] = useState(false);
@@ -163,7 +164,7 @@ const Post = ({
       {post_type === "video" && (
         <div
           className="w-full h-auto bg-gray-200 flex items-center justify-center relative"
-          onClick={() => router.push(`/post/${post_id}`)}
+          onClick={() => is_reel ? router.push(`/reels?id=${post_id}`) : router.push(`/post/${post_id}`) }
         >
           <video
             ref={videoRef}

@@ -21,6 +21,7 @@ const ReelsModal = ({ onClose, id }) => {
   const [isSaved, setIsSaved] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const isMobile = useIsMobile();
+  const [hasFetchedFirstPage, setHasFetchedFirstPage] = useState(false);
 
   // PAGINATED REELS STATE
   const [reels, setReels] = useState([]);
@@ -39,13 +40,14 @@ const ReelsModal = ({ onClose, id }) => {
         page: 1,
         limit: 5,
         seed,
-        id, // only on first page
+        id:id, // only on first page
       })
     ).then((action) => {
       if (action.payload) {
         setReels(action.payload.reels || []);
         setTotalPages(action.payload.totalPages || 1);
         setPage(1);
+        setHasFetchedFirstPage(true);
       }
       setIsFetching(false);
     });
@@ -54,7 +56,13 @@ const ReelsModal = ({ onClose, id }) => {
 
   // Fetch next page when user scrolls to last reel
   useEffect(() => {
-    if (currentIndex === reels.length - 1 && page < totalPages && !isFetching) {
+    // Only run if first page has been fetched and not on initial mount
+    if (
+      hasFetchedFirstPage &&
+      currentIndex === reels.length - 1 &&
+      page < totalPages &&
+      !isFetching
+    ) {
       setIsFetching(true);
       dispatch(
         fetchPublicReels({

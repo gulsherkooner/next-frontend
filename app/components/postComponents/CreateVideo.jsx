@@ -19,6 +19,7 @@ import {
 import { useDispatch } from "react-redux";
 import { createPost, fetchPublicPosts } from "../../features/posts/postsSlice";
 import { Riple } from "react-loading-indicators";
+import PulseLoader from "react-spinners/PulseLoader";
 
 const CreateVideo = ({ openVideoDialog, setOpenVideoDialog, user }) => {
   const [postTitle, setPostTitle] = useState("");
@@ -43,7 +44,13 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog, user }) => {
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setPostFile(e.target.files[0]);
+      const file = e.target.files[0];
+      if (file.size > 100 * 1000 * 1000) {
+        // 100MB in bytes
+        alert("File size exceeds 100MB. Please select a smaller video.");
+        return;
+      }
+      setPostFile(file);
     }
   };
 
@@ -52,7 +59,7 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog, user }) => {
   };
 
   const handleVideoSubmit = async () => {
-    // setLoading(true);
+    setLoading(true);
     setError(null);
     // Process tags - remove # and filter empty tags
     const processedTags = postTags
@@ -99,10 +106,9 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog, user }) => {
     try {
       const { width, height } = await getVideoDimensions(postFile);
       // Check for 9:16 ratio (allowing a small margin for floating point errors)
-      const isReel =
-        Math.abs(width / height - 9 / 16) < 0.01 ||
-        Math.abs(height / width - 16 / 9) < 0.01;
-
+      const ratio = width / height;
+      // Accept as reel only if ratio is between 9/16 and 1.91/1 (inclusive)
+      const isReel = ratio < 9 / 13;
 
       const reader = new FileReader();
       reader.onload = async () => {
@@ -142,6 +148,16 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog, user }) => {
       setLoading(false);
       setError("Failed to read video dimensions or file.");
     }
+  };
+
+  const handleCancel = () => {
+    setLoading(false);
+    setPostTitle("");
+    setPostDescription("");
+    setPostTags("");
+    setPostVisibility("public");
+    setPostFile(null);
+    setOpenVideoDialog(false);
   };
 
   return (
@@ -296,24 +312,20 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog, user }) => {
             <button
               type="button"
               className="bg-gray-300 text-gray-700 px-4 py-1.5 rounded-md text-sm font-medium"
-              onClick={() => setOpenVideoDialog(false)}
+              onClick={() => handleCancel()}
             >
               Cancel
             </button>
             <button
               type="button"
-              className="bg-gray-800 text-white px-4 py-1.5 rounded-md text-sm font-medium ml-2 relative overflow-hidden"
+              className={`${
+                loading ? "bg-gray-300" : "bg-gray-800"
+              } text-white px-4 py-1.5 rounded-md text-sm font-medium ml-2 relative overflow-hidden`}
               onClick={handleVideoSubmit}
-              disabled={!postTitle.trim() || !postFile}
+              disabled={loading}
             >
               {loading ? (
-                <Riple
-                  className="absolute inset-0"
-                  color="#32cd32"
-                  size="small"
-                  text=""
-                  textColor=""
-                />
+                <PulseLoader size={10} color="#010101" loading={loading} />
               ) : (
                 "Post Video"
               )}
