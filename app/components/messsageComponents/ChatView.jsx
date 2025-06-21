@@ -207,9 +207,9 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
   }, [messages]);
 
   return (
-    <div className="flex flex-col lg:h-[100vh] w-full relative">
+    <div className="flex flex-col h-full">
       {/* Chat header */}
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-white fixed top-13 w-full z-10">
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-white  ">
         {/* Left: Profile and name */}
         <div className="flex items-center">
           <ArrowLeft className='mr-2' onClick={onback} />
@@ -515,6 +515,8 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
         <CallManager
           currentUserId={user_id}
           remoteUserId={contact.user_id}
+          profileImg={contact.profile_img_url[0]}
+          displayName={contact.firstName}
           isVideo={isVideoCall}
           incomingSignal={incomingCall?.signal}
           onClose={handleCallEnd}
