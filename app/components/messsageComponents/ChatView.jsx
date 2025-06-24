@@ -207,9 +207,9 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full w-full">
       {/* Chat header */}
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-white  ">
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-white md:relative  fixed w-full z-10">
         {/* Left: Profile and name */}
         <div className="flex items-center">
           <ArrowLeft className='mr-2' onClick={onback} />
@@ -313,7 +313,7 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
         </div>
       )}
       {/* Message input */}
-      <div className="p-4 border-t border-gray-200 bg-white fixed bottom-12 md:bottom-0 w-full z-10">
+      <div className="p-4 border-t border-gray-200 bg-white fixed md:relative bottom-12 md:bottom-0 w-full z-10">
         <form onSubmit={handleSubmit} className="flex items-center gap-2">
 
           {/* Emoji Button */}
