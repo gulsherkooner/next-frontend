@@ -117,26 +117,26 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
     setShowOptions(false);
 
     const formData = new FormData();
-    formData.append('image', file); // even for videos (rename this on server later)
+    formData.append('file', file); // ← Changed key to 'file'
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/upload-image`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/upload-media`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
         },
         body: formData,
-
       });
 
       const data = await res.json();
-      onSendMessage(data.url); // send video/photo as URL
+      onSendMessage(data.url); // 🔗 Send Cloudinary URL
     } catch (err) {
       console.error('Upload failed:', err);
     } finally {
       setUploading(false);
     }
   };
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -258,51 +258,78 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
             key={msg.id || `${msg.sender}-${msg.timestamp}-${index}`}
             className={`flex mb-4 ${msg.sender === contact.user_id ? 'justify-start' : 'justify-end'}`}
           >
-            {(msg.sender === contact.user_id) && (<div className="relative">
-              <img
-                src={contact.profile_img_url[0]}
-                alt={contact.firstName}
-                className={`w-10 h-10 rounded-full flex mb-4 justify-start`}
-              />
-            </div>)}
+            {/* Avatar - Left side for received messages */}
+            {msg.sender === contact.user_id && (
+              <div className="relative">
+                <img
+                  src={contact.profile_img_url[0]}
+                  alt={contact.firstName}
+                  className="w-10 h-10 rounded-full flex mb-4 justify-start"
+                />
+              </div>
+            )}
+
+            {/* Message bubble */}
             <div
               className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${msg.sender === contact.user_id
-                ? 'bg-white border border-gray-200 rounded-tl-none'
-                : 'bg-blue-500 text-white rounded-tr-none'
+                  ? 'bg-white border border-gray-200 rounded-tl-none'
+                  : 'bg-blue-500 text-white rounded-tr-none'
                 }`}
             >
-              {msg.text.includes('/uploads/') ? (
-                msg.text.includes('.webm') || msg.text.includes('.mp3') ? (
-                  <audio controls className="max-w-xs">
-                    <source src={msg.text} type="audio/webm" />
-                    Your browser does not support the audio tag.
-                  </audio>
-                ) : msg.text.includes('.mp4') ? (
-                  <video controls className="max-w-xs rounded">
-                    <source src={msg.text} type="video/mp4" />
-                  </video>
-                ) : (
-                  <img src={msg.text} className="rounded-lg max-w-[200px]" />
-                )
-              ) : (
-                <p>{msg.text}</p>
-              )}
-              <p className={`text-xs mt-1 ${msg.sender === contact.user_id ? 'text-gray-500' : 'text-blue-100'
-                }`}>
-                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {/* Media or text detection */}
+              {(() => {
+                const isImage = /\.(jpe?g|png|gif|webp)$/i.test(msg.text);
+                const isVideo = /\.(mp4|mov|webm)$/i.test(msg.text);
+                const isAudio = /\.(mp3|wav|ogg|webm)$/i.test(msg.text);
+
+                if (isAudio) {
+                  return (
+                    <audio controls className="max-w-xs">
+                      <source src={msg.text} />
+                      Your browser does not support the audio tag.
+                    </audio>
+                  );
+                } else if (isVideo) {
+                  return (
+                    <video controls className="max-w-xs rounded">
+                      <source src={msg.text} />
+                      Your browser does not support the video tag.
+                    </video>
+                  );
+                } else if (isImage) {
+                  return <img src={msg.text} alt="uploaded-media" className="rounded-lg max-w-[200px]" />;
+                } else {
+                  return <p>{msg.text}</p>;
+                }
+              })()}
+
+              {/* Timestamp */}
+              <p
+                className={`text-xs mt-1 ${msg.sender === contact.user_id ? 'text-gray-500' : 'text-blue-100'
+                  }`}
+              >
+                {new Date(msg.timestamp).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
               </p>
             </div>
-            {!(msg.sender === contact.user_id) && (<div className="relative">
-              <img
-                src={userpic}
-                alt={contact.firstName}
-                className={`w-10 h-10 rounded-full flex mb-4`}
-              />
-            </div>)}
+
+            {/* Avatar - Right side for sent messages */}
+            {msg.sender !== contact.user_id && (
+              <div className="relative">
+                <img
+                  src={userpic}
+                  alt={contact.firstName}
+                  className="w-10 h-10 rounded-full flex mb-4"
+                />
+              </div>
+            )}
           </div>
         ))}
         <div ref={bottomRef} />
       </div>
+
       {isTyping && (
         <div className="px-4 py-2 flex items-center space-x-2 w-min">
           <div className="flex space-x-1">
@@ -377,10 +404,10 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
                 className="text-green-600 font-medium hover:text-green-700"
                 onClick={async () => {
                   const formData = new FormData();
-                  formData.append("audio", audioBlob, "voice.webm");
+                  formData.append("file", audioBlob, "voice.webm");
 
                   try {
-                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/upload-audio`, {
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/upload-media`, {
                       method: "POST",
                       headers: {
                         'Authorization': `Bearer ${token}`,
@@ -418,31 +445,7 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
             accept="image/*"
             hidden
             id="imageUpload"
-            onChange={async (e) => {
-              const file = e.target.files[0];
-              if (!file) return;
-
-              setUploading(true);
-              const formData = new FormData();
-              formData.append('image', file);
-
-              try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/upload-image`, {
-                  method: 'POST',
-                  headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                  },
-                  body: formData,
-                });
-                const data = await res.json();
-                onSendMessage(data.url);
-              } catch (err) {
-                console.error('Image upload failed', err);
-              } finally {
-                setUploading(false);
-              }
-            }}
+            onChange={(e) => handleUpload(e.target.files[0])}
           />
 
           {/* Direct Image Upload Button */}
