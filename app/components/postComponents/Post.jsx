@@ -27,7 +27,7 @@ const Post = ({
   user,
   title,
   user_id,
-  is_reel
+  is_reel,
 }) => {
   const [saved, setSaved] = useState(false);
   const [showFullContent, setShowFullContent] = useState(false);
@@ -90,7 +90,8 @@ const Post = ({
       ? description?.substring(0, 150) + "..."
       : description;
 
-  const handleClick = () => {
+  const handleClick = (e) => {
+    e.stopPropagation();
     user_id && user_id === state.user_id
       ? router.push("/profile")
       : router.push(`/${user_id}`);
@@ -107,9 +108,18 @@ const Post = ({
     dispatch(fetchAllLikesForPost(post_id));
   };
 
+  const handlePost = (e) => {
+    e.stopPropagation();
+    if (is_reel) {
+      router.push(`/reels?id=${post_id}`);
+    } else {
+      router.push(`/post/${post_id}`);
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow mb-4">
-      <div className="p-4">
+    <div className="bg-white md:rounded-lg shadow mb-4">
+      <div onClick={(e) => handlePost(e)} className="p-4">
         <div className="flex items-center justify-between">
           <div
             className="flex items-center cursor-pointer"
@@ -117,14 +127,20 @@ const Post = ({
           >
             <div className="w-10 h-10 bg-gray-200 rounded-full flex-shrink-0">
               {user?.profile_img_url && (
-                <img className="rounded-full" src={user.profile_img_url} alt="*" />
+                <img
+                  className="rounded-full"
+                  src={user.profile_img_url}
+                  alt="*"
+                />
               )}
             </div>
             <div className="ml-3">
               <div className="font-medium">
                 {user?.username ? user.username : "Username"}
               </div>
-              <div className="text-gray-500 text-xs">{getTimeAgo(created_at)}</div>
+              <div className="text-gray-500 text-xs">
+                {getTimeAgo(created_at)}
+              </div>
             </div>
           </div>
           <button className="text-gray-500 hover:text-gray-700">
@@ -150,13 +166,13 @@ const Post = ({
 
       {post_type === "image" && (
         <div
-          className="w-full h-auto bg-gray-200 flex items-center justify-center"
+          className="w-full h-auto bg-gray-200 flex items-center justify-center "
           onClick={() => router.push(`/post/${post_id}`)}
         >
           <img
             src={url[0]}
             alt="Post"
-            className="max-w-full max-h-full object-contain"
+            className="max-w-full max-h-[calc(100vh-112px)] object-contain"
           />
         </div>
       )}
@@ -164,12 +180,13 @@ const Post = ({
       {post_type === "video" && (
         <div
           className="w-full h-auto bg-gray-200 flex items-center justify-center relative"
-          onClick={() => is_reel ? router.push(`/reels?id=${post_id}`) : router.push(`/post/${post_id}`) }
+          onClick={() => is_reel && router.push(`/reels?id=${post_id}`)}
         >
           <video
             ref={videoRef}
             src={url[0]}
-            className="max-w-full max-h-full object-contain"
+            className="max-w-full max-h-[calc(100vh-112px)] object-contain"
+            controls={!is_reel}
           ></video>
         </div>
       )}

@@ -2,8 +2,10 @@ import React from "react";
 import { Heart, List, MessageCircle } from "lucide-react";
 import getTimeAgo from "@/app/lib/utils/getTimeAgo";
 import { Riple } from "react-loading-indicators";
+import { useRouter } from "next/navigation";
 
 const PostsGrid = ({ imgPosts }) => {
+  const router = useRouter();
   // Mock data for the posts
   const posts = Array.from({ length: 9 }).map((_, i) => ({
     id: i,
@@ -20,7 +22,7 @@ const PostsGrid = ({ imgPosts }) => {
     <div className="p-4">
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {imgPosts?.map((post) => (
-          <div key={post._id} className="relative">
+          <div key={post.post_id} onClick={()=>router.push(`/post/${post.post_id}`)} className="relative cursor-pointer">
             {/* Post thumbnail */}
             <div className="aspect-square bg-gray-300 rounded-md overflow-hidden relative group">
               {post.url[0] ? (

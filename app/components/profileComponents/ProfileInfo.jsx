@@ -1,6 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { BadgeCheck, Link, MapPin, Pencil, Plus } from "lucide-react";
+import {
+  ArrowLeft,
+  BadgeCheck,
+  Link,
+  MapPin,
+  Pencil,
+  Plus,
+} from "lucide-react";
 import { useIsMobile } from "../../hooks/use-mobile";
 import { useDispatch, useSelector } from "react-redux";
 import getTimeAgo from "../../lib/utils/getTimeAgo";
@@ -12,13 +19,94 @@ import {
 } from "../../features/auth/authSlice";
 import { getCookie } from "@/app/lib/utils/cookie";
 import { followUser, unfollowUser } from "../../features/sub/subslice";
+import {
+  createMembership,
+  fetchMembershipByUser,
+} from "../../features/sub/membershipslice";
+import CreateMembership1 from "../../components/membershipComponents/CreateMembership1";
+import CreateMembership2 from "../../components/membershipComponents/CreateMembership2";
+import CreateMembership3 from "../../components/membershipComponents/CreateMembership3";
+import CreateMembership4 from "../../components/membershipComponents/CreateMembership4";
+import CreateMembership5 from "../../components/membershipComponents/CreateMembership5";
+import ViewMembership from "../../components/membershipComponents/ViewMembership";
+import axios from "axios";
 
-const ProfileInfo = ({ data, profile, isFollowing, setIsFollowing, fetchData }) => {
+const countryCurrencyMap = {
+  US: { currency: "USD", symbol: "$" },
+  GB: { currency: "GBP", symbol: "£" },
+  EU: { currency: "EUR", symbol: "€" },
+  CA: { currency: "CAD", symbol: "C$" },
+  AU: { currency: "AUD", symbol: "A$" },
+  JP: { currency: "JPY", symbol: "¥" },
+  IN: { currency: "INR", symbol: "₹" },
+};
+const fallbackRates = {
+  USD: 1,
+  GBP: 0.79,
+  EUR: 0.85,
+  CAD: 1.25,
+  AUD: 1.35,
+  JPY: 110,
+  INR: 75,
+};
+
+const ProfileInfo = ({
+  data,
+  profile,
+  isFollowing,
+  setIsFollowing,
+  fetchData,
+}) => {
   const isMobile = useIsMobile();
   const dispatch = useDispatch();
   const [userData, setUserData] = useState({});
   const [imgBox, setImgBox] = useState(false);
   const [bannerBox, setBannerBox] = useState(false);
+  const [createMemberBox, setCreateMemberBox] = useState(0);
+  const [membership, setMembership] = useState();
+  const [viewMembershipBox, setViewMembershipBox] = useState(false);
+  const [subscription, setSubscription] = useState({
+    perks: {
+      "Early Access to Posts": {
+        checked: true,
+        description:
+          "Give subscribers a head start on new content before it's public.",
+      },
+      "Exclusive Videos or Stories": {
+        checked: true,
+        description: "Content available only to paying subscribers.",
+      },
+      "Private Q&A Sessions": {
+        checked: false,
+        description:
+          "Let your subscribers ask you questions directly through comments or DMs.",
+      },
+      "Behind-the-Scenes Content": {
+        checked: true,
+        description:
+          "Share your process, drafts, or daily life moments with your most loyal fans.",
+      },
+      "Shout-outs or Mentions": {
+        checked: false,
+        description: "Recognize your top subscribers in content or posts.",
+      },
+    },
+  });
+  const [rates, setRates] = useState(fallbackRates);
+
+  // Fetch exchange rates on mount
+  useEffect(() => {
+    axios
+      .get(
+        "https://api.frankfurter.app/latest?from=USD&to=USD,GBP,EUR,CAD,AUD,JPY,INR"
+      )
+      .then((res) => {
+        setRates({ USD: 1, ...res.data.rates });
+      })
+      .catch(() => {
+        setRates(fallbackRates);
+      });
+  }, []);
 
   useEffect(() => {
     setUserData({
@@ -36,6 +124,19 @@ const ProfileInfo = ({ data, profile, isFollowing, setIsFollowing, fetchData }) 
       banner_img_data: "",
     });
   }, [data]);
+
+useEffect(() => {
+  if (data?.user_id) {
+    dispatch(fetchMembershipByUser(data.user_id))
+      .unwrap()
+      .then((result) => {
+        setMembership(result);
+      })
+      .catch(() => {
+        setMembership(undefined);
+      });
+  }
+}, [data?.user_id, dispatch]);
 
   const handleInputChange = (e) => {
     // const { name, value } = e.target;
@@ -80,8 +181,81 @@ const ProfileInfo = ({ data, profile, isFollowing, setIsFollowing, fetchData }) 
     setIsFollowing(false);
   };
 
+  const handleSubmitMembership = () => {
+    dispatch(createMembership({ ...subscription, user_id: data.user_id }));
+    setCreateMemberBox(0);
+  };
+
   return (
     <div className="relative">
+      {viewMembershipBox && (
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] z-50 flex items-center justify-center">
+          <div className="h-fit max-h-screen bg-white flex flex-col rounded-lg overflow-hidden">
+            {membership && (
+              <ViewMembership
+                membership={membership}
+                profile={profile}
+                countryCurrencyMap={countryCurrencyMap}
+                channel={userData?.username}
+                rates={rates}
+                onClose={() => setViewMembershipBox(!viewMembershipBox)}
+              />
+            )}
+          </div>
+        </div>
+      )}
+      {createMemberBox !== 0 && (
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] z-50 flex items-center justify-center">
+          <div className="h-fit max-h-screen bg-white flex flex-col rounded-lg overflow-hidden">
+            <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
+              <div className="flex items-center gap-4 md:px-6 md:py-4 p-2 border-b border-gray-300">
+                <ArrowLeft
+                  onClick={() => setCreateMemberBox(0)}
+                  className="w-6 h-6 text-gray-600 cursor-pointer hover:text-gray-800"
+                />
+                <h1 className=" text-xl md:text-2xl font-semibold text-gray-900">
+                  Start Earning with Premium Content
+                </h1>
+              </div>
+            </div>
+            {createMemberBox === 1 && (
+              <CreateMembership1 setCreateMemberBox={setCreateMemberBox} />
+            )}
+            {createMemberBox === 2 && (
+              <CreateMembership2
+                setCreateMemberBox={setCreateMemberBox}
+                setSubscription={setSubscription}
+                subscription={subscription}
+                countryCurrencyMap={countryCurrencyMap}
+                rates={rates}
+              />
+            )}
+            {createMemberBox === 3 && (
+              <CreateMembership3
+                setCreateMemberBox={setCreateMemberBox}
+                setSubscription={setSubscription}
+                subscription={subscription}
+              />
+            )}
+            {createMemberBox === 4 && (
+              <CreateMembership4
+                setCreateMemberBox={setCreateMemberBox}
+                setSubscription={setSubscription}
+                subscription={subscription}
+              />
+            )}
+            {createMemberBox === 5 && (
+              <CreateMembership5
+                setCreateMemberBox={setCreateMemberBox}
+                setSubscription={setSubscription}
+                subscription={subscription}
+                countryCurrencyMap={countryCurrencyMap}
+                onClose={() => handleSubmitMembership()}
+              />
+            )}
+          </div>
+        </div>
+      )}
       {/* Cover Photo */}
       <div className="w-full h-60 md:h-60 bg-gray-300">
         <div className="w-full h-60 relative">
@@ -185,13 +359,26 @@ const ProfileInfo = ({ data, profile, isFollowing, setIsFollowing, fetchData }) 
                     )}
                   </div>
                 </button>
-                <button
-                  className={`${
-                    isMobile ? "py-2 px-3" : "py-1 px-4"
-                  } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
-                >
-                  {isMobile ? <BadgeCheck size={16} /> : "Create memberships"}
-                </button>
+                {/* Membership Button Logic */}
+                {membership ? (
+                  <button
+                    onClick={() => setViewMembershipBox(!viewMembershipBox)}
+                    className={`${
+                      isMobile ? "py-2 px-3" : "py-1 px-4"
+                    } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
+                  >
+                    {isMobile ? <BadgeCheck size={16} /> : "Membership"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setCreateMemberBox(1)}
+                    className={`${
+                      isMobile ? "py-2 px-3" : "py-1 px-4"
+                    } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
+                  >
+                    {isMobile ? <BadgeCheck size={16} /> : "Create memberships"}
+                  </button>
+                )}
               </>
             ) : (
               <>
@@ -214,13 +401,18 @@ const ProfileInfo = ({ data, profile, isFollowing, setIsFollowing, fetchData }) 
                     {isMobile ? <Pencil size={16} /> : "Follow"}
                   </button>
                 )}
-                <button
-                  className={`${
-                    isMobile ? "py-2 px-3" : "py-1 px-4"
-                  } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
-                >
-                  {isMobile ? <BadgeCheck size={16} /> : "Subscribe"}
-                </button>
+                {/* Subscribe Button Logic */}
+                {membership && (
+                  <button
+                    onClick={() => setViewMembershipBox(!viewMembershipBox)}
+                    className={`${
+                      isMobile ? "py-2 px-3" : "py-1 px-4"
+                    } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
+                  >
+                    {isMobile ? <BadgeCheck size={16} /> : "Subscribe"}
+                  </button>
+                )}
+                {/* If membership is not there and profile is false, no button is shown */}
               </>
             )}
           </div>

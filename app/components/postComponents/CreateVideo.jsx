@@ -45,9 +45,9 @@ const CreateVideo = ({ openVideoDialog, setOpenVideoDialog, user }) => {
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (file.size > 100 * 1000 * 1000) {
+      if (file.size > 450 * 1000 * 1000) {
         // 100MB in bytes
-        alert("File size exceeds 100MB. Please select a smaller video.");
+        alert("File size exceeds 450MB. Please select a smaller video.");
         return;
       }
       setPostFile(file);

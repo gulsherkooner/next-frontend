@@ -24,7 +24,10 @@ import {
   fetchAllLikesForPost,
 } from "../../features/posts/postsLikesSlice";
 import { getCookie } from "../../lib/utils/cookie";
-import { fetchUserData, updateAccessToken } from "../../features/auth/authSlice";
+import {
+  fetchUserData,
+  updateAccessToken,
+} from "../../features/auth/authSlice";
 import { useRouter } from "next/navigation";
 
 const VideoView = ({ post }) => {
@@ -1040,7 +1043,11 @@ const VideoView = ({ post }) => {
               {/* Comment Input */}
               <div className="flex gap-3 mb-6">
                 <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
-                  Y
+                  <img
+                    src={self?.profile_img_url}
+                    alt="User avatar"
+                    className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                  />
                 </div>
                 <div className="flex-1">
                   <textarea
@@ -1078,7 +1085,11 @@ const VideoView = ({ post }) => {
                   .map((comment) => (
                     <div key={comment.comment_id} className="flex gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                        {comment.username?.charAt(0)}
+                        <img
+                          src={comment.profile_img_url}
+                          alt="User avatar"
+                          className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                        />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
@@ -1265,8 +1276,7 @@ const VideoView = ({ post }) => {
                                 </p>
                                 <div className="flex items-center gap-4">
                                   <button
-                                    onClick={() => handleLike(reply.comment_id)
-                                    }
+                                    onClick={() => handleLike(reply.comment_id)}
                                     className={`flex items-center gap-1 ${
                                       commentLikes[reply.comment_id]?.includes(
                                         self?.user_id

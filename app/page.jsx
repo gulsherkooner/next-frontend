@@ -32,7 +32,7 @@ export default function Home() {
 
   useEffect(() => {
     dispatch(fetchUserData());
-    dispatch(fetchPublicPosts({ page: 1, limit: 2, seed }));
+    dispatch(fetchPublicPosts({ page: 1, limit: 5, seed }));
   }, [dispatch, seed]);
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function Home() {
           !isFetchingNext
         ) {
           setIsFetchingNext(true);
-          dispatch(fetchPublicPosts({ page: page + 1, limit: 2, seed }))
+          dispatch(fetchPublicPosts({ page: page + 1, limit: 5, seed }))
             .finally(() => setIsFetchingNext(false));
         }
       },
@@ -122,7 +122,7 @@ export default function Home() {
 
         <div className="pt-14 md:pl-56 flex md:flex-row">
           {/* Main content column */}
-          <div className="flex-1 max-w-full md:max-w-xl xl:max-w-2xl 2xl:max-w-2xl mx-auto p-2 sm:p-4">
+          <div className="flex-1 max-w-full md:max-w-xl xl:max-w-2xl 2xl:max-w-2xl mx-auto py-2 md:px-2 sm:py-4">
             <StoryBar />
             <CreatePost />
 

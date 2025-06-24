@@ -6,189 +6,120 @@ import {
   Volume2,
   MoreHorizontal,
   Play,
-  VolumeOff,
   VolumeX,
+  Plus,
 } from "lucide-react";
 import { useIsMobile } from "../../hooks/use-mobile";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import CreateStory from "./CreateStory";
+import getTimeAgo from "../../lib/utils/getTimeAgo";
+import { updateStory } from "../../features/stories/storiesslice";
+import { useDispatch } from "react-redux";
 
-const Stories = () => {
+const Stories = ({ storiesArray = [], self, data }) => {
   const [selectedUser, setSelectedUser] = useState(0);
   const [selectedStory, setSelectedStory] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [showCreateStory, setShowCreateStory] = useState(false);
   const isMobile = useIsMobile();
   const router = useRouter();
   const videoRef = useRef(null);
   const [progress, setProgress] = useState(0);
+  const searchParams = useSearchParams();
+  const dispatch = useDispatch();
+  const viewTimeoutRef = useRef(null);
 
-  const [loadedUsersCount, setLoadedUsersCount] = useState(1); // Initial number of users to display
-  const loadMoreRef = useRef(null);
-  const observerRef = useRef(null);
+  // Modified users array preparation with viewed status
+  const users = storiesArray
+    .map((entry) => {
+      const isAllStoriesViewed = entry.stories?.every((story) =>
+        story.viewed_by?.includes(self)
+      );
 
-  const users = [
-    {
-      id: 1,
-      name: "User 1",
-      avatar: null,
-      stories: [
-        {
-          id: 1,
-          content: "Story content 1",
-          time: "10h",
-          videoUrl:
-            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-        },
-        {
-          id: 2,
-          content: "Story content 2",
-          time: "8h",
-          videoUrl:
-            "https://dl.dropboxusercontent.com/scl/fi/s9cs6bqz4ysjfjok5odl5/tikmate.app_7488599562404236550_hd.mp4?rlkey=140osgeoqslqzhvvcz5c4x2f8&st=k44dp5ia",
-        },
-        {
-          id: 3,
-          content: "Story content 3",
-          time: "5h",
-          videoUrl:
-            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-        },
-      ],
-    },
-    {
-      id: 2,
-      name: "User 2",
-      avatar: null,
-      stories: [
-        {
-          id: 4,
-          content: "User 2 Story 1",
-          time: "3h",
-          videoUrl:
-            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-        },
-        {
-          id: 5,
-          content: "User 2 Story 2",
-          time: "1h",
-          videoUrl:
-            "https://dl.dropboxusercontent.com/scl/fi/s9cs6bqz4ysjfjok5odl5/tikmate.app_7488599562404236550_hd.mp4?rlkey=140osgeoqslqzhvvcz5c4x2f8&st=k44dp5ia",
-        },
-      ],
-    },
-    {
-      id: 3,
-      name: "User 3",
-      avatar: null,
-      stories: [
-        {
-          id: 6,
-          content: "User 3 Story 1",
-          time: "15h",
-          videoUrl:
-            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
-        },
-        {
-          id: 7,
-          content: "User 3 Story 2",
-          time: "12h",
-          videoUrl:
-            "https://dl.dropboxusercontent.com/scl/fi/s9cs6bqz4ysjfjok5odl5/tikmate.app_7488599562404236550_hd.mp4?rlkey=140osgeoqslqzhvvcz5c4x2f8&st=k44dp5ia",
-        },
-        {
-          id: 8,
-          content: "User 3 Story 3",
-          time: "20h",
-          videoUrl:
-            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
-        },
-      ],
-    },
-    {
-      id: 4,
-      name: "User 3",
-      avatar: null,
-      stories: [
-        {
-          id: 9,
-          content: "User 3 Story 1",
-          time: "15h",
-          videoUrl:
-            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
-        },
-        {
-          id: 10,
-          content: "User 3 Story 2",
-          time: "12h",
-          videoUrl:
-            "https://dl.dropboxusercontent.com/scl/fi/s9cs6bqz4ysjfjok5odl5/tikmate.app_7488599562404236550_hd.mp4?rlkey=140osgeoqslqzhvvcz5c4x2f8&st=k44dp5ia",
-        },
-        {
-          id: 11,
-          content: "User 3 Story 3",
-          time: "20h",
-          videoUrl:
-            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
-        },
-      ],
-    },
-    {
-      id: 5,
-      name: "User 3",
-      avatar: null,
-      stories: [
-        {
-          id: 12,
-          content: "User 3 Story 1",
-          time: "15h",
-          videoUrl:
-            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
-        },
-        {
-          id: 13,
-          content: "User 3 Story 2",
-          time: "12h",
-          videoUrl:
-            "https://dl.dropboxusercontent.com/scl/fi/s9cs6bqz4ysjfjok5odl5/tikmate.app_7488599562404236550_hd.mp4?rlkey=140osgeoqslqzhvvcz5c4x2f8&st=k44dp5ia",
-        },
-        {
-          id: 14,
-          content: "User 3 Story 3",
-          time: "20h",
-          videoUrl:
-            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
-        },
-      ],
-    },
-  ];
+      return {
+        user_id: entry.user_id,
+        stories: entry.stories,
+        isSelf: entry.user_id === self,
+        isViewed: isAllStoriesViewed,
+        // Get the user info from the first story
+        userInfo: entry.stories?.[0]?.user || {},
+      };
+    })
+    .sort((a, b) => {
+      // Your story always first
+      if (a.isSelf) return -1;
+      if (b.isSelf) return 1;
+
+      // Unviewed stories before viewed stories
+      if (a.isViewed && !b.isViewed) return 1;
+      if (!a.isViewed && b.isViewed) return -1;
+
+      // Sort by latest story date within each group
+      const aLatest = Math.max(
+        ...(a.stories?.map((s) => new Date(s.created_at)) || [0])
+      );
+      const bLatest = Math.max(
+        ...(b.stories?.map((s) => new Date(s.created_at)) || [0])
+      );
+      return bLatest - aLatest;
+    });
+
+  const myStoryIndex = users.findIndex((u) => u.isSelf);
+  const queryUserId = searchParams.get("userid");
+  const queryUserIndex = users.findIndex((u) => u.user_id === queryUserId);
+
+  useEffect(() => {
+    const create = searchParams.get("create");
+    if (create === "1") {
+      setShowCreateStory(true);
+    } else if (queryUserId && queryUserIndex !== -1) {
+      setSelectedUser(queryUserIndex);
+      setSelectedStory(0);
+      setShowCreateStory(false);
+    } else if (myStoryIndex !== -1) {
+      setSelectedUser(myStoryIndex);
+      setSelectedStory(0);
+      setShowCreateStory(false);
+    }
+    // eslint-disable-next-line
+  }, [searchParams, queryUserId, queryUserIndex, myStoryIndex, users.length]);
 
   const currentUser = users[selectedUser];
   const currentStory = currentUser?.stories[selectedStory];
 
+  // Progress bar logic
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && loadedUsersCount < users.length) {
-          setLoadedUsersCount(
-            (prevCount) => Math.min(prevCount + 1, users.length) // Load 1 more user at a time
-          );
-        }
-      },
-      { threshold: 0.1 } // Trigger when 10% of the target is visible
-    );
-    observerRef.current = observer;
+    const video = videoRef.current;
+    if (!video) return;
 
-    if (loadMoreRef.current) {
-      observerRef.current.observe(loadMoreRef.current);
-    }
+    const updateProgress = () => {
+      if (video.duration) setProgress(video.currentTime / video.duration);
+    };
+
+    video.addEventListener("timeupdate", updateProgress);
+    video.addEventListener("ended", () => setProgress(1));
+    video.addEventListener("loadedmetadata", updateProgress);
+
+    setProgress(0);
 
     return () => {
-      if (loadMoreRef.current && observerRef.current) {
-        observerRef.current.unobserve(loadMoreRef.current);
-      }
+      video.removeEventListener("timeupdate", updateProgress);
+      video.removeEventListener("ended", () => setProgress(1));
+      video.removeEventListener("loadedmetadata", updateProgress);
     };
-  }, [loadedUsersCount, users.length]); // Re-run when isPaused or the story itself changes
+  }, [currentStory?.story_id]);
 
+  // Sync video pause/play and mute/unmute with state
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
+    if (isPaused) videoElement.pause();
+    else videoElement.play().catch(() => {});
+    videoElement.muted = isMuted;
+  }, [isPaused, isMuted, currentStory?.story_id]);
+
+  // Navigation handlers
   const handlePreviousStory = () => {
     if (selectedStory > 0) {
       setSelectedStory((prev) => prev - 1);
@@ -201,7 +132,7 @@ const Stories = () => {
   };
 
   const handleNextStory = () => {
-    if (selectedStory < currentUser.stories.length - 1) {
+    if (selectedStory < (currentUser?.stories?.length || 0) - 1) {
       setSelectedStory((prev) => prev + 1);
       setIsPaused(false);
     } else if (selectedUser < users.length - 1) {
@@ -211,60 +142,67 @@ const Stories = () => {
     }
   };
 
-  const togglePause = () => {
-    const videoElement = videoRef.current;
-    if (videoElement) {
-      if (isPaused) {
-        videoElement.play().catch((error) => {
-          console.warn(
-            "Video play failed. User interaction might be required or media error.",
-            error
-          );
-        });
-      } else {
-        videoElement.pause();
-      }
-    }
-    setIsPaused(!isPaused);
+  const togglePause = () => setIsPaused((prev) => !prev);
+  const toggleMute = () => setIsMuted((prev) => !prev);
+  const handlePlusClick = (e) => {
+    e.stopPropagation();
+    setShowCreateStory(true);
   };
 
-  const toggleMute = () => {
-    const videoElement = videoRef.current;
-    if (videoElement) {
-      videoElement.muted = !isMuted;
-    }
-    setIsMuted(!isMuted);
-  };
-
-  // Flatten *displayed* users for the sidebar display
-  const displayedUserStories = users.slice(0, loadedUsersCount).map((user) => ({
+  // Sidebar user list
+  const displayedUserStories = users.map((user, idx) => ({
     ...user,
-    isCurrentUser: user.id === currentUser?.id, // currentUser might be undefined if users array was empty
+    isCurrentUser: user.isSelf,
+    idx,
   }));
 
+  // Combined story viewing logic
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+    if (!currentStory?.story_id || !self) return;
 
-    const updateProgress = () => {
-      if (video.duration) {
-        setProgress(video.currentTime / video.duration);
+    // Clear existing timeout
+    if (viewTimeoutRef.current) {
+      clearTimeout(viewTimeoutRef.current);
+    }
+
+    // Don't start timer if:
+    // 1. Story is already viewed
+    // 2. Video is paused
+    if (currentStory.viewed_by?.includes(self) || isPaused) {
+      return;
+    }
+
+    // Set timeout for 2 seconds
+    viewTimeoutRef.current = setTimeout(() => {
+      dispatch(
+        updateStory({
+          story_id: currentStory.story_id,
+          updateData: { mark_viewed: true },
+        })
+      )
+        .unwrap()
+        .then(() => {
+          // Update local state to reflect the story is viewed
+          const updatedUsers = users.map((user) => ({
+            ...user,
+            stories: user.stories.map((story) =>
+              story.story_id === currentStory.story_id
+                ? { ...story, viewed_by: [...(story.viewed_by || []), self] }
+                : story
+            ),
+          }));
+          setUsers(updatedUsers);
+        })
+        .catch((error) => console.error("Failed to mark story as viewed:", error));
+    }, 2000);
+
+    // Cleanup timeout on unmount or story change
+    return () => {
+      if (viewTimeoutRef.current) {
+        clearTimeout(viewTimeoutRef.current);
       }
     };
-
-    video.addEventListener("timeupdate", updateProgress);
-    video.addEventListener("ended", () => setProgress(1));
-    video.addEventListener("loadedmetadata", updateProgress);
-
-    // Reset progress when story changes
-    setProgress(0);
-
-    return () => {
-      video.removeEventListener("timeupdate", updateProgress);
-      video.removeEventListener("ended", () => setProgress(1));
-      video.removeEventListener("loadedmetadata", updateProgress);
-    };
-  }, [currentStory?.id]);
+  }, [currentStory?.story_id, self, isPaused, dispatch]);
 
   return (
     <div className="flex h-full bg-gray-100 w-full">
@@ -283,30 +221,41 @@ const Stories = () => {
               <h1 className="text-xl font-semibold text-gray-900">Stories</h1>
             </div>
           </div>
-
           {/* Your Story Section */}
           <div className="p-6 border-b border-gray-100">
-            <h2 className="text-sm font-medium text-gray-900 mb-4">
-              Your story
-            </h2>
-            <div className="flex items-center space-x-3">
+            <h2 className="text-sm font-medium text-gray-900 mb-4">Your story</h2>
+            <div
+              className="flex items-center space-x-3 cursor-pointer"
+              onClick={handlePlusClick}
+            >
               <div className="relative">
-                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                  <div className="w-6 h-6 bg-gray-400 rounded-full"></div>
+                <div className="w-12 h-12 bg-gray-200 rounded-full border flex items-center justify-center">
+                  <img
+                    className="rounded-full"
+                    src={data?.profile_img_url}
+                    alt={data?.username}
+                  />
+                  <button
+                    className="absolute bottom-0 right-0 w-6 h-6 bg-white rounded-full flex items-center justify-center border border-gray-300"
+                  >
+                    <Plus size={18} className="text-gray-500" />
+                  </button>
                 </div>
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-900">Your Story</p>
-                <p className="text-xs text-gray-500">Add to story</p>
+                <p className="text-xs text-gray-500">
+                  {users[myStoryIndex]?.stories.length === 0
+                    ? "Add to story"
+                    : `${users[myStoryIndex]?.stories.length} story${
+                        users[myStoryIndex]?.stories.length > 1 ? "ies" : ""
+                      }`}
+                </p>
               </div>
-              <button className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
-                <span className="text-gray-600 text-lg">+</span>
-              </button>
             </div>
           </div>
-
           {/* All Stories Section */}
-          <div className="flex-1 ">
+          <div className="flex-1">
             <div className="p-6">
               <h2 className="text-sm font-medium text-gray-900 mb-4">
                 All stories
@@ -314,32 +263,34 @@ const Stories = () => {
               <div className="space-y-2">
                 {displayedUserStories.map((user) => (
                   <div
-                    key={user.id}
+                    key={user.user_id}
                     className={`flex items-center space-x-3 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                      user.isCurrentUser
+                      user.idx === selectedUser
                         ? "bg-blue-50 border border-blue-200 shadow-sm"
                         : "hover:bg-gray-50"
                     }`}
                     onClick={() => {
-                      const originalUserIndex = users.findIndex(
-                        (u) => u.id === user.id
-                      );
-                      if (originalUserIndex !== -1) {
-                        setSelectedUser(originalUserIndex);
-                      }
+                      setShowCreateStory(false);
+                      setSelectedUser(user.idx);
                       setSelectedStory(0);
                     }}
                   >
                     <div className="relative">
                       <div
                         className={`w-12 h-12 rounded-full p-0.5 ${
-                          user.isCurrentUser
-                            ? "bg-gradient-to-br from-blue-500 to-purple-500"
-                            : "bg-gradient-to-br from-purple-400 to-pink-400"
+                          user.isViewed
+                            ? "bg-gray-200"
+                            : user.isCurrentUser
+                            ? "bg-gradient-to-tr from-yellow-400 to-pink-600"
+                            : "bg-gradient-to-tr from-yellow-400 to-pink-600"
                         }`}
                       >
                         <div className="w-full h-full bg-gray-200 rounded-full flex items-center justify-center">
-                          <div className="w-6 h-6 bg-gray-400 rounded-full"></div>
+                          <img
+                            className="rounded-full w-full h-full object-cover"
+                            src={user.userInfo?.profile_img_url}
+                            alt={user.userInfo?.username}
+                          />
                         </div>
                       </div>
                     </div>
@@ -349,23 +300,17 @@ const Stories = () => {
                           user.isCurrentUser ? "text-blue-700" : "text-gray-900"
                         }`}
                       >
-                        {user.name}
+                        {user.isCurrentUser ? "You" : user.userInfo?.username}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {user.stories.length} stories
+                        {user.stories.length}{" "}
+                        {user.stories.length === 1 ? "story" : "stories"}
+                        {user.isViewed ? " • Viewed" : ""}
                       </p>
                     </div>
                   </div>
                 ))}
               </div>
-              {loadedUsersCount < users.length && (
-                <div
-                  ref={loadMoreRef}
-                  style={{ height: "1px", marginTop: "10px" }}
-                >
-                  {/* This div triggers loading more users when it becomes visible */}
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -373,140 +318,156 @@ const Stories = () => {
 
       {/* Main Story Viewer */}
       <div className="flex-1 flex items-center justify-center bg-gray-200 relative max-h-[calc(100vh-56px)]">
-        {/* Story Container */}
-        <div
-          className={`relative bg-black rounded-lg overflow-hidden shadow-xl ${
-            isMobile ? "w-full h-[calc(100vh-112px)]" : "w-96  max-h-[calc(100vh-56px)]"
-          }`}
-          style={{
-            aspectRatio: !isMobile && "9/16",
-            height: !isMobile && "720px",
-          }}
-        >
-          {/* Story Progress Bars - Shows progress for current user's stories */}
-          <div className="absolute top-4 left-4 right-4 z-20 flex space-x-1">
-            {currentUser.stories.map((_, index) => (
-              <div
-                key={index}
-                className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden"
-              >
+        {/* Show CreateStory if needed */}
+        {showCreateStory ? (
+          <div className="w-full h-full flex items-center justify-center">
+            <CreateStory onClose={() => setShowCreateStory(false)} />
+          </div>
+        ) : (
+          // Story Container
+          <div
+            className={`relative bg-black md:rounded-lg overflow-hidden shadow-xl ${
+              isMobile
+                ? "w-full h-[calc(100vh-112px)]"
+                : "w-96  max-h-[calc(100vh-56px)]"
+            }`}
+            style={{
+              aspectRatio: !isMobile && "9/16",
+              height: !isMobile && "720px",
+            }}
+          >
+            {/* Story Progress Bars */}
+            <div className="absolute top-4 left-4 right-4 z-20 flex space-x-1">
+              {(currentUser?.stories || []).map((_, index) => (
                 <div
-                  className={`h-full bg-red-500 transition-all duration-150`}
-                  style={{
-                    width:
-                      index < selectedStory
-                        ? "100%"
-                        : index === selectedStory
-                        ? `${Math.round(progress * 100)}%`
-                        : "0%",
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Story Header */}
-          <div className="absolute top-8 left-0 right-0 z-20 bg-gradient-to-b from-black/50 to-transparent p-4 pt-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                  <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
-                </div>
-                <div>
-                  <p className="text-white text-sm font-medium">
-                    {currentUser?.name}
-                  </p>
-                  <p className="text-white/80 text-xs">{currentStory?.time}</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={togglePause}
-                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                  key={index}
+                  className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden"
                 >
-                  {isPaused ? (
-                    <Play className="w-4 h-4 text-white" />
-                  ) : (
-                    <Pause className="w-4 h-4 text-white" />
-                  )}
-                </button>
-                <button
-                  onClick={toggleMute}
-                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
-                >
-                  {isMuted ? (
-                    <VolumeX className="w-4 h-4 text-white/60" />
-                  ) : (
-                    <Volume2 className="w-4 h-4 text-white" />
-                  )}
-                </button>
-                <button className="p-2 hover:bg-white/20 rounded-full transition-colors">
-                  <MoreHorizontal className="w-4 h-4 text-white" />
-                </button>
-              </div>
+                  <div
+                    className={`h-full bg-red-500 transition-all duration-150`}
+                    style={{
+                      width:
+                        index < selectedStory
+                          ? "100%"
+                          : index === selectedStory
+                          ? `${Math.round(progress * 100)}%`
+                          : "0%",
+                    }}
+                  />
+                </div>
+              ))}
             </div>
-          </div>
 
-          {/* Story Video Content */}
-          <div className="w-full h-full relative">
-            {currentStory?.videoUrl ? (
-              <video
-                ref={videoRef}
-                key={currentStory.id}
-                className="w-full h-full object-center object-contain md:rounded-lg"
-                autoPlay
-                loop
-                playsInline
-                preload="metadata"
-                style={{ aspectRatio: "9/16" }}
-              >
-                <source src={currentStory.videoUrl} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center">
-                <div className="text-white text-center">
-                  <div className="w-20 h-20 bg-white/20 rounded-full mx-auto mb-6 flex items-center justify-center">
-                    <div className="w-10 h-10 bg-white/60 rounded-full"></div>
+            {/* Story Header */}
+            <div className="absolute top-8 left-0 right-0 z-20 p-4 pt-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+                    <img
+                      className="rounded-full"
+                      src={currentUser?.stories[selectedStory]?.user?.profile_img_url}
+                      alt=""
+                    />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">
-                    {currentUser?.name}
-                  </h3>
-                  <p className="text-sm opacity-90">
-                    Story {selectedStory + 1} of {currentUser?.stories.length}
-                  </p>
+                  <div>
+                    <p className="text-white text-sm font-medium">
+                      {currentUser?.isSelf
+                        ? "You"
+                        : currentUser?.stories[selectedStory]?.user?.username}
+                    </p>
+                    <p className="text-white/80 text-xs">
+                      {currentStory?.created_at
+                        ? getTimeAgo(currentStory.created_at)
+                        : ""}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={togglePause}
+                    className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                  >
+                    {isPaused ? (
+                      <Play className="w-4 h-4 text-white" />
+                    ) : (
+                      <Pause className="w-4 h-4 text-white" />
+                    )}
+                  </button>
+                  <button
+                    onClick={toggleMute}
+                    className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                  >
+                    {isMuted ? (
+                      <VolumeX className="w-4 h-4 text-white/60" />
+                    ) : (
+                      <Volume2 className="w-4 h-4 text-white" />
+                    )}
+                  </button>
+                  <button className="p-2 hover:bg-white/20 rounded-full transition-colors">
+                    <MoreHorizontal className="w-4 h-4 text-white" />
+                  </button>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* Invisible click areas for navigation */}
-          <div className="absolute inset-0 flex">
-            <div
-              className="w-1/2 h-full cursor-pointer z-10"
-              onClick={handlePreviousStory}
-            />
-            <div
-              className="w-1/2 h-full cursor-pointer z-10"
-              onClick={handleNextStory}
-            />
-          </div>
+            {/* Story Video Content */}
+            <div className="w-full h-full relative">
+              {currentStory?.video_url ? (
+                <video
+                  ref={videoRef}
+                  key={currentStory.story_id}
+                  className="w-full h-full object-center object-contain md:rounded-lg"
+                  autoPlay
+                  playsInline
+                  preload="metadata"
+                  style={{ aspectRatio: "9/16" }}
+                  src={currentStory.video_url}
+                  onEnded={handleNextStory}
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center">
+                  <div className="text-white text-center">
+                    <div className="w-20 h-20 bg-white/20 rounded-full mx-auto mb-6 flex items-center justify-center">
+                      <div className="w-10 h-10 bg-white/60 rounded-full"></div>
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">
+                      {currentUser?.isSelf ? "You" : currentUser?.user_id}
+                    </h3>
+                    <p className="text-sm opacity-90">
+                      Story {selectedStory + 1} of {currentUser?.stories.length}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
 
-          {/* Story Footer */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent z-20">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <div className="w-4 h-4 bg-white/60 rounded-full"></div>
-              </div>
-              <div className="flex-1 h-10 bg-white/20 rounded-full backdrop-blur-sm flex items-center px-4">
-                <span className="text-white/80 text-sm">Send message...</span>
+            {/* Invisible click areas for navigation */}
+            <div className="absolute inset-0 flex">
+              <div
+                className="w-1/2 h-full cursor-pointer z-10"
+                onClick={handlePreviousStory}
+              />
+              <div
+                className="w-1/2 h-full cursor-pointer z-10"
+                onClick={handleNextStory}
+              />
+            </div>
+
+            {/* Story Footer */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent z-20">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                  <img className="rounded-full" src={data?.profile_img_url} alt="" />
+                </div>
+                <div className="flex-1 h-10 bg-white/20 rounded-full backdrop-blur-sm flex items-center px-4">
+                  <span className="text-white/80 text-sm">Send message...</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-
+        )}
         {/* Navigation Buttons - Fixed positioning */}
-        {!isMobile && (
+        {!isMobile && !showCreateStory && (
           <button
             onClick={handlePreviousStory}
             className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-105 z-10"
@@ -515,7 +476,7 @@ const Stories = () => {
           </button>
         )}
 
-        {!isMobile && (
+        {!isMobile && !showCreateStory && (
           <button
             onClick={handleNextStory}
             className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-105 z-10"

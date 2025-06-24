@@ -9,7 +9,7 @@ const TabNavigation = ({ activeTab, setActiveTab }) => {
 
   return (
     <div className="border-b border-gray-200">
-      <div className={`flex ${isMobile ? "space-x-0" : "space-x-8"}`}>
+      <div className={`flex ${isMobile ? "space-x-1" : "md:space-x-4 lg:space-x-8"}`}>
         <TabButton 
           label="Posts" 
           active={activeTab === 'posts'} 

@@ -7,7 +7,7 @@ import VideosGrid from "./VideosGrid";
 import CollectionsGrid from "./CollectionsGrid";
 import AboutTab from "./AboutTab";
 
-const ProfileContent = ({userPosts, data}) => {
+const ProfileContent = ({ userPosts, data }) => {
   const [activeTab, setActiveTab] = useState("posts");
   const [imgPosts, setImgPosts] = useState(null);
   const [videoPosts, setVideoPosts] = useState(null);
@@ -17,7 +17,9 @@ const ProfileContent = ({userPosts, data}) => {
   useEffect(() => {
     if (userPosts) {
       const img = userPosts.filter((post) => post.post_type === "image");
-      const video = userPosts.filter((post) => post.post_type === "video");
+      const video = userPosts.filter(
+        (post) => post.post_type === "video" && post.is_reel === false
+      );
       const reel = userPosts.filter(
         (post) => post.post_type === "video" && post.is_reel === true
       );

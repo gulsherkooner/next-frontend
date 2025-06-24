@@ -30,7 +30,10 @@ import {
   fetchAllLikesForPost,
 } from "../../features/posts/postsLikesSlice";
 import { getCookie } from "../../lib/utils/cookie";
-import { fetchUserData, updateAccessToken } from "../../features/auth/authSlice";
+import {
+  fetchUserData,
+  updateAccessToken,
+} from "../../features/auth/authSlice";
 // import { fetchPublicPosts } from "../../features/posts/postsSlice";
 
 const ImageView = ({ post, image }) => {
@@ -163,17 +166,24 @@ const ImageView = ({ post, image }) => {
   };
 
   const handleComment = (parent_comment_id = null) => {
-    const text = parent_comment_id
-      ? replyText[parent_comment_id]
-      : replyText["main"];
+    let text;
+    if (parent_comment_id) {
+      text = replyText[parent_comment_id];
+    } else {
+      text = newComment;
+    }
     if (!text || !text.trim()) return;
     dispatch(
       postComment({ post_id: post.post_id, text, parent_comment_id })
     ).then(() => {
-      setReplyText((prev) => ({ ...prev, [parent_comment_id || "main"]: "" }));
+      if (parent_comment_id) {
+        setReplyText((prev) => ({ ...prev, [parent_comment_id]: "" }));
+        setReplyOpen((prev) => ({ ...prev, [parent_comment_id]: false }));
+      } else {
+        setNewComment("");
+      }
       fetchComments();
     });
-    setReplyOpen((prev) => ({ ...prev, [parent_comment_id]: false }));
   };
 
   const getReplies = (commentId) => {
