@@ -1,13 +1,14 @@
 "use client";
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import MobileNav from "../components/MobileNav";
 import ReelsModal from "../components/reelComponents/ReelsModel";
+import { useParams } from "next/navigation";
 
-export default function ReelsPage({ searchParams }) {
-  const id = searchParams?.id;
+export default function ReelsPage() {
+  const params = useParams();
+  const id = params?.id;
 
   const [menu, setMenu] = useState(false);
 

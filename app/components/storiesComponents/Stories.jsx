@@ -10,7 +10,7 @@ import {
   Plus,
 } from "lucide-react";
 import { useIsMobile } from "../../hooks/use-mobile";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import CreateStory from "./CreateStory";
 import getTimeAgo from "../../lib/utils/getTimeAgo";
 import { updateStory } from "../../features/stories/storiesslice";
@@ -26,9 +26,9 @@ const Stories = ({ storiesArray = [], self, data }) => {
   const router = useRouter();
   const videoRef = useRef(null);
   const [progress, setProgress] = useState(0);
-  const searchParams = useSearchParams();
   const dispatch = useDispatch();
   const viewTimeoutRef = useRef(null);
+  const params = useParams();
 
   // Modified users array preparation with viewed status
   const users = storiesArray
@@ -66,11 +66,11 @@ const Stories = ({ storiesArray = [], self, data }) => {
     });
 
   const myStoryIndex = users.findIndex((u) => u.isSelf);
-  const queryUserId = searchParams.get("userid");
+  const queryUserId = params?.userid;
+  const create = params?.create;
   const queryUserIndex = users.findIndex((u) => u.user_id === queryUserId);
 
   useEffect(() => {
-    const create = searchParams.get("create");
     if (create === "1") {
       setShowCreateStory(true);
     } else if (queryUserId && queryUserIndex !== -1) {
@@ -83,7 +83,7 @@ const Stories = ({ storiesArray = [], self, data }) => {
       setShowCreateStory(false);
     }
     // eslint-disable-next-line
-  }, [searchParams, queryUserId, queryUserIndex, myStoryIndex, users.length]);
+  }, [queryUserId, queryUserIndex, myStoryIndex, users.length, create]);
 
   const currentUser = users[selectedUser];
   const currentStory = currentUser?.stories[selectedStory];
