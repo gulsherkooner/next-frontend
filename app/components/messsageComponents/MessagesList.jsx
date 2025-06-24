@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import calendar from 'dayjs/plugin/calendar';
@@ -26,7 +26,7 @@ function isImageMessage(text) {
 }
 
 const MessagesList = ({ contacts, currentChat, setCurrentChat, typingUsers }) => {
-          console.log(contacts);
+  console.log(contacts);
 
   const [fallbackImages, setFallbackImages] = useState({});
   const handleError = (contactId) => {
@@ -34,7 +34,16 @@ const MessagesList = ({ contacts, currentChat, setCurrentChat, typingUsers }) =>
       girlProfilePics[Math.floor(Math.random() * girlProfilePics.length)];
     setFallbackImages((prev) => ({ ...prev, [contactId]: randomFallback }));
   };
-
+  const [isDesktop, setIsDesktop] = useState(true);
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const isNowDesktop = window.innerWidth >= 1024;
+      setIsDesktop(isNowDesktop);
+    };
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
   return (
     <div className="h-[100vh] overflow-y-auto mb-12 md:mb-0">
       {contacts.map((contact) => (

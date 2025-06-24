@@ -8,6 +8,8 @@ const CallManager = ({
   isVideo,
   onClose,
   incomingSignal,
+  profileImg,
+  displayName,
   socket
 }) => {
   const [stream, setStream] = useState(null);
@@ -182,7 +184,7 @@ const CallManager = ({
       startCallTimer();
     });
 
-    
+
 
     peer.on('error', (err) => {
       console.error('Peer connection error:', err);
@@ -190,7 +192,7 @@ const CallManager = ({
       leaveCall();
     });
 
-   
+
 
     setPeerConnection(peer);
     return peer;
@@ -276,12 +278,12 @@ const CallManager = ({
           {!remoteStream && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center text-white">
-                <div className="w-32 h-32 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-4xl">👤</span>
-                </div>
-                <p className="text-xl font-medium">
-                  {receivingCall ? caller : remoteUserId}
-                </p>
+                <img
+                  src={profileImg}
+                  alt={displayName}
+                  className="w-32 h-32 rounded-full object-cover mx-auto mb-4 border-4 border-white shadow-md"
+                />
+                <p className="text-xl font-medium">{displayName}</p>
                 <p className="text-gray-300">{callStatus}</p>
                 {callDuration > 0 && (
                   <p className="text-gray-400 mt-2">
