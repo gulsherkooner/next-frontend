@@ -135,8 +135,6 @@ const StoryBar = () => {
     };
   }, [self, dispatch, data?.username, data?.profile_img_url]);
 
-  if (!self) return null;
-
   const scroll = (direction) => {
     if (!containerRef.current) return;
     const container = containerRef.current;
@@ -171,7 +169,8 @@ const StoryBar = () => {
     router.push("/stories?create=1");
   };
 
-  return (
+  // Only render the component if self exists
+  return self && (
     <div className="py-0 rounded-lg mb-4 overflow-hidden relative">
       <div
         className="flex space-x-0 overflow-x-auto pb-1 no-scrollbar"
@@ -215,7 +214,7 @@ const StoryBar = () => {
         </>
       )}
     </div>
-  );
+  )
 };
 
 export default StoryBar;
