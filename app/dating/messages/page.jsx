@@ -46,7 +46,7 @@ export default function MessagesPage() {
         setUser(data);
 
         // Step 2: Fetch all profiles
-        const people = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/unlocked-contacts/${userId}`, {
+        const people = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/unlocked-contacts`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
