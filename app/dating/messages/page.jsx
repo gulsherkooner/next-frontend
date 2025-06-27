@@ -33,6 +33,7 @@ export default function MessagesPage() {
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
+
   useEffect(() => {
     if (!userId) return;
 
@@ -45,14 +46,14 @@ export default function MessagesPage() {
         setUser(data);
 
         // Step 2: Fetch all profiles
-        const people = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/profiles`, {
+        const people = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/unlocked-contacts/${userId}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
-          credentials: 'include'
         });
+
         if (!people.ok) throw new Error('Failed to fetch contacts');
         const contactdata = await people.json();
 

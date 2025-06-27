@@ -45,7 +45,7 @@ const MessagesList = ({ contacts, currentChat, setCurrentChat, typingUsers }) =>
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
   return (
-    <div className="h-[100vh] overflow-y-auto mb-12 md:mb-0">
+    <div className="h-[100vh] overflow-y-auto pb-50 md:pb-0">
       {contacts.map((contact) => (
         <div
           key={contact.user_id}
