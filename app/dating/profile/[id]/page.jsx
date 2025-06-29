@@ -349,6 +349,7 @@ export default function ProfilePage({ params }) {
                           body: JSON.stringify({
                             amount: 3,
                             purpose: `Chat Unlock @${profile.firstName}`,
+                            targetUserId: profile.user_id,
                           }),
                         });
 
