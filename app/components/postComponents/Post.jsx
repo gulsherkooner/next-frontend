@@ -172,7 +172,7 @@ const Post = ({
           <img
             src={url[0]}
             alt="Post"
-            className="max-w-full max-h-[calc(100vh-224px)] object-contain"
+            className="max-w-full max-h-[calc(100vh-224px)] object-cover"
           />
         </div>
       )}
@@ -185,7 +185,7 @@ const Post = ({
           <video
             ref={videoRef}
             src={url[0]}
-            className={`max-w-full object-contain ${
+            className={`max-w-full object-cover ${
               is_reel ? "max-h-[calc(100vh-224px)]" : "aspect-video"
             }`}
             controls={!is_reel}

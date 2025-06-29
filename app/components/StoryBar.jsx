@@ -93,20 +93,18 @@ const StoryBar = () => {
 
       const userStories = [];
 
-      // Check for your stories
-      if (myStories && myStories.length > 0) {
-        const hasUnviewedStories = myStories.some(
-          (story) => !story.viewed_by?.includes(self)
-        );
+      // Always add your story element (for creating stories)
+      const hasUnviewedStories = myStories && myStories.length > 0 && myStories.some(
+        (story) => !story.viewed_by?.includes(self)
+      );
 
-        userStories.push({
-          user_id: self,
-          username: data?.username || "Your Story",
-          imageUrl: data?.profile_img_url || "",
-          isMyStory: true,
-          isViewed: !hasUnviewedStories,
-        });
-      }
+      userStories.push({
+        user_id: self,
+        username: data?.username || "Your Story",
+        imageUrl: data?.profile_img_url || "",
+        isMyStory: true,
+        isViewed: !hasUnviewedStories,
+      });
 
       // Check for following users' stories
       followingStoriesArr.forEach((stories) => {
