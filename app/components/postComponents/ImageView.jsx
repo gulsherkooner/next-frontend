@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Heart,
   MessageCircle,
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import getTimeAgo from "../../lib/utils/getTimeAgo";
+import getCount from "../../lib/utils/getCount";
 import { useDispatch, useSelector } from "react-redux";
 import {
   deleteComment,
@@ -34,6 +35,7 @@ import {
   fetchUserData,
   updateAccessToken,
 } from "../../features/auth/authSlice";
+import { recordView } from "../../features/views/viewsslice";
 // import { fetchPublicPosts } from "../../features/posts/postsSlice";
 
 const ImageView = ({ post, image }) => {
@@ -46,6 +48,8 @@ const ImageView = ({ post, image }) => {
   const [likeTimeouts, setLikeTimeouts] = useState({});
   const [commentLikes, setCommentLikes] = useState({}); // { [commentId]: [userId, ...] }
   const [allLikes, setAllLikes] = useState([]);
+  const [viewRecorded, setViewRecorded] = useState(false);
+  const viewTimerRef = useRef(null);
   const self = useSelector((state) => state.auth?.user);
   const router = useRouter();
   const dispatch = useDispatch();
@@ -53,6 +57,79 @@ const ImageView = ({ post, image }) => {
   const [postComments, setPostComments] = useState();
   const [moreMenuOpen, setMoreMenuOpen] = useState({});
   const userLikes = useSelector((state) => state.postLikes.userLikes);
+
+  // Function to record view
+  const recordImageView = useCallback(() => {
+    
+    if (!viewRecorded && post?.post_id && self?.user_id) {
+      
+      dispatch(recordView(post.post_id))
+        .unwrap()
+        .then((result) => {
+          setViewRecorded(true);
+        })
+        .catch((error) => {
+          console.error('Failed to record image view:', error);
+        });
+    } else {
+    }
+  }, [viewRecorded, post?.post_id, self?.user_id, dispatch]);
+
+  // Start view timer when component mounts and user is authenticated
+  useEffect(() => {
+
+    if (!viewRecorded && post?.post_id && self?.user_id) {
+      
+      // Clear any existing timer
+      if (viewTimerRef.current) {
+        clearTimeout(viewTimerRef.current);
+      }
+      
+      // Start 3-second timer for image view
+      viewTimerRef.current = setTimeout(() => {
+        recordImageView();
+        viewTimerRef.current = null;
+      }, 3000); // 3 seconds for image views
+      
+      // Test timer to verify setTimeout is working
+      setTimeout(() => {
+      }, 1000);
+    } else {
+    }
+    
+    // Cleanup timer on unmount
+    return () => {
+      if (viewTimerRef.current) {
+        clearTimeout(viewTimerRef.current);
+        viewTimerRef.current = null;
+      }
+    };
+  }, [post?.post_id, self?.user_id, recordImageView, viewRecorded]);
+
+  // Reset view recorded status when post changes
+  useEffect(() => {
+    setViewRecorded(false);
+    if (viewTimerRef.current) {
+      clearTimeout(viewTimerRef.current);
+      viewTimerRef.current = null;
+    }
+  }, [post?.post_id]);
+
+  // Additional effect to handle late user authentication loading
+  useEffect(() => {
+    // If user just loaded and we haven't recorded a view yet, and there's no timer running
+    if (self?.user_id && post?.post_id && !viewRecorded && !viewTimerRef.current) {
+      
+      viewTimerRef.current = setTimeout(() => {
+        recordImageView();
+        viewTimerRef.current = null;
+      }, 3000);
+      
+      // Test timer
+      setTimeout(() => {
+      }, 1000);
+    }
+  }, [self?.user_id, post?.post_id, viewRecorded, recordImageView]);
 
   const fetchComments = async () => {
     try {
@@ -139,10 +216,7 @@ const ImageView = ({ post, image }) => {
   };
 
   const formatNumber = (num) => {
-    if (num >= 1000) {
-      return (num / 1000).toFixed(1) + "k";
-    }
-    return num.toString();
+    return getCount(num);
   };
 
   // Touch handlers for swipe

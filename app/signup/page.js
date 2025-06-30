@@ -28,7 +28,6 @@ export default function RegisterPage() {
   const dispatch = useDispatch();
 
   const handleSubmit = async () => {
-    console.log(userData)
     try {
       const apiGatewayUrl =
         process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://localhost:3001";

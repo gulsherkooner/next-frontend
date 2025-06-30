@@ -67,6 +67,7 @@ export const sendOTP = createAsyncThunk(
   "auth/sendOTP",
   async (email, { rejectWithValue }) => {
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log(verificationCode)
     try {
       const apiGatewayUrl =
         process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://localhost:3001";

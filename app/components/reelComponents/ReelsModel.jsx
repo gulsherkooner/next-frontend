@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import ReelItem from "./ReelItem";
 import { Pause, VolumeX, X } from "lucide-react";
 import {
@@ -10,8 +10,10 @@ import {
   ThumbsUp,
 } from "lucide-react";
 import { useIsMobile } from "../../hooks/use-mobile";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchPublicReels } from "../../features/posts/postsSlice";
+import { recordView } from "../../features/views/viewsslice";
+import getCount from "../../lib/utils/getCount";
 
 const ReelsModal = ({ onClose, id }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -29,8 +31,79 @@ const ReelsModal = ({ onClose, id }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [seed] = useState(() => Math.random().toString(36).slice(2));
   const [isFetching, setIsFetching] = useState(false);
+  
+  // View tracking state
+  const [viewedReels, setViewedReels] = useState(new Set());
+  const viewTimerRef = useRef(null);
 
   const dispatch = useDispatch();
+  const self = useSelector((state) => state.auth?.user);
+
+  // Function to record reel view
+  const recordReelView = useCallback((reelId) => {
+    if (!viewedReels.has(reelId) && reelId && self?.user_id) {
+      console.log('Recording reel view for post:', reelId);
+      
+      dispatch(recordView(reelId))
+        .unwrap()
+        .then((result) => {
+          setViewedReels(prev => new Set([...prev, reelId]));
+          console.log('Reel view recorded successfully:', result);
+        })
+        .catch((error) => {
+          console.error('Failed to record reel view:', error);
+        });
+    } else {
+      console.log('Reel view recording skipped:', {
+        already_viewed: viewedReels.has(reelId),
+        has_reel_id: !!reelId,
+        has_user_id: !!self?.user_id
+      });
+    }
+  }, [viewedReels, self?.user_id, dispatch]);
+
+  // Effect to start view timer when current reel changes
+  useEffect(() => {
+    const currentReel = reels[currentIndex];
+    
+    if (currentReel && self?.user_id && !viewedReels.has(currentReel.post_id)) {
+      console.log('Starting reel view timer for 3 seconds, reel:', currentReel.post_id);
+      
+      // Clear any existing timer
+      if (viewTimerRef.current) {
+        clearTimeout(viewTimerRef.current);
+        viewTimerRef.current = null;
+      }
+      
+      // Start 3-second timer for reel view
+      viewTimerRef.current = setTimeout(() => {
+        console.log('Reel view timer completed, recording view...');
+        recordReelView(currentReel.post_id);
+        viewTimerRef.current = null;
+      }, 3000); // 3 seconds for reel views
+      
+      // Test timer to verify setTimeout is working
+      setTimeout(() => {
+        console.log('Reel test timer (1s) executed - setTimeout is working!');
+      }, 1000);
+    } else {
+      console.log('Reel view timer not started:', {
+        has_current_reel: !!currentReel,
+        has_user_id: !!self?.user_id,
+        already_viewed: currentReel ? viewedReels.has(currentReel.post_id) : false,
+        current_reel_id: currentReel?.post_id
+      });
+    }
+    
+    // Cleanup timer when reel changes or component unmounts
+    return () => {
+      if (viewTimerRef.current) {
+        console.log('Cleaning up reel view timer');
+        clearTimeout(viewTimerRef.current);
+        viewTimerRef.current = null;
+      }
+    };
+  }, [currentIndex, reels, self?.user_id, viewedReels, recordReelView]);
 
   // Fetch reels (first page: include id, next pages: don't include id)
   useEffect(() => {
@@ -141,12 +214,7 @@ const ReelsModal = ({ onClose, id }) => {
   }, [currentIndex]);
 
   const formatCount = (count) => {
-    if (count >= 1000000) {
-      return (count / 1000000).toFixed(1) + "M";
-    } else if (count >= 1000) {
-      return (count / 1000).toFixed(1) + "K";
-    }
-    return count.toString();
+    return getCount(count);
   };
 
   return (

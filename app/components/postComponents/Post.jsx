@@ -166,26 +166,26 @@ const Post = ({
 
       {post_type === "image" && (
         <div
-          className="w-full h-auto bg-gray-200 flex items-center justify-center "
+          className="w-full max-h-[calc(100vh-224px)] bg-gray-200 flex items-center justify-center overflow-hidden"
           onClick={() => router.push(`/post/${post_id}`)}
         >
           <img
             src={url[0]}
             alt="Post"
-            className="max-w-full max-h-[calc(100vh-224px)] object-cover"
+            className="w-full h-full max-h-[calc(100vh-224px)] object-cover"
           />
         </div>
       )}
 
       {post_type === "video" && (
         <div
-          className="w-full h-auto bg-gray-200 flex items-center justify-center relative"
+          className="w-full max-h-[calc(100vh-224px)] bg-gray-200 flex items-center justify-center relative overflow-hidden"
           onClick={() => is_reel && router.push(`/reels?id=${post_id}`)}
         >
           <video
             ref={videoRef}
             src={url[0]}
-            className={`max-w-full object-cover ${
+            className={`w-full h-full object-cover ${
               is_reel ? "max-h-[calc(100vh-224px)]" : "aspect-video"
             }`}
             controls={!is_reel}

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Maximize2,
   Pause,
@@ -28,7 +28,9 @@ import {
   fetchUserData,
   updateAccessToken,
 } from "../../features/auth/authSlice";
+import { recordView } from "../../features/views/viewsslice";
 import { useRouter } from "next/navigation";
+import getCount from "../../lib/utils/getCount";
 
 const VideoView = ({ post }) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -42,11 +44,14 @@ const VideoView = ({ post }) => {
   const [likeTimeouts, setLikeTimeouts] = useState({});
   const [moreMenuOpen, setMoreMenuOpen] = useState({});
   const [isMuted, setIsMuted] = useState(false);
-  const [volume, setVolume] = useState(0.5);
+  const [volume, setVolume] = useState(0.8);
   const [showControls, setShowControls] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [allLikes, setAllLikes] = useState([]);
+  const [viewRecorded, setViewRecorded] = useState(false);
+  const viewTimerRef = useRef(null);
+  const videoEndedRef = useRef(false);
   const hideControlsTimeout = useRef(null);
   const videoRef = useRef(null);
   const videoContainerRef = useRef(null);
@@ -181,12 +186,74 @@ const VideoView = ({ post }) => {
     fetchData();
   }, [self?.user_id, dispatch, router]);
 
-  // Play/pause logic
+  // Play/pause logic - separate from view timer to avoid clearing timer on every change
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    isPlaying ? video.play() : video.pause();
+    
+    if (isPlaying) {
+      video.play();
+      videoEndedRef.current = false; // Reset ended flag when playing
+    } else {
+      video.pause();
+      // Only clear timer when video is paused by user, not when it ends naturally
+      if (viewTimerRef.current && !videoEndedRef.current) {
+        clearTimeout(viewTimerRef.current);
+        viewTimerRef.current = null;
+      }
+    }
   }, [isPlaying]);
+
+  // Function to record view
+  const recordVideoView = useCallback(() => {
+    if (!viewRecorded && post?.post_id && self?.user_id) {
+      
+      dispatch(recordView(post.post_id))
+        .unwrap()
+        .then((result) => {
+          setViewRecorded(true);
+        })
+        .catch((error) => {
+          console.error('Failed to record view:', error);
+        });
+    }
+  }, [viewRecorded, post?.post_id, self?.user_id, dispatch]);
+
+  // View timer logic - using a more stable approach
+  useEffect(() => {
+    // Only start timer if video is playing and we haven't recorded a view yet
+    if (isPlaying && !viewRecorded && duration > 0 && post?.post_id && self?.user_id) {
+      // Clear any existing timer first
+      if (viewTimerRef.current) {
+        clearTimeout(viewTimerRef.current);
+        viewTimerRef.current = null;
+      }
+      
+      const viewThreshold = duration < 30 ? duration * 1000 : 30000; // Convert to milliseconds
+      viewTimerRef.current = setTimeout(() => {
+        recordVideoView();
+        // Clear the timer reference
+        viewTimerRef.current = null;
+      }, viewThreshold);
+      
+      // Test timer to verify setTimeout is working
+      setTimeout(() => {
+      }, 2000);
+      
+      // For testing purposes, also create a shorter timer to verify the fix
+      setTimeout(() => {
+      }, 5000);
+    }
+  }, [isPlaying, duration, post?.post_id, self?.user_id]); // Removed viewRecorded and dispatch from deps
+
+  // Separate effect to handle view recording state changes
+  useEffect(() => {
+    // If view gets recorded, clear the timer
+    if (viewRecorded && viewTimerRef.current) {
+      clearTimeout(viewTimerRef.current);
+      viewTimerRef.current = null;
+    }
+  }, [viewRecorded]);
 
   // Volume/mute logic
   useEffect(() => {
@@ -200,15 +267,46 @@ const VideoView = ({ post }) => {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+    
     const handleTimeUpdate = () => setCurrentTime(video.currentTime);
-    const handleLoadedMetadata = () => setDuration(video.duration);
+    const handleLoadedMetadata = () => {
+      setDuration(video.duration);
+      setViewRecorded(false); // Reset view recorded status when new video loads
+      videoEndedRef.current = false; // Reset ended flag
+    };
+    const handleCanPlay = () => {
+      if (video.duration && !duration) {
+        setDuration(video.duration);
+      }
+    };
+    const handleEnded = () => {
+      videoEndedRef.current = true;
+      // Record view when video ends (if not already recorded)
+      recordVideoView();
+      // Clear the timer since video ended
+      if (viewTimerRef.current) {
+        clearTimeout(viewTimerRef.current);
+        viewTimerRef.current = null;
+      }
+    };
+    
     video.addEventListener("timeupdate", handleTimeUpdate);
     video.addEventListener("loadedmetadata", handleLoadedMetadata);
+    video.addEventListener("canplay", handleCanPlay);
+    video.addEventListener("ended", handleEnded);
+    
+    // Set duration immediately if available
+    if (video.duration && !isNaN(video.duration)) {
+      setDuration(video.duration);
+    }
+    
     return () => {
       video.removeEventListener("timeupdate", handleTimeUpdate);
       video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      video.removeEventListener("canplay", handleCanPlay);
+      video.removeEventListener("ended", handleEnded);
     };
-  }, []);
+  }, [duration, recordVideoView]);
 
   // Format time helper
   const formatTime = (time) => {
@@ -232,6 +330,18 @@ const VideoView = ({ post }) => {
 
   // Play/pause button
   const handlePlayPause = () => setIsPlaying((p) => !p);
+
+  // Clean up timers on component unmount
+  useEffect(() => {
+    return () => {
+      if (viewTimerRef.current) {
+        clearTimeout(viewTimerRef.current);
+      }
+      if (hideControlsTimeout.current) {
+        clearTimeout(hideControlsTimeout.current);
+      }
+    };
+  }, []);
 
   const handleSubscribe = () => {
     setIsSubscribed(!isSubscribed);
@@ -633,7 +743,7 @@ const VideoView = ({ post }) => {
 
             {/* Video Stats */}
             <div className="text-sm text-gray-600 mb-4">
-              1.2M views • {getTimeAgo(post.created_at)}
+              {getCount(post?.views_count)} views • {getTimeAgo(post.created_at)}
             </div>
 
             {/* Video Description */}
