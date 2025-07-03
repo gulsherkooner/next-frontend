@@ -405,7 +405,7 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
                   formData.append("file", audioBlob, "voice.webm");
 
                   try {
-                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/upload-media`, {
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/upload-media`, {
                       method: "POST",
                       headers: {
                         'Authorization': `Bearer ${token}`,
