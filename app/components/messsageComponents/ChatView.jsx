@@ -117,10 +117,10 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
     setShowOptions(false);
 
     const formData = new FormData();
-    formData.append('file', file); // ← Changed key to 'file'
+    formData.append('file', file);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/upload-media`, {
+      const res = await fetch(`http://localhost:3007/api/upload-media`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -129,13 +129,14 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
       });
 
       const data = await res.json();
-      onSendMessage(data.url); // 🔗 Send Cloudinary URL
+      onSendMessage(data.url);
     } catch (err) {
       console.error('Upload failed:', err);
     } finally {
       setUploading(false);
     }
   };
+
 
 
   const handleSubmit = (e) => {
@@ -272,8 +273,8 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
             {/* Message bubble */}
             <div
               className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${msg.sender === contact.user_id
-                  ? 'bg-white border border-gray-200 rounded-tl-none'
-                  : 'bg-blue-500 text-white rounded-tr-none'
+                ? 'bg-white border border-gray-200 rounded-tl-none'
+                : 'bg-blue-500 text-white rounded-tr-none'
                 }`}
             >
               {/* Media or text detection */}
