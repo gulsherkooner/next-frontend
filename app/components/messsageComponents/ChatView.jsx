@@ -120,14 +120,11 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
     formData.append('file', file);
 
     try {
-      const res = await fetch(`http://message-service:3007/api/upload-media`, {
+      const res = await fetch('https://cent-stage.duckdns.org/upload-media', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-
       const data = await res.json();
       onSendMessage(data.url);
     } catch (err) {
