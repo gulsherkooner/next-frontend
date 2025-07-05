@@ -2,6 +2,9 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { getCookie } from "@/app/lib/utils/cookie";
 
+// Get the API base URL from environment variables or use default
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_GATEWAY_URL  || 'http://localhost:3001';
+
 // Async thunk to search posts
 export const searchPosts = createAsyncThunk(
   "search/searchPosts",
@@ -21,7 +24,7 @@ export const searchPosts = createAsyncThunk(
       if (post_type) params.append('post_type', post_type);
       if (seed) params.append('seed', seed);
 
-      const response = await fetch(`/search/search?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/search/search?${params}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -58,7 +61,7 @@ export const searchSuggestions = createAsyncThunk(
         page: '1', // Only get first page for suggestions
       });
 
-      const response = await fetch(`/search/search?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/search/search?${params}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -110,7 +113,7 @@ export const searchPostsByType = createAsyncThunk(
       
       if (seed) params.append('seed', seed);
 
-      const response = await fetch(`/search/search?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/search/search?${params}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -142,9 +145,21 @@ export const getTrendingSearches = createAsyncThunk(
     }
 
     try {
-      // This would be a separate endpoint for trending searches
-      // For now, return empty array as placeholder
-      return { trending: [] };
+      const response = await fetch(`${API_BASE_URL}/search/trending?limit=${limit}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        return rejectWithValue(errorData.error || 'Failed to get trending searches');
+      }
+
+      const data = await response.json();
+      return data;
     } catch (error) {
       return rejectWithValue(error.message || 'Network error occurred');
     }
