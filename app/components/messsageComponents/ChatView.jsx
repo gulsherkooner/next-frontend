@@ -38,6 +38,9 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
   const [incomingCall, setIncomingCall] = useState(null);
   const [activeCall, setActiveCall] = useState(false);
   const [previewAudioUrl, setPreviewAudioUrl] = useState(null);
+  const [hoveredMessageId, setHoveredMessageId] = useState(null);
+  const [showReactionPicker, setShowReactionPicker] = useState(null);
+  const reactionEmojis = ['👍', '❤️', '😂', '😮', '😢', '🔥'];
   const startAudioRecording = async () => {
     setIsRecording(true);
     setRecordingTime(0);
@@ -134,8 +137,6 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
     }
   };
 
-
-
   const handleSubmit = (e) => {
     e.preventDefault();
     if (message.trim()) {
@@ -207,7 +208,7 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
   return (
     <div className="flex flex-col h-full w-full">
       {/* Chat header */}
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-white md:relative  fixed w-full z-10">
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-white md:relative fixed top-12 md:top-0 w-full z-10">
         {/* Left: Profile and name */}
         <div className="flex items-center">
           <ArrowLeft className='mr-2' onClick={onback} />
@@ -251,80 +252,156 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
       </div>
       {/* Messages */}
       <div className="flex-1 overflow-y-auto pt-[72px] pb-[150px] px-4 bg-gray-50 hide-scrollbar">
-        {messages.map((msg, index) => (
-          <div
-            key={msg.id || `${msg.sender}-${msg.timestamp}-${index}`}
-            className={`flex mb-4 ${msg.sender === contact.user_id ? 'justify-start' : 'justify-end'}`}
-          >
-            {/* Avatar - Left side for received messages */}
-            {msg.sender === contact.user_id && (
-              <div className="relative">
-                <img
-                  src={contact.profile_img_url[0]}
-                  alt={contact.firstName}
-                  className="w-10 h-10 rounded-full flex mb-4 justify-start"
-                />
-              </div>
-            )}
-
-            {/* Message bubble */}
+        {messages.map((msg, index) => {
+          console.log(msg);
+          return (
             <div
-              className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${msg.sender === contact.user_id
-                ? 'bg-white border border-gray-200 rounded-tl-none'
-                : 'bg-blue-500 text-white rounded-tr-none'
-                }`}
+              key={msg.id || `${msg.sender}-${msg.timestamp}-${index}`}
+              className={`flex mb-4 ${msg.sender === contact.user_id ? 'justify-start' : 'justify-end'}`}
+
             >
-              {/* Media or text detection */}
-              {(() => {
-                const isImage = /\.(jpe?g|png|gif|webp)$/i.test(msg.text);
-                const isVideo = /\.(mp4|mov|webm)$/i.test(msg.text);
-                const isAudio = /\.(mp3|wav|ogg|webm)$/i.test(msg.text);
+              {/* Avatar - Left side for received messages */}
+              {msg.sender === contact.user_id && (
+                <div className="relative">
+                  <img
+                    src={contact.profile_img_url[0]}
+                    alt={contact.firstName}
+                    className="w-10 h-10 rounded-full flex mb-4 justify-start"
+                  />
+                </div>
+              )}
 
-                if (isAudio) {
-                  return (
-                    <audio controls className="max-w-xs">
-                      <source src={msg.text} />
-                      Your browser does not support the audio tag.
-                    </audio>
-                  );
-                } else if (isVideo) {
-                  return (
-                    <video controls className="max-w-xs rounded">
-                      <source src={msg.text} />
-                      Your browser does not support the video tag.
-                    </video>
-                  );
-                } else if (isImage) {
-                  return <img src={msg.text} alt="uploaded-media" className="rounded-lg max-w-[200px]" />;
-                } else {
-                  return <p>{msg.text}</p>;
-                }
-              })()}
+              {/* Message bubble */}
+              <div className="relative group w-fit">
+                {/* Message bubble */}
+                <div
+                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg transition-all duration-200
+      ${msg.sender === contact.user_id
+                      ? 'bg-white border border-gray-200 rounded-tl-none'
+                      : 'bg-blue-500 text-white rounded-tr-none'
+                    }`}
+                  onMouseEnter={() => setHoveredMessageId(msg.id)}
+                  onMouseLeave={() => {
+                    setHoveredMessageId(null);
+                    setShowReactionPicker(null);
+                  }}
+                >
+                  {/* Media/Text */}
+                  {(() => {
+                    const isImage = /\.(jpe?g|png|gif|webp)$/i.test(msg.text);
+                    const isVideo = /\.(mp4|mov|webm)$/i.test(msg.text);
+                    const isAudio = /\.(mp3|wav|ogg|webm)$/i.test(msg.text);
 
-              {/* Timestamp */}
-              <p
-                className={`text-xs mt-1 ${msg.sender === contact.user_id ? 'text-gray-500' : 'text-blue-100'
-                  }`}
-              >
-                {new Date(msg.timestamp).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </p>
-            </div>
+                    if (isAudio) {
+                      return <audio controls className="max-w-xs"><source src={msg.text} /></audio>;
+                    } else if (isVideo) {
+                      return <video controls className="max-w-xs rounded"><source src={msg.text} /></video>;
+                    } else if (isImage) {
+                      return <img src={msg.text} alt="uploaded-media" className="rounded-lg max-w-[200px]" />;
+                    } else {
+                      return <p>{msg.text}</p>;
+                    }
+                  })()}
 
-            {/* Avatar - Right side for sent messages */}
-            {msg.sender !== contact.user_id && (
-              <div className="relative">
-                <img
-                  src={userpic}
-                  alt={contact.firstName}
-                  className="w-10 h-10 rounded-full flex mb-4"
-                />
+                  {/* Timestamp */}
+                  <p className={`text-xs mt-1 ${msg.sender === contact.user_id ? 'text-gray-500' : 'text-blue-100'}`}>
+                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+
+                  {/* Reactions display */}
+                  {msg.reactions && Object.keys(msg.reactions).length > 0 && (
+                    <div
+                      className={`
+      absolute z-40
+      ${msg.sender === contact.user_id ? 'right-[-8px]' : 'left-[-8px]'}
+      bottom-[-10px] bg-white rounded-full w-6 h-6 flex items-center justify-center 
+      shadow-md text-base border border-gray-200
+    `}
+                    >
+                      {Object.entries(msg.reactions).map(([emoji]) => (
+                        <span key={emoji}>{emoji}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* ✅ Reaction Button — Corrected Side */}
+                <div
+                  className={`
+      absolute top-1/2 ${msg.sender === contact.user_id ? 'right-[-40px]' : 'left-[-40px]'}
+      transform -translate-y-1/2 opacity-0 group-hover:opacity-100 
+      group-hover:translate-x-1 transition-all duration-300 ease-in-out z-50
+    `}
+                >
+                  <button
+                    className="bg-white shadow-md rounded-full p-2 hover:scale-110 transition-transform"
+                    onClick={() => setShowReactionPicker(msg.id)}
+                  >
+                    😊
+                  </button>
+                </div>
+
+                {/* ✅ Reaction Picker — Corrected Side */}
+                {showReactionPicker === msg.id && (
+                  <div
+                    className={`
+        absolute top-1/2 ${msg.sender === contact.user_id ? 'right-[-120px]' : 'left-[-120px]'}
+        transform -translate-y-1/2 bg-white shadow-lg rounded-lg p-2 flex space-x-1 z-50 animate-fade-in
+      `}
+                  >
+                    {reactionEmojis.map((emoji) => (
+                      <button
+                        key={emoji}
+                        className="text-xl hover:scale-125 transition-transform"
+                        onClick={async () => {
+                          try {
+                            const token = getCookie("accessToken"); // Assuming you're using cookies (you already import `getCookie`)
+                            console.log(emoji);
+                            const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/${msg.id}/react`, {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}` // ✅ Bearer token added
+                              },
+                              body: JSON.stringify({
+                                emoji,
+                                userId: user_id,
+                              }),
+                            });
+
+                            if (!res.ok) {
+                              console.error('Failed to react to message');
+                            } else {
+                              const data = await res.json();
+                              console.log('Reactions updated:', data.reactions);
+                            }
+                          } catch (error) {
+                            console.error('Network error reacting to message:', error);
+                          } finally {
+                            setShowReactionPicker(null);
+                          }
+                        }}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        ))}
+
+
+              {/* Avatar - Right side for sent messages */}
+              {msg.sender !== contact.user_id && (
+                <div className="relative">
+                  <img
+                    src={userpic}
+                    alt={contact.firstName}
+                    className="w-10 h-10 rounded-full flex mb-4"
+                  />
+                </div>
+              )}
+            </div>);
+        })}
         <div ref={bottomRef} />
       </div>
 
@@ -357,7 +434,7 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 px-4 py-2 rounded-full bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 min-w-[10px] px-4 py-2 rounded-full bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {/* Audio Record Button */}
           <div className="flex items-center gap-2">
