@@ -323,6 +323,7 @@ export default function MessagesPage() {
           {isDesktop ? (<div className="flex-1 flex flex-col border-t md:border-t-0 border-gray-200">
             {currentChat ? (
               <ChatView
+                setMessages={setMessages}
                 contact={currentChat}
                 messages={messages}
                 onSendMessage={handleSendMessage}
@@ -361,6 +362,7 @@ export default function MessagesPage() {
             )}
           </div>) : <> {currentChat ? (
             <ChatView
+              setMessages={setMessages}
               currentChat={currentChat}
               contact={currentChat}
               messages={messages}
@@ -374,7 +376,6 @@ export default function MessagesPage() {
               socket={socket}
               onback={() => setCurrentChat(null)}
             />) : <></>} </>}
-
         </main>
       </div>
       <MobileNav />

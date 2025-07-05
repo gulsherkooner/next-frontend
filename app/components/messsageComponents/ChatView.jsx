@@ -18,7 +18,7 @@ import {
   Phone,
   PhoneOff
 } from 'lucide-react';
-const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onStopTyping, onStartTyping, userpic, user_id, socket, onback }) => {
+const ChatView = ({ contact,setMessages, messages, onSendMessage, isTyping, typingUser, onStopTyping, onStartTyping, userpic, user_id, socket, onback }) => {
   const [message, setMessage] = useState('');
   const token = getCookie("accessToken");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -41,6 +41,31 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
   const [hoveredMessageId, setHoveredMessageId] = useState(null);
   const [showReactionPicker, setShowReactionPicker] = useState(null);
   const reactionEmojis = ['👍', '❤️', '😂', '😮', '😢', '🔥'];
+
+  useEffect(() => {
+    if (!socket) return;
+
+    // 👂 Listen for real-time reactions
+    socket.on('message-reaction', ({ messageId, reactions }) => {
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === messageId ? { ...msg, reactions } : msg
+        )
+      );
+    });
+
+    // 👂 Listen for real-time deletions
+    socket.on('message-deleted', ({ messageId }) => {
+      setMessages(prev => prev.filter(msg => msg.id !== messageId));
+    });
+
+    return () => {
+      socket.off('message-reaction');
+      socket.off('message-deleted');
+    };
+  }, [socket]);
+
+
   const startAudioRecording = async () => {
     setIsRecording(true);
     setRecordingTime(0);
@@ -253,7 +278,6 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
       {/* Messages */}
       <div className="flex-1 overflow-y-auto pt-[72px] pb-[150px] px-4 bg-gray-50 hide-scrollbar">
         {messages.map((msg, index) => {
-          console.log(msg);
           return (
             <div
               key={msg.id || `${msg.sender}-${msg.timestamp}-${index}`}
@@ -328,17 +352,45 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
                 {/* ✅ Reaction Button — Corrected Side */}
                 <div
                   className={`
-      absolute top-1/2 ${msg.sender === contact.user_id ? 'right-[-40px]' : 'left-[-40px]'}
+      absolute top-1/2 ${msg.sender === contact.user_id ? 'right-[-40px]' : 'left-[-80px]'}
       transform -translate-y-1/2 opacity-0 group-hover:opacity-100 
-      group-hover:translate-x-1 transition-all duration-300 ease-in-out z-50
+      group-hover:translate-x-1 transition-all duration-300 ease-in-out z-50 bg-white shadow-md rounded-full p-2 gap-7
     `}
                 >
                   <button
-                    className="bg-white shadow-md rounded-full p-2 hover:scale-110 transition-transform"
+                    className=" hover:scale-110 transition-transform"
                     onClick={() => setShowReactionPicker(msg.id)}
                   >
                     😊
                   </button>
+                  {msg.sender === user_id && (
+                    <button
+                      className="hover:text-red-500 transition-colors"
+                      onClick={async () => {
+                        try {
+                          const token = getCookie("accessToken");
+                          const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/${msg.id}`, {
+                            method: 'DELETE',
+                            headers: {
+                              'Authorization': `Bearer ${token}`,
+                            },
+                          });
+
+                          if (res.ok) {
+                            // ✅ Optimistic local UI update
+                            setMessages(prev => prev.filter(m => m.id !== msg.id));
+                          } else {
+                            console.error('Failed to delete');
+                          }
+                        } catch (err) {
+                          console.error('Delete error:', err);
+                        }
+                      }}
+
+                    >
+                      🗑️
+                    </button>
+                  )}
                 </div>
 
                 {/* ✅ Reaction Picker — Corrected Side */}
@@ -355,32 +407,37 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
                         className="text-xl hover:scale-125 transition-transform"
                         onClick={async () => {
                           try {
-                            const token = getCookie("accessToken"); // Assuming you're using cookies (you already import `getCookie`)
-                            console.log(emoji);
+                            const token = getCookie("accessToken");
                             const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/${msg.id}/react`, {
                               method: 'POST',
                               headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}` // ✅ Bearer token added
+                                'Authorization': `Bearer ${token}`,
                               },
                               body: JSON.stringify({
                                 emoji,
-                                userId: user_id,
+                                user_id,
                               }),
                             });
 
-                            if (!res.ok) {
-                              console.error('Failed to react to message');
-                            } else {
+                            if (res.ok) {
                               const data = await res.json();
-                              console.log('Reactions updated:', data.reactions);
+                              // ✅ Optional: optimistically update UI if needed
+                              setMessages(prev =>
+                                prev.map(m =>
+                                  m.id === msg.id ? { ...m, reactions: data.reactions } : m
+                                )
+                              );
+                            } else {
+                              console.error('Failed to react');
                             }
-                          } catch (error) {
-                            console.error('Network error reacting to message:', error);
+                          } catch (err) {
+                            console.error('Reaction error:', err);
                           } finally {
                             setShowReactionPicker(null);
                           }
                         }}
+
                       >
                         {emoji}
                       </button>
