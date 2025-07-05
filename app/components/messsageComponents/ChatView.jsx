@@ -117,25 +117,23 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
     setShowOptions(false);
 
     const formData = new FormData();
-    formData.append('file', file); // ← Changed key to 'file'
+    formData.append('file', file);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/upload-media`, {
+      const res = await fetch('https://cent-stage.duckdns.org/upload-media', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-
       const data = await res.json();
-      onSendMessage(data.url); // 🔗 Send Cloudinary URL
+      onSendMessage(data.url);
     } catch (err) {
       console.error('Upload failed:', err);
     } finally {
       setUploading(false);
     }
   };
+
 
 
   const handleSubmit = (e) => {
@@ -272,8 +270,8 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
             {/* Message bubble */}
             <div
               className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${msg.sender === contact.user_id
-                  ? 'bg-white border border-gray-200 rounded-tl-none'
-                  : 'bg-blue-500 text-white rounded-tr-none'
+                ? 'bg-white border border-gray-200 rounded-tl-none'
+                : 'bg-blue-500 text-white rounded-tr-none'
                 }`}
             >
               {/* Media or text detection */}
@@ -407,7 +405,7 @@ const ChatView = ({ contact, messages, onSendMessage, isTyping, typingUser, onSt
                   formData.append("file", audioBlob, "voice.webm");
 
                   try {
-                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/messages/upload-media`, {
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/upload-media`, {
                       method: "POST",
                       headers: {
                         'Authorization': `Bearer ${token}`,
