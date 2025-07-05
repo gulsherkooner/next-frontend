@@ -1,20 +1,35 @@
-"use client"
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { useDispatch } from 'react-redux';
-import { Search, ArrowLeft, Image, Video, Film } from 'lucide-react';
-import { searchPosts, searchPostsByType, searchSuggestions } from '../features/search/searchslice';
-import Post from './postComponents/Post';
-import VideoView from './postComponents/VideoView';
-import ReelItem from './reelComponents/ReelItem';
-import getCount from '../lib/utils/getCount';
-import { useIsMobile } from '../hooks/use-mobile';
+"use client";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import {
+  Search,
+  ArrowLeft,
+  Image,
+  Video,
+  Film,
+  Play,
+  EllipsisVertical,
+  Clock,
+  Heart,
+} from "lucide-react";
+import {
+  searchPosts,
+  searchPostsByType,
+  searchSuggestions,
+} from "../features/search/searchslice";
+import Post from "./postComponents/Post";
+import VideoView from "./postComponents/VideoView";
+import ReelItem from "./reelComponents/ReelItem";
+import getCount from "../lib/utils/getCount";
+import { useIsMobile } from "../hooks/use-mobile";
+import getTimeAgo from "../lib/utils/getTimeAgo";
 
-const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
+const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
   const router = useRouter();
   const dispatch = useDispatch();
   const isMobile = useIsMobile();
-  
+
   // State
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [activeTab, setActiveTab] = useState(initialType);
@@ -25,7 +40,7 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
-  
+
   // Refs
   const searchInputRef = useRef(null);
   const suggestionsRef = useRef(null);
@@ -42,17 +57,19 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
         if (searchValue.trim().length > 0) {
           setIsLoadingSuggestions(true);
           try {
-            const result = await dispatch(searchSuggestions({ 
-              q: searchValue.trim(), 
-              limit: 5 
-            })).unwrap();
-            
+            const result = await dispatch(
+              searchSuggestions({
+                q: searchValue.trim(),
+                limit: 5,
+              })
+            ).unwrap();
+
             if (result && result.suggestions) {
               setSuggestions(result.suggestions);
               setShowSuggestions(true);
             }
           } catch (error) {
-            console.error('Search suggestions error:', error);
+            console.error("Search suggestions error:", error);
             setSuggestions([]);
           } finally {
             setIsLoadingSuggestions(false);
@@ -68,50 +85,61 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
   );
 
   // Handle search
-  const handleSearch = async (query = searchQuery, type = activeTab, pageNum = 1, append = false) => {
+  const handleSearch = async (
+    query = searchQuery,
+    type = activeTab,
+    pageNum = 1,
+    append = false
+  ) => {
     const searchQuery = query.trim() || "~";
-    
+
     setIsLoading(true);
     try {
       let result;
-      
-      if (type === 'posts') {
-        result = await dispatch(searchPostsByType({ 
-          q: searchQuery, 
-          post_type: 'image', 
-          page: pageNum, 
-          limit: 20 
-        })).unwrap();
-      } else if (type === 'videos') {
-        result = await dispatch(searchPostsByType({ 
-          q: searchQuery, 
-          post_type: 'video', 
-          page: pageNum, 
-          limit: 20 
-        })).unwrap();
-      } else if (type === 'reels') {
-        result = await dispatch(searchPostsByType({ 
-          q: searchQuery, 
-          post_type: 'reel', 
-          page: pageNum, 
-          limit: 20 
-        })).unwrap();
+
+      if (type === "posts") {
+        result = await dispatch(
+          searchPostsByType({
+            q: searchQuery,
+            post_type: "image",
+            page: pageNum,
+            limit: 20,
+          })
+        ).unwrap();
+      } else if (type === "videos") {
+        result = await dispatch(
+          searchPostsByType({
+            q: searchQuery,
+            post_type: "video",
+            page: pageNum,
+            limit: 20,
+          })
+        ).unwrap();
+      } else if (type === "reels") {
+        result = await dispatch(
+          searchPostsByType({
+            q: searchQuery,
+            post_type: "reel",
+            page: pageNum,
+            limit: 20,
+          })
+        ).unwrap();
       }
-      
-      console.log('Search result:', result);
-      
+
+      console.log("Search result:", result);
+
       if (result && result.posts) {
         if (append) {
-          setSearchResults(prev => [...prev, ...result.posts]);
+          setSearchResults((prev) => [...prev, ...result.posts]);
         } else {
           setSearchResults(result.posts);
         }
-        
+
         const totalResults = result.posts.length;
         setHasMore(totalResults === 20);
       }
     } catch (error) {
-      console.error('Search error:', error);
+      console.error("Search error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -121,24 +149,28 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchQuery(value);
-    
+
     // Call debounced search for suggestions
     debouncedSearch(value);
   };
 
   // Handle search submit (mobile only)
   const handleSearchSubmit = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
       }
-      
+
       setShowSuggestions(false);
       setPage(1);
       handleSearch(searchQuery, activeTab, 1, false);
-      
+
       if (searchQuery.trim()) {
-        router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}&type=${activeTab}`);
+        router.push(
+          `/search?q=${encodeURIComponent(
+            searchQuery.trim()
+          )}&type=${activeTab}`
+        );
       }
     }
   };
@@ -148,8 +180,8 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
-    
-    const query = suggestion.title || suggestion.description || '';
+
+    const query = suggestion.title || suggestion.description || "";
     setSearchQuery(query);
     setShowSuggestions(false);
     setPage(1);
@@ -164,7 +196,7 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
       setPage(1);
       setSearchResults([]);
       handleSearch(searchQuery, tab, 1, false);
-      
+
       const query = searchQuery.trim() || "~";
       router.push(`/search?q=${encodeURIComponent(query)}&type=${tab}`);
     }
@@ -182,7 +214,7 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
   // Handle click outside to close suggestions (mobile only)
   useEffect(() => {
     if (!isMobile) return;
-    
+
     const handleClickOutside = (event) => {
       if (
         suggestionsRef.current &&
@@ -194,8 +226,8 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isMobile]);
 
   // Cleanup timeout on unmount
@@ -209,13 +241,13 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
 
   // Update when props change
   useEffect(() => {
-    console.log('Props changed:', { initialQuery, initialType });
+    console.log("Props changed:", { initialQuery, initialType });
     if (initialQuery !== searchQuery || initialType !== activeTab) {
       setSearchQuery(initialQuery);
       setActiveTab(initialType);
       setPage(1);
       setSearchResults([]);
-      
+
       const queryToSearch = initialQuery || "~";
       handleSearch(queryToSearch, initialType, 1, false);
     }
@@ -225,15 +257,15 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
   useEffect(() => {
     const query = initialQuery || "~";
     const type = initialType;
-    
+
     setActiveTab(type);
     handleSearch(query, type, 1, false);
   }, []);
 
   const tabs = [
-    { id: 'posts', label: 'Posts', icon: Image },
-    { id: 'videos', label: 'Videos', icon: Video },
-    { id: 'reels', label: 'Reels', icon: Film }
+    { id: "posts", label: "Posts", icon: Image },
+    { id: "videos", label: "Videos", icon: Video },
+    { id: "reels", label: "Reels", icon: Film },
   ];
 
   return (
@@ -249,9 +281,12 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
               >
                 <ArrowLeft size={20} className="text-gray-700" />
               </button>
-              
+
               <div className="flex-1 relative">
-                <Search size={18} className="absolute left-3 top-2.5 text-gray-400 z-10" />
+                <Search
+                  size={18}
+                  className="absolute left-3 top-2.5 text-gray-400 z-10"
+                />
                 <input
                   ref={searchInputRef}
                   type="text"
@@ -266,10 +301,10 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
                   }}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-                
+
                 {/* Mobile Search Suggestions Dropdown */}
                 {showSuggestions && (
-                  <div 
+                  <div
                     ref={suggestionsRef}
                     className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-64 overflow-y-auto z-50"
                   >
@@ -289,7 +324,7 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
                         >
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                              {suggestion.post_type === 'video' ? (
+                              {suggestion.post_type === "video" ? (
                                 <Video size={16} className="text-gray-600" />
                               ) : suggestion.is_reel ? (
                                 <Film size={16} className="text-gray-600" />
@@ -299,20 +334,24 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
                             </div>
                             <div className="flex-1">
                               <div className="font-medium text-sm text-gray-900 line-clamp-1">
-                                {suggestion.title || 'Untitled'}
+                                {suggestion.title || "Untitled"}
                               </div>
                               <div className="text-xs text-gray-500">
-                                by {suggestion.user?.username || 'Unknown'}
+                                by {suggestion.user?.username || "Unknown"}
                               </div>
                             </div>
                             <div className="text-xs text-gray-400 capitalize">
-                              {suggestion.is_reel ? 'Reel' : suggestion.post_type}
+                              {suggestion.is_reel
+                                ? "Reel"
+                                : suggestion.post_type}
                             </div>
                           </div>
                         </div>
                       ))
                     ) : (
-                      <div className="p-3 text-gray-500 text-center">No suggestions found</div>
+                      <div className="p-3 text-gray-500 text-center">
+                        No suggestions found
+                      </div>
                     )}
                   </div>
                 )}
@@ -333,7 +372,7 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
               >
                 <ArrowLeft size={20} className="text-gray-700" />
               </button>
-              
+
               <div className="flex-1">
                 <h1 className="text-xl font-semibold text-gray-900">
                   {searchQuery && searchQuery !== "~" ? (
@@ -346,7 +385,10 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
                   {searchQuery && searchQuery !== "~" ? (
                     <span>Found results in {activeTab}</span>
                   ) : (
-                    <span>Browse all {activeTab} or use the search bar to find specific content</span>
+                    <span>
+                      Browse all {activeTab} or use the search bar to find
+                      specific content
+                    </span>
                   )}
                 </p>
               </div>
@@ -367,8 +409,8 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
                   onClick={() => handleTabChange(tab.id)}
                   className={`flex items-center gap-2 px-3 py-1 rounded-full font-medium text-xs transition-colors ${
                     activeTab === tab.id
-                      ? ' border-2 border-blue-500 text-blue-600 bg-gray-200'
-                      : 'border-1 text-gray-500 hover:text-gray-700'
+                      ? " border-2 border-blue-500 text-blue-600 bg-gray-200"
+                      : "border-1 text-gray-500 hover:text-gray-700"
                   }`}
                 >
                   <Icon size={16} />
@@ -386,13 +428,15 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
             <p className="mt-4 text-gray-600">
-              {searchQuery && searchQuery !== "~" ? "Searching..." : `Loading ${activeTab}...`}
+              {searchQuery && searchQuery !== "~"
+                ? "Searching..."
+                : `Loading ${activeTab}...`}
             </p>
           </div>
         ) : searchResults.length > 0 ? (
           <div className="space-y-6">
             {/* Results Grid */}
-            {activeTab === 'posts' && (
+            {activeTab === "posts" && (
               <div className="space-y-6 md:max-w-xl">
                 {searchResults.map((post) => (
                   <Post
@@ -413,15 +457,98 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
               </div>
             )}
 
-            {activeTab === 'videos' && (
-              <div className="space-y-6">
+            {activeTab === "videos" && (
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {searchResults.map((post) => (
-                  <VideoView key={post.post_id} post={post} />
+                  <div
+                    onClick={() => router.push(`/post/${post?.post_id}`)}
+                    key={post.post_id}
+                    className="overflow-hidden"
+                  >
+                    <div className="relative aspect-video bg-gray-300 overflow-hidden group cursor-pointer">
+                      {/* Use a placeholder image for the video thumbnail */}
+                      {/* <div 
+                        className="absolute inset-0 bg-cover bg-center" 
+                        style={{ 
+                          backgroundImage: `url(https://source.unsplash.com/random/?tech,${video.id})` 
+                        }}
+                      /> */}
+                      <video
+                        src={post.url[0]}
+                        className="w-full h-full object-cover"
+                        autoPlay={false}
+                        preload="metadata"
+                        muted
+                      />
+
+                      {/* Play button overlay */}
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          variant="ghost"
+                          size="icon"
+                          className="bg-black/30 text-white rounded-full h-14 w-14 flex items-center justify-center"
+                        >
+                          <Play className="h-7 w-7" />
+                        </button>
+                      </div>
+
+                      {/* Duration badge */}
+                      <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                        {post?.duration}
+                      </div>
+
+                      {/* View count */}
+                      <div className="absolute bottom-2 left-2 text-white text-sm flex items-center">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <span className="ml-1 text-xs">
+                          {post?.views_count}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-1">
+                      <div className="">
+                        <h3 className="text-sm font-medium line-clamp-2 mb-1 flex justify-between items-center">
+                          {post.title}
+                          <button variant="ghost" size="sm" className="">
+                            <EllipsisVertical size={18} color="gray" />
+                          </button>
+                        </h3>
+                        {/* <p className="text-xs text-gray-500 line-clamp-2 mb-1">
+                          {post.description}
+                        </p> */}
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <div className="flex items-center">
+                          <Heart size={16} color="gray" />
+                          &nbsp;
+                          <span className="">
+                            {post.likes_count}&nbsp;&nbsp;•&nbsp;&nbsp;
+                          </span>
+                          <Clock className="h-3 w-3 mr-1" />
+                          <span>{getTimeAgo(post.created_at)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
 
-            {activeTab === 'reels' && (
+            {activeTab === "reels" && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {searchResults.map((post, index) => (
                   <ReelItem
@@ -448,7 +575,7 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
                   disabled={isLoading}
                   className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Loading...' : 'Load More'}
+                  {isLoading ? "Loading..." : "Load More"}
                 </button>
               </div>
             )}
@@ -473,7 +600,9 @@ const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
                   {!isMobile ? `No ${activeTab} available` : "Start searching"}
                 </h3>
                 <p className="text-gray-600">
-                  {!isMobile ? `No ${activeTab} found. Try uploading some content or search for specific ${activeTab}.` : `Search for ${activeTab} and other content`}
+                  {!isMobile
+                    ? `No ${activeTab} found. Try uploading some content or search for specific ${activeTab}.`
+                    : `Search for ${activeTab} and other content`}
                 </p>
               </>
             )}

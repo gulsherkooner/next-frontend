@@ -137,7 +137,6 @@ export const searchPostsByType = createAsyncThunk(
 // Async thunk to get trending search terms (if you want to implement this later)
 export const getTrendingSearches = createAsyncThunk(
   "search/getTrendingSearches",
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async ({ limit = 10 }, { getState, rejectWithValue }) => {
     const accessToken = getState().auth.accessToken || getCookie("accessToken");
     if (!accessToken) {
