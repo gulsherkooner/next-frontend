@@ -1,6 +1,6 @@
 "use client"
-import React, { useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { Search, ArrowLeft, Image, Video, Film } from 'lucide-react';
 import { searchPosts, searchPostsByType, searchSuggestions } from '../features/search/searchslice';
@@ -10,19 +10,14 @@ import ReelItem from './reelComponents/ReelItem';
 import getCount from '../lib/utils/getCount';
 import { useIsMobile } from '../hooks/use-mobile';
 
-const SearchComponent = () => {
+const SearchComponent = ({ initialQuery = '', initialType = 'posts' }) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const dispatch = useDispatch();
   const isMobile = useIsMobile();
   
-  // Get initial search query and type from URL
-  const initialQuery = searchParams.get('q') || '';
-  const initialType = searchParams.get('type') || 'posts';
-  
   // State
   const [searchQuery, setSearchQuery] = useState(initialQuery);
-  const [activeTab, setActiveTab] = useState(initialType); // 'posts', 'videos', 'reels'
+  const [activeTab, setActiveTab] = useState(initialType);
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -34,10 +29,46 @@ const SearchComponent = () => {
   // Refs
   const searchInputRef = useRef(null);
   const suggestionsRef = useRef(null);
+  const debounceTimeoutRef = useRef(null);
+
+  // Debounced search function for mobile suggestions
+  const debouncedSearch = useCallback(
+    (searchValue) => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+
+      debounceTimeoutRef.current = setTimeout(async () => {
+        if (searchValue.trim().length > 0) {
+          setIsLoadingSuggestions(true);
+          try {
+            const result = await dispatch(searchSuggestions({ 
+              q: searchValue.trim(), 
+              limit: 5 
+            })).unwrap();
+            
+            if (result && result.suggestions) {
+              setSuggestions(result.suggestions);
+              setShowSuggestions(true);
+            }
+          } catch (error) {
+            console.error('Search suggestions error:', error);
+            setSuggestions([]);
+          } finally {
+            setIsLoadingSuggestions(false);
+          }
+        } else {
+          setShowSuggestions(false);
+          setSuggestions([]);
+          setIsLoadingSuggestions(false);
+        }
+      }, 300);
+    },
+    [dispatch]
+  );
 
   // Handle search
   const handleSearch = async (query = searchQuery, type = activeTab, pageNum = 1, append = false) => {
-    // Use "~" symbol for fetching all posts when query is empty
     const searchQuery = query.trim() || "~";
     
     setIsLoading(true);
@@ -45,7 +76,6 @@ const SearchComponent = () => {
       let result;
       
       if (type === 'posts') {
-        // Search for posts (images and carousels) - not videos/reels
         result = await dispatch(searchPostsByType({ 
           q: searchQuery, 
           post_type: 'image', 
@@ -53,7 +83,6 @@ const SearchComponent = () => {
           limit: 20 
         })).unwrap();
       } else if (type === 'videos') {
-        // Search for videos only (not reels)
         result = await dispatch(searchPostsByType({ 
           q: searchQuery, 
           post_type: 'video', 
@@ -61,7 +90,6 @@ const SearchComponent = () => {
           limit: 20 
         })).unwrap();
       } else if (type === 'reels') {
-        // Search for reels only (videos with is_reel = true)
         result = await dispatch(searchPostsByType({ 
           q: searchQuery, 
           post_type: 'reel', 
@@ -79,9 +107,8 @@ const SearchComponent = () => {
           setSearchResults(result.posts);
         }
         
-        // Check if there are more results
         const totalResults = result.posts.length;
-        setHasMore(totalResults === 20); // If we got full page, there might be more
+        setHasMore(totalResults === 20);
       }
     } catch (error) {
       console.error('Search error:', error);
@@ -91,36 +118,25 @@ const SearchComponent = () => {
   };
 
   // Handle search input changes for suggestions (mobile only)
-  const handleSearchChange = async (e) => {
+  const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchQuery(value);
     
-    if (value.trim().length > 0) {
-      setIsLoadingSuggestions(true);
-      try {
-        const result = await dispatch(searchSuggestions({ q: value.trim(), limit: 5 })).unwrap();
-        if (result && result.suggestions) {
-          setSuggestions(result.suggestions);
-          setShowSuggestions(true);
-        }
-      } catch (error) {
-        console.error('Search suggestions error:', error);
-      } finally {
-        setIsLoadingSuggestions(false);
-      }
-    } else {
-      setShowSuggestions(false);
-      setSuggestions([]);
-    }
+    // Call debounced search for suggestions
+    debouncedSearch(value);
   };
 
   // Handle search submit (mobile only)
   const handleSearchSubmit = (e) => {
     if (e.key === 'Enter') {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+      
       setShowSuggestions(false);
       setPage(1);
       handleSearch(searchQuery, activeTab, 1, false);
-      // Update URL if there's a query
+      
       if (searchQuery.trim()) {
         router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}&type=${activeTab}`);
       }
@@ -129,6 +145,10 @@ const SearchComponent = () => {
 
   // Handle suggestion click
   const handleSuggestionClick = (suggestion) => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
     const query = suggestion.title || suggestion.description || '';
     setSearchQuery(query);
     setShowSuggestions(false);
@@ -144,7 +164,7 @@ const SearchComponent = () => {
       setPage(1);
       setSearchResults([]);
       handleSearch(searchQuery, tab, 1, false);
-      // Update URL with new type
+      
       const query = searchQuery.trim() || "~";
       router.push(`/search?q=${encodeURIComponent(query)}&type=${tab}`);
     }
@@ -178,24 +198,28 @@ const SearchComponent = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMobile]);
 
-  // Listen for URL changes to update search query and type
+  // Cleanup timeout on unmount
   useEffect(() => {
-    const urlQuery = searchParams.get('q') || '';
-    const urlType = searchParams.get('type') || 'posts';
-    
-    if (urlQuery !== searchQuery || urlType !== activeTab) {
-      setSearchQuery(urlQuery);
-      setActiveTab(urlType);
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Update when props change
+  useEffect(() => {
+    console.log('Props changed:', { initialQuery, initialType });
+    if (initialQuery !== searchQuery || initialType !== activeTab) {
+      setSearchQuery(initialQuery);
+      setActiveTab(initialType);
       setPage(1);
       setSearchResults([]);
       
-      if (urlQuery) {
-        handleSearch(urlQuery, urlType, 1, false);
-      } else {
-        handleSearch("~", urlType, 1, false);
-      }
+      const queryToSearch = initialQuery || "~";
+      handleSearch(queryToSearch, initialType, 1, false);
     }
-  }, [searchParams]);
+  }, [initialQuery, initialType]);
 
   // Initial search on component mount
   useEffect(() => {
@@ -250,7 +274,12 @@ const SearchComponent = () => {
                     className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-64 overflow-y-auto z-50"
                   >
                     {isLoadingSuggestions ? (
-                      <div className="p-3 text-gray-500 text-center">Loading suggestions...</div>
+                      <div className="p-3 text-gray-500 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500"></div>
+                          Loading suggestions...
+                        </div>
+                      </div>
                     ) : suggestions.length > 0 ? (
                       suggestions.map((suggestion, index) => (
                         <div
@@ -362,15 +391,6 @@ const SearchComponent = () => {
           </div>
         ) : searchResults.length > 0 ? (
           <div className="space-y-6">
-            {/* Results Count */}
-            {/* <div className="text-sm text-gray-600">
-              {searchQuery && searchQuery !== "~" ? (
-                <span>{searchResults.length} {activeTab} found for "{searchQuery}"</span>
-              ) : (
-                <span>{searchResults.length} {activeTab} found</span>
-              )}
-            </div> */}
-
             {/* Results Grid */}
             {activeTab === 'posts' && (
               <div className="space-y-6 md:max-w-xl">

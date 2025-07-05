@@ -207,8 +207,6 @@ const Header = ({ setMenu, menu }) => {
               )}
             </div>
           )}
-        </div>
-
         {/* Center section - Navigation Icons (Desktop only) */}
         {!isMobile && (
           <div className="flex items-center gap-0">
@@ -230,6 +228,8 @@ const Header = ({ setMenu, menu }) => {
             </Link>
           </div>
         )}
+        </div>
+
 
         {/* Right section - Action Icons */}
         <div className={`flex items-center ${isMobile ? "gap-2" : "gap-3"} flex-shrink-0`}>
