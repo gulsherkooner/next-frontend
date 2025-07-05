@@ -69,7 +69,7 @@ const ReelCarousel = () => {
       <h2 className="font-medium text-lg mb-3 px-1">Suggested reels</h2>
       <div className="relative">
         <div
-          className="flex overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1 space-x-2 no-scrollbar"
+          className="flex overflow-x-auto pb-2 scrollbar-hide px-1 space-x-2 no-scrollbar"
           ref={containerRef}
           onScroll={checkScrollPosition}
         >

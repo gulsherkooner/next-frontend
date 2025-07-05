@@ -169,9 +169,9 @@ const StoryBar = () => {
 
   // Only render the component if self exists
   return self && (
-    <div className="py-0 rounded-lg mb-4 overflow-hidden relative">
+    <div className=" rounded-lg mb-4 overflow-hidden relative">
       <div
-        className="flex space-x-0 overflow-x-auto pb-1 no-scrollbar"
+        className="flex overflow-x-auto pb-1 no-scrollbar"
         ref={containerRef}
         onScroll={checkScrollPosition}
       >

@@ -13,7 +13,6 @@ export const store = configureStore({
     comments: commentsReducer,
     postLikes: postLikesReducer,
     membership: membershipReducer,
-    membership: membershipReducer,
     stories: storiesReducer,
   },
 });

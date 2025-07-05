@@ -17,8 +17,8 @@ const Sidebar = ({ menu, setMenu }) => {
   ];
 
   const contentItems = [
-    { icon: <Youtube size={20} />, text: "Videos", link: "/" },
-    { icon: <Images size={20} />, text: "Posts", link: "/" },
+    { icon: <Youtube size={20} />, text: "Videos", link: "/search?q=~&type=videos" },
+    { icon: <Images size={20} />, text: "Posts", link: "/search?q=~&type=posts" },
     { icon: <Bookmark size={20} />, text: "Collections", link: "/" },
     { icon: <Heart size={20} />, text: "Liked Content", link: "/" },
     { icon: <BadgeCheck size={20} />, text: "Content creators", link: "/" },

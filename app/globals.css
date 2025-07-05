@@ -49,6 +49,14 @@ body {
     90% { opacity: 1; transform: scale(1); }
     100% { opacity: 0; transform: scale(0.95); }
   }
+
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }
 
 @keyframes pop {

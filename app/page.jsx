@@ -16,7 +16,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchPublicPosts, fetchUserPosts } from "./features/posts/postsSlice";
 import ProfileInfo from "./components/profileComponents/ProfileInfo";
 import ProfileContent from "./components/profileComponents/ProfileContent";
-import { fetchUserData } from "./features/auth/authSlice";
+import { fetchUserData, updateAccessToken } from "./features/auth/authSlice";
+import { getCookie } from "./lib/utils/cookie";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const isMobile = useIsMobile();
@@ -26,9 +28,49 @@ export default function Home() {
   const dispatch = useDispatch();
   const [isFetchingNext, setIsFetchingNext] = useState(false);
   const sentinelRef = useRef(null);
+  const router = useRouter();
 
   // Generate a seed once per session/feed
   const [seed] = useState(() => Math.random().toString(36).slice(2));
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const accessToken = getCookie("accessToken");
+      if (!accessToken) {
+        const refreshToken = getCookie("refreshToken");
+        if (!refreshToken) {
+          router.push("/login");
+        }
+        try {
+          const apiGatewayUrl =
+            process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://localhost:3001";
+          const res = await fetch(`${apiGatewayUrl}/auth/refresh`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refreshToken }),
+            credentials: "include",
+          });
+          const data = await res.json();
+          if (res.ok) {
+            dispatch(
+              updateAccessToken({
+                accessToken: data.accessToken,
+                refreshToken: data.refreshToken,
+              })
+            );
+            router.push("/");
+          } else {
+            console.error(data.error || "Login failed");
+          }
+        } catch (err) {
+          console.error("Login error:", err);
+        }
+      } else {
+        dispatch(fetchUserData());
+      }
+    };
+    fetchData();
+  }, []);
 
   useEffect(() => {
     dispatch(fetchUserData());
