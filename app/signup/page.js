@@ -60,7 +60,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex flex-row items-center justify-center h-[calc(100vh-100px)] bg-[#fdfdfd]">
+    <div className="flex flex-row items-center justify-center h-screen bg-[#fdfdfd]">
       <div className="flex-1/2 w-full h-full px-20 py-10 hidden sm:hidden md:hidden lg:flex lg:items-center lg:justify-center">
         <div className="flex items-center justify-center h-full w-full bg-[#eeeeee]">
           Promotional content

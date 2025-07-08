@@ -21,6 +21,7 @@ export default function profile() {
   const router = useRouter();
   const { userPosts } = useSelector((state) => state.posts);
   const data = useSelector((state) => state.auth?.user);
+  console.log(data)
 
   useEffect(() => {
     const fetchData = async () => {

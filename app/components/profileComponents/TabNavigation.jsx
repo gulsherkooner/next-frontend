@@ -1,43 +1,64 @@
-import { useIsMobile } from '@/app/hooks/use-mobile';
-import { BadgeCheck } from 'lucide-react';
-import React from 'react';
+import { useIsMobile } from "@/app/hooks/use-mobile";
+import { BadgeCheck } from "lucide-react";
+import React from "react";
 
-
-const TabNavigation = ({ activeTab, setActiveTab }) => {
-  
+const TabNavigation = ({ activeTab, setActiveTab, showDating }) => {
   const isMobile = useIsMobile();
 
   return (
     <div className="border-b border-gray-200">
-      <div className={`flex ${isMobile ? "space-x-1" : "md:space-x-4 lg:space-x-8"}`}>
-        <TabButton 
-          label="Posts" 
-          active={activeTab === 'posts'} 
-          onClick={() => setActiveTab('posts')} 
+      <div
+        className={`flex overflow-y-scroll no-scrollbar ${
+          isMobile ? "space-x-1" : "md:space-x-4 lg:space-x-8"
+        }`}
+      >
+        {showDating && (
+          <TabButton
+            label="Dating&nbsp;profile"
+            active={activeTab === "dating"}
+            onClick={() => setActiveTab("dating")}
+          />
+        )}
+        <TabButton
+          label="Posts"
+          active={activeTab === "posts"}
+          onClick={() => setActiveTab("posts")}
         />
-        <TabButton 
-          label="Reels" 
-          active={activeTab === 'reels'} 
-          onClick={() => setActiveTab('reels')} 
+        <TabButton
+          label="Reels"
+          active={activeTab === "reels"}
+          onClick={() => setActiveTab("reels")}
         />
-        <TabButton 
-          label="Videos" 
-          active={activeTab === 'videos'} 
-          onClick={() => setActiveTab('videos')} 
+        <TabButton
+          label="Videos"
+          active={activeTab === "videos"}
+          onClick={() => setActiveTab("videos")}
         />
-        <TabButton 
-          label="Collections" 
-          active={activeTab === 'collections'} 
-          onClick={() => setActiveTab('collections')} 
+        <TabButton
+          label="Collections"
+          active={activeTab === "collections"}
+          onClick={() => setActiveTab("collections")}
         />
-        <TabButton 
-          label="Account" 
-          active={activeTab === 'account'} 
-          onClick={() => setActiveTab('account')} 
+        <TabButton
+          label="Account"
+          active={activeTab === "account"}
+          onClick={() => setActiveTab("account")}
         />
-        <div className={`ml-auto ${isMobile?"pr-0":"pr-4"} flex items-center`}>
+        <div
+          className={`ml-auto ${isMobile ? "pr-0" : "pr-4"} flex items-center`}
+        >
           <button className="p-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <circle cx="11" cy="11" r="8"></circle>
               <path d="m21 21-4.3-4.3"></path>
             </svg>
@@ -58,10 +79,10 @@ const TabNavigation = ({ activeTab, setActiveTab }) => {
 const TabButton = ({ label, active, onClick }) => {
   const isMobile = useIsMobile();
   return (
-    <button 
+    <button
       onClick={onClick}
-      className={`${isMobile ? "p-2":"p-4"} font-medium text-sm relative ${
-        active ? 'text-black' : 'text-gray-500 hover:text-gray-700'
+      className={`${isMobile ? "p-2" : "p-4"} font-medium text-sm relative ${
+        active ? "text-black" : "text-gray-500 hover:text-gray-700"
       }`}
     >
       {label}
@@ -74,11 +95,11 @@ const TabButton = ({ label, active, onClick }) => {
 
 const FilterButton = ({ label, active }) => {
   return (
-    <button 
+    <button
       className={`py-1 px-3 rounded-full text-xs ${
-        active 
-          ? 'bg-black text-white' 
-          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+        active
+          ? "bg-black text-white"
+          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
       }`}
     >
       {label}

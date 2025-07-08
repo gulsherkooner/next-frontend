@@ -23,7 +23,9 @@ import { useRouter } from "next/navigation";
 export default function Home() {
   const isMobile = useIsMobile();
   const [menu, setMenu] = useState(false);
-  const { posts, status, error, page, totalPages } = useSelector((state) => state.posts);
+  const { posts, status, error, page, totalPages } = useSelector(
+    (state) => state.posts
+  );
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const [isFetchingNext, setIsFetchingNext] = useState(false);
@@ -73,9 +75,11 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    dispatch(fetchUserData());
-    dispatch(fetchPublicPosts({ page: 1, limit: 5, seed }));
-  }, [dispatch, seed]);
+    if (posts.length === 0) {
+      dispatch(fetchUserData());
+      dispatch(fetchPublicPosts({ page: 1, limit: 5, seed }));
+    }
+  }, [dispatch, seed, posts.length]);
 
   useEffect(() => {
     if (user?.user_id) dispatch(fetchUserPosts(user?.user_id));
@@ -87,14 +91,11 @@ export default function Home() {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (
-          entries[0].isIntersecting &&
-          page < totalPages &&
-          !isFetchingNext
-        ) {
+        if (entries[0].isIntersecting && page < totalPages && !isFetchingNext) {
           setIsFetchingNext(true);
-          dispatch(fetchPublicPosts({ page: page + 1, limit: 5, seed }))
-            .finally(() => setIsFetchingNext(false));
+          dispatch(
+            fetchPublicPosts({ page: page + 1, limit: 5, seed })
+          ).finally(() => setIsFetchingNext(false));
         }
       },
       { threshold: 1 }
@@ -154,49 +155,70 @@ export default function Home() {
   //   },
   // ];
 
-    // const state = useSelector((state) => state)
-    // console.log("state:", state);
+  // const state = useSelector((state) => state)
+  // console.log("state:", state);
 
   return (
-    <div className="bg-gray-100 min-h-screen pb-14 md:pb-0 w-full">
+    <div
+      className="bg-gray-100 min-h-screen pb-14 md:pb-0 w-full scroll-smooth"
+      style={{ scrollBehavior: "auto" }}
+    >
       <Header setMenu={setMenu} menu={menu} />
       <Sidebar setMenu={setMenu} menu={menu} />
 
-        <div className="pt-14 md:pl-56 flex md:flex-row">
-          {/* Main content column */}
-          <div className="flex-1 max-w-full md:max-w-xl xl:max-w-2xl 2xl:max-w-2xl mx-auto py-2 md:px-2 sm:py-4">
-            <StoryBar />
-            <CreatePost />
+      <div className="pt-14 md:pl-56 flex md:flex-row scroll-smooth">
+        {/* Main content column */}
+        <div
+          className="flex-1 max-w-full md:max-w-xl xl:max-w-2xl 2xl:max-w-2xl mx-auto py-2 md:px-2 sm:py-4 scroll-smooth"
+          id="main-feed"
+        >
+          <StoryBar />
+          <CreatePost />
 
-            <ReelCarousel />
+          <ReelCarousel />
 
-            {status === "loading" && <div>Loading...</div>}
+          {status === "loading" && (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <span className="ml-2 text-gray-600">Loading...</span>
+            </div>
+          )}
+
+          <div className="space-y-4 scroll-smooth">
             {posts.map((post) => (
               <Post key={post.post_id} {...post} />
             ))}
-            <div ref={sentinelRef} style={{ height: 1 }} />
-            {isFetchingNext && <div>Loading more...</div>}
-
-            <SponsoredProducts />
-
-            <SponsoredBrand />
           </div>
 
-          {/* Right sidebar - only visible on larger screens */}
-          {!isMobile && (
-            <div className="hidden lg:block w-80 p-4"> 
-              <ProfileSuggestion
-                title="Trending Profiles"
-                profiles={trendingProfiles}
-              />
+          <div ref={sentinelRef} style={{ height: 1 }} />
 
-              <ProfileSuggestion
-                title="Suggested for you"
-                profiles={suggestedProfiles}
-              />
+          {isFetchingNext && (
+            <div className="flex justify-center items-center py-4">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+              <span className="ml-2 text-gray-600">Loading more...</span>
             </div>
           )}
+
+          <SponsoredProducts />
+
+          <SponsoredBrand />
         </div>
+
+        {/* Right sidebar - only visible on larger screens */}
+        {!isMobile && (
+          <div className="hidden lg:block w-80 p-4 scroll-smooth">
+            <ProfileSuggestion
+              title="Trending Profiles"
+              profiles={trendingProfiles}
+            />
+
+            <ProfileSuggestion
+              title="Suggested for you"
+              profiles={suggestedProfiles}
+            />
+          </div>
+        )}
+      </div>
       <MobileNav />
     </div>
   );

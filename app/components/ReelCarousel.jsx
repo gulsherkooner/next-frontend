@@ -16,7 +16,7 @@ const ReelCarousel = () => {
   // Generate a seed once per session/feed
   const [seed] = useState(() => Math.random().toString(36).slice(2));
   const [page] = useState(1);
-  const [limit] = useState(10);
+  const [limit] = useState(6);
 
   // Local state for reels
   const [reels, setReels] = useState([]);
@@ -24,16 +24,18 @@ const ReelCarousel = () => {
 
   // Fetch public reels on mount
   useEffect(() => {
-    setLoading(true);
-    dispatch(fetchPublicReels({ page, limit, seed }))
-      .then((action) => {
-        if (action.payload && action.payload.reels) {
-          setReels(action.payload.reels);
-        }
-        setLoading(false);
-      });
+    if (reels.length === 0) {
+      setLoading(true);
+      dispatch(fetchPublicReels({ page, limit, seed }))
+        .then((action) => {
+          if (action.payload && action.payload.reels) {
+            setReels(action.payload.reels);
+          }
+          setLoading(false);
+        });
+    }
     // eslint-disable-next-line
-  }, [dispatch, page, limit, seed]);
+  }, [dispatch, page, limit, seed, reels.length]);
 
   const scroll = (direction) => {
     if (!containerRef.current) return;

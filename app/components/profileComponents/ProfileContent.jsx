@@ -6,6 +6,7 @@ import ReelsGrid from "./ReelsGrid";
 import VideosGrid from "./VideosGrid";
 import CollectionsGrid from "./CollectionsGrid";
 import AboutTab from "./AboutTab";
+import DatingTab from "./DatingTab"; // Import the new DatingTab component
 
 const ProfileContent = ({ userPosts, data }) => {
   const [activeTab, setActiveTab] = useState("posts");
@@ -32,6 +33,8 @@ const ProfileContent = ({ userPosts, data }) => {
 
   const renderTabContent = () => {
     switch (activeTab) {
+      case "dating":
+        return <DatingTab data={data} />; // Render the DatingTab component
       case "posts":
         return <PostsGrid imgPosts={imgPosts} />;
       case "reels":
