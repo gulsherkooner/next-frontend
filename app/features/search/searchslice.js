@@ -45,9 +45,9 @@ export const searchPosts = createAsyncThunk(
   }
 );
 
-// Async thunk to search posts with auto-complete suggestions
-export const searchSuggestions = createAsyncThunk(
-  "search/searchSuggestions",
+// Add this new thunk to searchslice.js
+export const searchUserSuggestions = createAsyncThunk(
+  "search/searchUserSuggestions",
   async ({ q, limit = 5 }, { getState, rejectWithValue }) => {
     const accessToken = getState().auth.accessToken || getCookie("accessToken");
     if (!accessToken) {
@@ -58,10 +58,10 @@ export const searchSuggestions = createAsyncThunk(
       const params = new URLSearchParams({
         q,
         limit: limit.toString(),
-        page: '1', // Only get first page for suggestions
+        page: '1',
       });
 
-      const response = await fetch(`${API_BASE_URL}/search/search?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/auth/search/users?${params}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -71,24 +71,116 @@ export const searchSuggestions = createAsyncThunk(
 
       if (!response.ok) {
         const errorData = await response.json();
+        return rejectWithValue(errorData.error || 'Failed to get user suggestions');
+      }
+
+      const data = await response.json();
+      return {
+        suggestions: data.users.map(user => ({
+          user_id: user.user_id,
+          username: user.username,
+          name: user.name,
+          profile_img_url: user.profile_img_url,
+          is_verified: user.is_verified,
+          type: 'user'
+        })),
+        total: data.total,
+      };
+    } catch (error) {
+      return rejectWithValue(error.message || 'Network error occurred');
+    }
+  }
+);
+
+// Update the searchSuggestions thunk in searchslice.js
+export const searchSuggestions = createAsyncThunk(
+  "search/searchSuggestions",
+  async ({ q, activeTab = 'posts', limit = 5 }, { getState, rejectWithValue }) => {
+    const accessToken = getState().auth.accessToken || getCookie("accessToken");
+    if (!accessToken) {
+      return rejectWithValue("No access token available");
+    }
+
+    try {
+      // Map activeTab to the correct post_type for the API
+      let post_type;
+      switch (activeTab) {
+        case 'posts':
+          post_type = 'image';
+          break;
+        case 'videos':
+          post_type = 'video';
+          break;
+        case 'reels':
+          post_type = 'reel';
+          break;
+        case 'users':
+          post_type = 'users';
+          break;
+        default:
+          post_type = 'image';
+      }
+
+      const params = new URLSearchParams({
+        q,
+        limit: limit.toString(),
+        page: '1',
+        post_type: post_type
+      });
+
+      console.log(`Making API call for ${activeTab} with post_type: ${post_type}`);
+      console.log(`URL: ${API_BASE_URL}/search/search?${params}`);
+
+      const response = await fetch(`${API_BASE_URL}/search/search?${params}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log(`Response status for ${activeTab}:`, response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error(`Error response for ${activeTab}:`, errorData);
         return rejectWithValue(errorData.error || 'Failed to get search suggestions');
       }
 
       const data = await response.json();
-      // Return only essential data for suggestions
-      return {
-        suggestions: data.posts.map(post => ({
+      console.log(`Response data for ${activeTab}:`, data);
+      
+      // Handle different response formats
+      let suggestions = [];
+      if (activeTab === 'users' && data.users) {
+        suggestions = data.users.map(user => ({
+          user_id: user.user_id,
+          username: user.username,
+          name: user.name,
+          profile_img_url: user.profile_img_url,
+          is_verified: user.is_verified,
+          type: 'user'
+        }));
+      } else if (data.posts) {
+        suggestions = data.posts.map(post => ({
           post_id: post.post_id,
           title: post.title,
           description: post.description,
-          user: post.user,
           post_type: post.post_type,
           is_reel: post.is_reel,
-        })),
-        total: data.total,
-        search_query: data.search_query,
+          user: post.user,
+          type: 'post'
+        }));
+      }
+
+      console.log(`Final suggestions for ${activeTab}:`, suggestions);
+
+      return {
+        suggestions: suggestions || [],
+        activeTab
       };
     } catch (error) {
+      console.error(`Network error for ${activeTab}:`, error);
       return rejectWithValue(error.message || 'Network error occurred');
     }
   }

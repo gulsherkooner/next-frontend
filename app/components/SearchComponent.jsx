@@ -12,6 +12,7 @@ import {
   EllipsisVertical,
   Clock,
   Heart,
+  User,
 } from "lucide-react";
 import {
   searchPosts,
@@ -54,34 +55,30 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
       }
 
       debounceTimeoutRef.current = setTimeout(async () => {
-        if (searchValue.trim().length > 0) {
+        if (searchValue.trim() && searchValue.length > 0) {
           setIsLoadingSuggestions(true);
           try {
             const result = await dispatch(
               searchSuggestions({
-                q: searchValue.trim(),
+                q: searchValue,
+                activeTab: activeTab, // Pass the current active tab
                 limit: 5,
               })
             ).unwrap();
-
-            if (result && result.suggestions) {
-              setSuggestions(result.suggestions);
-              setShowSuggestions(true);
-            }
+            setSuggestions(result.suggestions || []);
           } catch (error) {
-            console.error("Search suggestions error:", error);
+            console.error("Error fetching suggestions:", error);
             setSuggestions([]);
           } finally {
             setIsLoadingSuggestions(false);
           }
         } else {
-          setShowSuggestions(false);
           setSuggestions([]);
           setIsLoadingSuggestions(false);
         }
       }, 300);
     },
-    [dispatch]
+    [dispatch, activeTab] // Add activeTab to dependencies
   );
 
   // Handle search
@@ -124,18 +121,28 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
             limit: 20,
           })
         ).unwrap();
+      } else if (type === "users") {
+        result = await dispatch(
+          searchPostsByType({
+            q: searchQuery,
+            post_type: "users",
+            page: pageNum,
+            limit: 20,
+          })
+        ).unwrap();
       }
 
       console.log("Search result:", result);
 
-      if (result && result.posts) {
+      if (result && (result.posts || result.users)) {
+        const resultData = result.posts || result.users || [];
         if (append) {
-          setSearchResults((prev) => [...prev, ...result.posts]);
+          setSearchResults((prev) => [...prev, ...resultData]);
         } else {
-          setSearchResults(result.posts);
+          setSearchResults(resultData);
         }
 
-        const totalResults = result.posts.length;
+        const totalResults = resultData.length;
         setHasMore(totalResults === 20);
       }
     } catch (error) {
@@ -266,6 +273,7 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
     { id: "posts", label: "Posts", icon: Image },
     { id: "videos", label: "Videos", icon: Video },
     { id: "reels", label: "Reels", icon: Film },
+    { id: "users", label: "Users", icon: User }, // Add this line
   ];
 
   return (
@@ -290,7 +298,7 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
                 <input
                   ref={searchInputRef}
                   type="text"
-                  placeholder="Search posts, videos, reels..."
+                  placeholder="Search posts, videos, reels, users..."
                   value={searchQuery}
                   onChange={handleSearchChange}
                   onKeyPress={handleSearchSubmit}
@@ -303,55 +311,77 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
                 />
 
                 {/* Mobile Search Suggestions Dropdown */}
-                {showSuggestions && (
+                {showSuggestions && (suggestions.length > 0 || isLoadingSuggestions) && (
                   <div
                     ref={suggestionsRef}
-                    className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-64 overflow-y-auto z-50"
+                    className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto no-scrollbar"
                   >
                     {isLoadingSuggestions ? (
-                      <div className="p-3 text-gray-500 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500"></div>
-                          Loading suggestions...
-                        </div>
+                      <div className="p-4 text-center text-gray-500">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
+                        <span className="ml-2">Loading suggestions...</span>
                       </div>
-                    ) : suggestions.length > 0 ? (
-                      suggestions.map((suggestion, index) => (
+                    ) : (
+                      suggestions.map((suggestion) => (
                         <div
-                          key={`${suggestion.post_id}-${index}`}
-                          onClick={() => handleSuggestionClick(suggestion)}
+                          key={suggestion.type === 'user' ? suggestion.user_id : suggestion.post_id}
+                          onClick={() => {
+                            if (suggestion.type === 'user') {
+                              router.push(`/profile/${suggestion.username}`);
+                            } else {
+                              setSearchQuery(suggestion.title || suggestion.description?.substring(0, 50) || '');
+                              setShowSuggestions(false);
+                              handleSearch();
+                            }
+                          }}
                           className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
                         >
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                              {suggestion.post_type === "video" ? (
-                                <Video size={16} className="text-gray-600" />
-                              ) : suggestion.is_reel ? (
-                                <Film size={16} className="text-gray-600" />
-                              ) : (
-                                <Image size={16} className="text-gray-600" />
-                              )}
-                            </div>
-                            <div className="flex-1">
-                              <div className="font-medium text-sm text-gray-900 line-clamp-1">
-                                {suggestion.title || "Untitled"}
+                          {suggestion.type === 'user' ? (
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={suggestion.profile_img_url || "/default-avatar.png"}
+                                alt={suggestion.username}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-sm font-medium text-gray-900 truncate">
+                                    {suggestion.name || suggestion.username}
+                                  </span>
+                                  {suggestion.is_verified && (
+                                    <svg className="w-3 h-3 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                </div>
+                                <p className="text-xs text-gray-600">@{suggestion.username}</p>
                               </div>
-                              <div className="text-xs text-gray-500">
-                                by {suggestion.user?.username || "Unknown"}
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-3">
+                              <div className="flex-shrink-0">
+                                {suggestion.post_type === "video" ? (
+                                  suggestion.is_reel ? (
+                                    <Film className="w-5 h-5 text-purple-500" />
+                                  ) : (
+                                    <Video className="w-5 h-5 text-red-500" />
+                                  )
+                                ) : (
+                                  <Image className="w-5 h-5 text-blue-500" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 truncate">
+                                  {suggestion.title || "Untitled"}
+                                </p>
+                                <p className="text-xs text-gray-600 truncate">
+                                  by @{suggestion.user?.username}
+                                </p>
                               </div>
                             </div>
-                            <div className="text-xs text-gray-400 capitalize">
-                              {suggestion.is_reel
-                                ? "Reel"
-                                : suggestion.post_type}
-                            </div>
-                          </div>
+                          )}
                         </div>
                       ))
-                    ) : (
-                      <div className="p-3 text-gray-500 text-center">
-                        No suggestions found
-                      </div>
                     )}
                   </div>
                 )}
@@ -567,6 +597,89 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
               </div>
             )}
 
+            {activeTab === "users" && (
+              <div className="space-y-4">
+                {searchResults.map((user) => (
+                  <div
+                    key={user.user_id}
+                    onClick={() => router.push(`/profile/${user.username}`)}
+                    className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <img
+                          src={user.profile_img_url || "/default-avatar.png"}
+                          alt={user.username}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                        {user.is_verified && (
+                          <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1">
+                            <svg
+                              className="w-3 h-3 text-white"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-semibold text-gray-900 truncate">
+                            {user.name || user.username}
+                          </h3>
+                          {user.is_verified && (
+                            <svg
+                              className="w-4 h-4 text-blue-500"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          @{user.username}
+                        </p>
+                        {user.bio && (
+                          <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                            {user.bio}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                          <span>{user.followers || 0} followers</span>
+                          <span>{user.following || 0} following</span>
+                          <span>
+                            Joined {getTimeAgo(user.created_at)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Add follow/unfollow logic here
+                        }}
+                        className="px-4 py-1.5 text-sm font-medium text-blue-600 border border-blue-600 rounded-full hover:bg-blue-50 transition-colors"
+                      >
+                        Follow
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Load More Button */}
             {hasMore && (
               <div className="text-center">
@@ -602,7 +715,7 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
                 <p className="text-gray-600">
                   {!isMobile
                     ? `No ${activeTab} found. Try uploading some content or search for specific ${activeTab}.`
-                    : `Search for ${activeTab} and other content`}
+                    : `Search for ${activeTab === "users" ? "users" : activeTab} and other content`}
                 </p>
               </>
             )}

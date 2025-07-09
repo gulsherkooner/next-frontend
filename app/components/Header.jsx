@@ -1,7 +1,7 @@
 // components/Header.jsx
 "use client"
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Search, Home, Bell, Mail, User, Wallet, Menu, Heart } from "lucide-react";
+import { Search, Home, Bell, Mail, User, Wallet, Menu, Heart, Image, Video, Film } from "lucide-react";
 import Link from "next/link";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useRouter } from "next/navigation";
@@ -27,25 +27,67 @@ const Header = ({ setMenu, menu }) => {
   // Debounced search function
   const debouncedSearch = useCallback(
     (searchValue) => {
-      // Clear previous timeout
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
       }
 
-      // Set new timeout
       debounceTimeoutRef.current = setTimeout(async () => {
         if (searchValue.trim().length > 0) {
           setIsLoadingSuggestions(true);
+          setShowSuggestions(true);
+          
           try {
-            const result = await dispatch(searchSuggestions({ 
-              q: searchValue.trim(), 
-              limit: 5 
-            })).unwrap();
+            console.log('Starting search for:', searchValue);
             
-            if (result && result.suggestions) {
-              setSuggestions(result.suggestions);
-              setShowSuggestions(true);
-            }
+            // Fetch all content types in parallel
+            const allSuggestions = [];
+            
+            // Get suggestions for each content type
+            const contentTypes = [
+              { type: 'posts', postType: 'image' },
+              { type: 'videos', postType: 'video' },
+              { type: 'reels', postType: 'reel' },
+              { type: 'users', postType: 'users' }
+            ];
+            
+            const suggestionPromises = contentTypes.map(async ({ type, postType }) => {
+              try {
+                console.log(`Fetching ${type} suggestions...`);
+                const result = await dispatch(searchSuggestions({ 
+                  q: searchValue.trim(), 
+                  activeTab: type,
+                  limit: 2 
+                })).unwrap();
+                console.log(`${type} result:`, result);
+                return result.suggestions || [];
+              } catch (error) {
+                console.error(`${type} suggestions error:`, error);
+                return [];
+              }
+            });
+
+            const suggestionResults = await Promise.all(suggestionPromises);
+            console.log('All suggestion results:', suggestionResults);
+            
+            // Flatten and combine all suggestions
+            suggestionResults.forEach(suggestions => {
+              if (Array.isArray(suggestions)) {
+                allSuggestions.push(...suggestions);
+              }
+            });
+
+            // Remove duplicates and limit total results
+            const uniqueSuggestions = allSuggestions
+              .filter((item, index, self) => 
+                index === self.findIndex(t => 
+                  (t.post_id && t.post_id === item.post_id) || 
+                  (t.user_id && t.user_id === item.user_id)
+                )
+              )
+              .slice(0, 8);
+
+            console.log('Final unique suggestions:', uniqueSuggestions);
+            setSuggestions(uniqueSuggestions);
           } catch (error) {
             console.error('Search suggestions error:', error);
             setSuggestions([]);
@@ -57,7 +99,7 @@ const Header = ({ setMenu, menu }) => {
           setSuggestions([]);
           setIsLoadingSuggestions(false);
         }
-      }, 300); // 300ms delay
+      }, 300);
     },
     [dispatch]
   );
@@ -92,11 +134,43 @@ const Header = ({ setMenu, menu }) => {
       clearTimeout(debounceTimeoutRef.current);
     }
     
-    const query = suggestion.title || suggestion.description || '';
-    setSearchQuery(query);
+    // Close suggestions immediately
     setShowSuggestions(false);
     setIsLoadingSuggestions(false);
-    router.push(`/search?q=${encodeURIComponent(query)}`);
+    setSuggestions([]); // Clear suggestions array
+    
+    if (suggestion.type === 'user') {
+      // Navigate to user profile
+      router.push(`/profile/${suggestion.username}`);
+    } else {
+      // For posts, use the title or description as search query
+      let query = '';
+      let postType = 'posts';
+      
+      // Determine query - prefer title, fall back to description
+      if (suggestion.title && suggestion.title.trim()) {
+        query = suggestion.title.trim();
+      } else if (suggestion.description && suggestion.description.trim()) {
+        query = suggestion.description.trim().substring(0, 50); // Limit length
+      } else {
+        query = searchQuery.trim(); // Use current search query
+      }
+      
+      // Determine the correct post type
+      if (suggestion.post_type === 'image') {
+        postType = 'posts';
+      } else if (suggestion.post_type === 'video' && suggestion.is_reel) {
+        postType = 'reels';
+      } else if (suggestion.post_type === 'video' && !suggestion.is_reel) {
+        postType = 'videos';
+      }
+      
+      // Update search query state
+      setSearchQuery(query);
+      
+      // Navigate with both query and type
+      router.push(`/search?q=${encodeURIComponent(query)}&type=${postType}`);
+    }
   };
 
   // Handle click outside to close suggestions
@@ -155,7 +229,8 @@ const Header = ({ setMenu, menu }) => {
                 onChange={handleSearchChange}
                 onKeyPress={handleSearchSubmit}
                 onFocus={() => {
-                  if (suggestions.length > 0) {
+                  // Show suggestions if we have any and there's a search query
+                  if (suggestions.length > 0 && searchQuery.trim().length > 0) {
                     setShowSuggestions(true);
                   }
                 }}
@@ -163,11 +238,23 @@ const Header = ({ setMenu, menu }) => {
               />
               
               {/* Search Suggestions Dropdown */}
-              {showSuggestions && (
+              {showSuggestions && (suggestions.length > 0 || isLoadingSuggestions) && (
                 <div 
                   ref={suggestionsRef}
-                  className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-64 overflow-y-auto z-50"
+                  className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-64 overflow-y-auto"
+                  style={{ 
+                    zIndex: 9999,
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0
+                  }}
                 >
+                  {/* Remove the debug div or keep it for testing */}
+                  {/* <div className="p-2 text-xs text-gray-400 border-b">
+                    Debug: showSuggestions={showSuggestions.toString()}, suggestions.length={suggestions.length}, isLoading={isLoadingSuggestions.toString()}
+                  </div> */}
+                  
                   {isLoadingSuggestions ? (
                     <div className="p-3 text-gray-500 text-center">
                       <div className="flex items-center justify-center gap-2">
@@ -178,31 +265,68 @@ const Header = ({ setMenu, menu }) => {
                   ) : suggestions.length > 0 ? (
                     suggestions.map((suggestion, index) => (
                       <div
-                        key={`${suggestion.post_id}-${index}`}
+                        key={`${suggestion.type === 'user' ? suggestion.user_id : suggestion.post_id}-${index}`}
                         onClick={() => handleSuggestionClick(suggestion)}
                         className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
                       >
+                        {/* Your existing suggestion content */}
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                            <User size={16} className="text-gray-600" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-medium text-sm text-gray-900 line-clamp-1">
-                              {suggestion.title || 'Untitled'}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              by {suggestion.user?.username || 'Unknown'}
-                            </div>
-                          </div>
-                          <div className="text-xs text-gray-400 capitalize">
-                            {suggestion.is_reel ? 'Reel' : suggestion.post_type}
-                          </div>
+                          {suggestion.type === 'user' ? (
+                            <>
+                              <img
+                                src={suggestion.profile_img_url || "/default-avatar.png"}
+                                alt={suggestion.username}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                              <div className="flex-1">
+                                <div className="font-medium text-sm text-gray-900 line-clamp-1 flex items-center gap-1">
+                                  {suggestion.name || suggestion.username}
+                                  {suggestion.is_verified && (
+                                    <svg className="w-3 h-3 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  @{suggestion.username}
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-400 bg-blue-100 px-2 py-1 rounded">
+                                User
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                                {suggestion.post_type === 'video' ? (
+                                  suggestion.is_reel ? (
+                                    <div className="w-4 h-4 bg-purple-500 rounded"></div>
+                                  ) : (
+                                    <div className="w-4 h-4 bg-red-500 rounded"></div>
+                                  )
+                                ) : (
+                                  <div className="w-4 h-4 bg-blue-500 rounded"></div>
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-medium text-sm text-gray-900 line-clamp-1">
+                                  {suggestion.title || 'Untitled'}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  by {suggestion.user?.username || 'Unknown'}
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded capitalize">
+                                {suggestion.is_reel ? 'Reel' : suggestion.post_type}
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
                     ))
-                  ) : searchQuery.trim().length > 0 ? (
+                  ) : (
                     <div className="p-3 text-gray-500 text-center">No suggestions found</div>
-                  ) : null}
+                  )}
                 </div>
               )}
             </div>
