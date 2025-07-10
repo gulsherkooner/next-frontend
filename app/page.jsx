@@ -160,7 +160,7 @@ export default function Home() {
 
   return (
     <div
-      className="bg-gray-100 min-h-screen pb-14 md:pb-0 w-full scroll-smooth"
+      className="bg-white min-h-screen pb-14 md:pb-0 w-full scroll-smooth"
       style={{ scrollBehavior: "auto" }}
     >
       <Header setMenu={setMenu} menu={menu} />

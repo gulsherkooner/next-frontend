@@ -602,7 +602,7 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
                 {searchResults.map((user) => (
                   <div
                     key={user.user_id}
-                    onClick={() => router.push(`/profile/${user.username}`)}
+                    onClick={() => router.push(`/${user.user_id}`)}
                     className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
                   >
                     <div className="flex items-center gap-4">
@@ -665,15 +665,15 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
                         </div>
                       </div>
 
-                      <button
+                      {/* <button
                         onClick={(e) => {
-                          e.stopPropagation();
+                          // e.stopPropagation();
                           // Add follow/unfollow logic here
                         }}
                         className="px-4 py-1.5 text-sm font-medium text-blue-600 border border-blue-600 rounded-full hover:bg-blue-50 transition-colors"
                       >
                         Follow
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                 ))}

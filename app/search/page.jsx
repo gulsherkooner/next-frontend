@@ -68,7 +68,7 @@ const SearchPage = () => {
         <Sidebar menu={menu} setMenu={setMenu} />
         
         {/* Main Content */}
-        <div className="flex-1 pt-16 lg:ml-64">
+        <div className="flex-1 pt-16 md:ml-64">
           <SearchComponent 
             key={`${searchQuery}-${searchType}`} // Force re-render when params change
             initialQuery={searchQuery}

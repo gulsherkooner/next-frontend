@@ -118,7 +118,7 @@ const Post = ({
   };
 
   return (
-    <div className="bg-white md:rounded-lg shadow mb-4">
+    <div className="bg-gray-50 md:rounded-lg shadow mb-4">
       <div onClick={(e) => handlePost(e)} className="p-4">
         <div className="flex items-center justify-between">
           <div

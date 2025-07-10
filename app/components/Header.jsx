@@ -141,7 +141,7 @@ const Header = ({ setMenu, menu }) => {
     
     if (suggestion.type === 'user') {
       // Navigate to user profile
-      router.push(`/profile/${suggestion.username}`);
+      router.push(`/${suggestion.user_id}`);
     } else {
       // For posts, use the title or description as search query
       let query = '';
@@ -204,23 +204,23 @@ const Header = ({ setMenu, menu }) => {
   };
 
   return (
-    <header className="fixed top-0 left-0 w-full h-14 bg-[#b4b4b4] z-30">
+    <header className="fixed top-0 left-0 w-full h-14 bg-white z-30 border-b border-neutral-300">
       <div className="flex items-center justify-between px-2 md:px-4 xl:px-4 2xl:px-4 h-full max-w-screen mx-auto">
         
         {/* Left section - User avatar and search */}
         <div className="flex items-center gap-3 flex-1">
-          <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center flex-shrink-0">
-            <User size={20} className="text-gray-900" />
+          <button className="w-10 h-10 rounded-full bg-neutral-300 flex items-center justify-center flex-shrink-0">
+            <User size={20} className={`${isMobile ? "text-neutral-700" : "text-teal-600"}`} />
           </button>
 
           {isMobile && (
-            <h2 className="text-lg font-semibold text-gray-800">App name</h2>
+            <h2 className="text-lg font-semibold text-neutral-700">App name</h2>
           )}
 
           {/* Desktop Search Bar */}
           {!isMobile && (
             <div className="relative">
-              <Search size={18} className="absolute left-3 top-2.5 text-gray-500 z-10" />
+              <Search size={18} className="absolute left-3 top-2.5 text-neutral-700 z-10" />
               <input
                 ref={searchInputRef}
                 type="text"
@@ -234,7 +234,7 @@ const Header = ({ setMenu, menu }) => {
                     setShowSuggestions(true);
                   }
                 }}
-                className="w-[40vw] pl-10 pr-4 py-2 border bg-white border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-[40vw] pl-10 pr-4 py-2 bg-neutral-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
               />
               
               {/* Search Suggestions Dropdown */}
@@ -256,9 +256,9 @@ const Header = ({ setMenu, menu }) => {
                   </div> */}
                   
                   {isLoadingSuggestions ? (
-                    <div className="p-3 text-gray-500 text-center">
+                    <div className="p-3 text-gray-600 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500"></div>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
                         Loading suggestions...
                       </div>
                     </div>
@@ -282,12 +282,12 @@ const Header = ({ setMenu, menu }) => {
                                 <div className="font-medium text-sm text-gray-900 line-clamp-1 flex items-center gap-1">
                                   {suggestion.name || suggestion.username}
                                   {suggestion.is_verified && (
-                                    <svg className="w-3 h-3 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                     </svg>
                                   )}
                                 </div>
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-gray-600">
                                   @{suggestion.username}
                                 </div>
                               </div>
@@ -300,19 +300,19 @@ const Header = ({ setMenu, menu }) => {
                               <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                                 {suggestion.post_type === 'video' ? (
                                   suggestion.is_reel ? (
-                                    <div className="w-4 h-4 bg-purple-500 rounded"></div>
+                                    <div className="w-4 h-4 bg-purple-600 rounded"></div>
                                   ) : (
-                                    <div className="w-4 h-4 bg-red-500 rounded"></div>
+                                    <div className="w-4 h-4 bg-red-600 rounded"></div>
                                   )
                                 ) : (
-                                  <div className="w-4 h-4 bg-blue-500 rounded"></div>
+                                  <div className="w-4 h-4 bg-blue-600 rounded"></div>
                                 )}
                               </div>
                               <div className="flex-1">
                                 <div className="font-medium text-sm text-gray-900 line-clamp-1">
                                   {suggestion.title || 'Untitled'}
                                 </div>
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-gray-600">
                                   by {suggestion.user?.username || 'Unknown'}
                                 </div>
                               </div>
@@ -325,7 +325,7 @@ const Header = ({ setMenu, menu }) => {
                       </div>
                     ))
                   ) : (
-                    <div className="p-3 text-gray-500 text-center">No suggestions found</div>
+                    <div className="p-3 text-gray-600 text-center">No suggestions found</div>
                   )}
                 </div>
               )}
@@ -336,16 +336,16 @@ const Header = ({ setMenu, menu }) => {
           <div className="flex items-center gap-0">
             <Link
               href="/"
-              className={`w-20 h-14 flex items-center justify-center text-gray-900 hover:text-gray-800 transition-colors ${
-                pathname === '/' ? 'bg-white/20 border-b-2 border-black' : ''
+              className={`w-20 h-14 flex items-center justify-center text-neutral-300 hover:text-gray-800 transition-colors ${
+                pathname === '/' ? 'bg-white/20 border-b-2 border-teal-600 text-teal-600' : ''
               }`}
             >
               <Home size={24} />
             </Link>
             <Link
               href="/dating"
-              className={`w-20 h-14 flex items-center justify-center text-gray-900 hover:text-gray-800 transition-colors ${
-                pathname === '/dating' ? 'bg-white/20 border-b-2 border-black' : ''
+              className={`w-20 h-14 flex items-center justify-center text-neutral-300 hover:text-gray-800 transition-colors ${
+                pathname === '/dating' ? 'bg-white/20 border-b-2 border-teal-600 text-teal-600' : ''
               }`}
             >
               <Heart size={24} />
@@ -360,12 +360,12 @@ const Header = ({ setMenu, menu }) => {
           {/* Desktop Wallet */}
           {!isMobile && (
             <button 
-              className={`w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 transition-colors ${
-                pathname === '/Wallet' ? 'border-2 border-black' : ''
+              className={`w-10 h-10 rounded-full bg-neutral-300 flex items-center justify-center hover:bg-gray-100 transition-colors ${
+                pathname === '/Wallet' ? 'border-2 border-teal-600' : ''
               }`}
               onClick={() => router.push('/Wallet')}
             >
-              <Wallet size={20} className="text-gray-900" />
+              <Wallet size={20} className="text-teal-600" />
             </button>
           )}
 
@@ -375,21 +375,23 @@ const Header = ({ setMenu, menu }) => {
               className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
               onClick={() => router.push('/search')}
             >
-              <Search size={20} className="text-gray-900" />
+              <Search size={20} className="text-neutral-700" />
             </button>
           )}
 
           {/* Messages */}
           <button 
-            className={`w-10 h-10 rounded-full ${!isMobile ? "bg-white hover:bg-gray-100" : "hover:bg-white/20"} flex items-center justify-center transition-colors`}
+            className={`w-10 h-10 rounded-full ${!isMobile ? "bg-neutral-300 hover:bg-gray-100" : "hover:bg-white/20"} flex items-center justify-center transition-colors${
+                pathname === '/dating/messages' ? 'border-2 border-teal-600' : ''
+              }`}
             onClick={() => router.push('/dating/messages')}
           >
-            <Mail size={20} className="text-gray-900" />
+            <Mail size={20} className={`${isMobile ? "text-neutral-700" : "text-teal-600"}`} />
           </button>
 
           {/* Notifications */}
-          <button className={`w-10 h-10 rounded-full ${!isMobile ? "bg-white hover:bg-gray-100" : "hover:bg-white/20"} flex items-center justify-center transition-colors`}>
-            <Bell size={20} className="text-gray-900" />
+          <button className={`w-10 h-10 rounded-full ${!isMobile ? "bg-neutral-300 hover:bg-gray-100" : "hover:bg-white/20"} flex items-center justify-center transition-colors`}>
+            <Bell size={20} className={`${isMobile ? "text-neutral-700" : "text-teal-600"}`} />
           </button>
 
           {/* Mobile Menu / Desktop Profile */}
@@ -399,16 +401,16 @@ const Header = ({ setMenu, menu }) => {
               data-menu-toggle="true"
               className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
             >
-              <Menu size={20} className="text-gray-900" />
+              <Menu size={20} className="text-neutral-700" />
             </button>
           ) : (
             <button 
-              className={`w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 transition-colors ${
-                pathname === '/profile' ? 'border-2 border-black' : ''
+              className={`w-10 h-10 rounded-full bg-neutral-300 flex items-center justify-center hover:bg-gray-100 transition-colors ${
+                pathname === '/profile' ? 'border-2 border-teal-600' : ''
               }`} 
               onClick={() => router.push("/profile")}
             >
-              <User size={20} className="text-gray-900" />
+              <User size={20} className="text-teal-600" />
             </button>
           )}
         </div>

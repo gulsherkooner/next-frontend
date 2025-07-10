@@ -67,7 +67,7 @@ const ReelCarousel = () => {
   };
 
   return (
-    <div className="mb-4">
+    <div className="mb-4 bg-gray-50 md:rounded-lg">
       <h2 className="font-medium text-lg mb-3 px-1">Suggested reels</h2>
       <div className="relative">
         <div
