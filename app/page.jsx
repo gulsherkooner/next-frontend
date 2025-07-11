@@ -38,39 +38,61 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       const accessToken = getCookie("accessToken");
+
       if (!accessToken) {
         const refreshToken = getCookie("refreshToken");
+
         if (!refreshToken) {
+          console.log("No refresh token found, redirecting to login");
           router.push("/login");
+          return;
         }
+
         try {
           const apiGatewayUrl =
             process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://localhost:3001";
+
+          console.log("Attempting to refresh token...");
+
           const res = await fetch(`${apiGatewayUrl}/auth/refresh`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+            },
             body: JSON.stringify({ refreshToken }),
             credentials: "include",
           });
-          const data = await res.json();
-          if (res.ok) {
-            dispatch(
-              updateAccessToken({
-                accessToken: data.accessToken,
-                refreshToken: data.refreshToken,
-              })
-            );
-            router.push("/");
-          } else {
-            console.error(data.error || "Login failed");
+
+
+          if (!res.ok) {
+            const errorText = await res.text();
+            console.error("Refresh failed:", errorText);
+            router.push("/login");
+            return;
           }
+
+          const data = await res.json();
+
+          // Update Redux store - this will also set cookies via the reducer
+          dispatch(
+            updateAccessToken({
+              accessToken: data.accessToken,
+              refreshToken: data.refreshToken,
+            })
+          );
+
+          // Fetch user data with new token
+          dispatch(fetchUserData());
         } catch (err) {
-          console.error("Login error:", err);
+          console.error("Refresh error:", err);
+          router.push("/login");
         }
       } else {
+        // We have an access token, fetch user data
         dispatch(fetchUserData());
       }
     };
+
     fetchData();
   }, []);
 
@@ -124,37 +146,6 @@ export default function Home() {
     { username: "Username 6", followers: "121k" },
   ];
 
-  // Sample posts data
-  // const posts = [
-  //   {
-  //     id: 1,
-  //     username: "Username",
-  //     timeAgo: "1d ago",
-  //     content:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu faucibus mattis nullam dignissim, metus non feugiat accumsan, nulla sem mattis lit etiam...",
-  //     imageUrl:
-  //       "https://www.postplanner.com/hubfs/what-to-post-on-instagram.png",
-  //     likes: 12000,
-  //   },
-  //   {
-  //     id: 2,
-  //     username: "Username",
-  //     timeAgo: "1d ago",
-  //     content:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu faucibus mattis nullam dignissim, metus non feugiat accumsan, nulla sem mattis lit etiam...",
-  //     likes: 12000,
-  //   },
-  //   {
-  //     id: 3,
-  //     username: "Username",
-  //     timeAgo: "1d ago",
-  //     content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit...",
-  //     videoUrl: "https://cdn.pixabay.com/video/2025/03/29/268528_large.mp4",
-  //     likes: 12000,
-  //     views: 126000,
-  //   },
-  // ];
-
   // const state = useSelector((state) => state)
   // console.log("state:", state);
 
@@ -169,7 +160,7 @@ export default function Home() {
       <div className="pt-14 md:pl-56 flex md:flex-row scroll-smooth">
         {/* Main content column */}
         <div
-          className="flex-1 max-w-full md:max-w-xl xl:max-w-2xl 2xl:max-w-2xl mx-auto py-2 md:px-2 sm:py-4 scroll-smooth"
+          className="flex-1 max-w-full md:max-w-xl xl:max-w-xl 2xl:max-w-2xl mx-auto py-2 md:px-2 sm:py-4 scroll-smooth"
           id="main-feed"
         >
           <StoryBar />

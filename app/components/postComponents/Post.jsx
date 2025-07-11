@@ -5,6 +5,8 @@ import {
   Share2,
   Bookmark,
   MoreHorizontal,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import getTimeAgo from "../../lib/utils/getTimeAgo";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,7 +15,7 @@ import {
   likePost,
   unlikePost,
   fetchUserLikeForPost,
-  fetchAllLikesForPost, // <-- import the function
+  fetchAllLikesForPost,
 } from "../../features/posts/postsLikesSlice";
 
 const Post = ({
@@ -31,7 +33,8 @@ const Post = ({
 }) => {
   const [saved, setSaved] = useState(false);
   const [showFullContent, setShowFullContent] = useState(false);
-  const [allLikes, setAllLikes] = useState([]); // <-- state for all likes
+  const [allLikes, setAllLikes] = useState([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0); // For carousel
   const videoRef = useRef(null);
   const dispatch = useDispatch();
   const state = useSelector((state) => state?.auth?.user);
@@ -117,6 +120,26 @@ const Post = ({
     }
   };
 
+  // Carousel navigation functions
+  const nextImage = (e) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === url.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const prevImage = (e) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === 0 ? url.length - 1 : prevIndex - 1
+    );
+  };
+
+  const goToImage = (index, e) => {
+    e.stopPropagation();
+    setCurrentImageIndex(index);
+  };
+
   return (
     <div className="bg-gray-50 md:rounded-lg shadow mb-4">
       <div onClick={(e) => handlePost(e)} className="p-4">
@@ -164,6 +187,7 @@ const Post = ({
         </div>
       </div>
 
+      {/* Single Image */}
       {post_type === "image" && (
         <div
           className="w-full max-h-[calc(100vh-224px)] bg-gray-200 flex items-center justify-center overflow-hidden"
@@ -177,6 +201,63 @@ const Post = ({
         </div>
       )}
 
+      {/* Carousel for multiple images */}
+      {post_type === "carousel" && url && url.length > 0 && (
+        <div className="relative w-full max-h-[calc(100vh-224px)] bg-gray-200 flex items-center justify-center overflow-hidden">
+          {/* Current Image */}
+          <img
+            src={url[currentImageIndex]}
+            alt={`Post image ${currentImageIndex + 1}`}
+            className="w-full h-full max-h-[calc(100vh-224px)] object-cover"
+            onClick={() => router.push(`/post/${post_id}`)}
+          />
+
+          {/* Navigation buttons - only show if more than 1 image */}
+          {url.length > 1 && (
+            <>
+              {/* Previous Button */}
+              <button
+                onClick={prevImage}
+                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-neutral-300 bg-opacity-50 hover:bg-opacity-75 text-teal-600 rounded-full p-2 transition-all duration-200"
+              >
+                <ChevronLeft size={20} />
+              </button>
+
+              {/* Next Button */}
+              <button
+                onClick={nextImage}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-neutral-300 bg-opacity-50 hover:bg-opacity-75 text-teal-600 rounded-full p-2 transition-all duration-200"
+              >
+                <ChevronRight size={20} />
+              </button>
+
+              {/* Image counter */}
+              <div className="absolute top-2 right-2 bg-neutral-300 bg-opacity-50 text-teal-600 text-xs px-2 py-1 rounded">
+                {currentImageIndex + 1} / {url.length}
+              </div>
+            </>
+          )}
+
+          {/* Dots indicator - only show if more than 1 image */}
+          {url.length > 1 && (
+            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
+              {url.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={(e) => goToImage(index, e)}
+                  className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                    index === currentImageIndex
+                      ? "bg-white"
+                      : "bg-white bg-opacity-50"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Video */}
       {post_type === "video" && (
         <div
           className="w-full max-h-[calc(100vh-224px)] bg-gray-200 flex items-center justify-center relative overflow-hidden"

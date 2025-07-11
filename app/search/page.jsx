@@ -58,7 +58,7 @@ const SearchPage = () => {
   }, [searchQuery, searchType]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <Header setMenu={setMenu} menu={menu} />
       

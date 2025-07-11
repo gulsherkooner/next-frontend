@@ -57,28 +57,80 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
       debounceTimeoutRef.current = setTimeout(async () => {
         if (searchValue.trim() && searchValue.length > 0) {
           setIsLoadingSuggestions(true);
+          setShowSuggestions(true); // Force show suggestions
+
           try {
-            const result = await dispatch(
-              searchSuggestions({
-                q: searchValue,
-                activeTab: activeTab, // Pass the current active tab
-                limit: 5,
-              })
-            ).unwrap();
-            setSuggestions(result.suggestions || []);
+            // Fetch all content types like in Header component
+            const allSuggestions = [];
+
+            // Get suggestions for each content type
+            const contentTypes = [
+              { type: "posts", postType: "image" },
+              { type: "videos", postType: "video" },
+              { type: "reels", postType: "reel" },
+              { type: "users", postType: "users" },
+            ];
+
+            const suggestionPromises = contentTypes.map(
+              async ({ type, postType }) => {
+                try {
+                  const result = await dispatch(
+                    searchSuggestions({
+                      q: searchValue.trim(),
+                      activeTab: type,
+                      limit: 2,
+                    })
+                  ).unwrap();
+                  return result.suggestions || [];
+                } catch (error) {
+                  console.error(
+                    `SearchComponent: ${type} suggestions error:`,
+                    error
+                  );
+                  return [];
+                }
+              }
+            );
+
+            const suggestionResults = await Promise.all(suggestionPromises);
+
+            // Flatten and combine all suggestions
+            suggestionResults.forEach((suggestions) => {
+              if (Array.isArray(suggestions)) {
+                allSuggestions.push(...suggestions);
+              }
+            });
+
+            // Remove duplicates and limit total results
+            const uniqueSuggestions = allSuggestions
+              .filter(
+                (item, index, self) =>
+                  index ===
+                  self.findIndex(
+                    (t) =>
+                      (t.post_id && t.post_id === item.post_id) ||
+                      (t.user_id && t.user_id === item.user_id)
+                  )
+              )
+              .slice(0, 8);
+
+            setSuggestions(uniqueSuggestions);
+            setShowSuggestions(true); // Keep showing
           } catch (error) {
-            console.error("Error fetching suggestions:", error);
+            console.error("SearchComponent: Search suggestions error:", error);
             setSuggestions([]);
           } finally {
             setIsLoadingSuggestions(false);
           }
         } else {
+          console.log("SearchComponent: Clearing suggestions"); // Debug
           setSuggestions([]);
+          setShowSuggestions(false);
           setIsLoadingSuggestions(false);
         }
       }, 300);
     },
-    [dispatch, activeTab] // Add activeTab to dependencies
+    [dispatch] // Remove activeTab from dependencies to avoid issues
   );
 
   // Handle search
@@ -132,7 +184,6 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
         ).unwrap();
       }
 
-      console.log("Search result:", result);
 
       if (result && (result.posts || result.users)) {
         const resultData = result.posts || result.users || [];
@@ -156,6 +207,11 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchQuery(value);
+
+    // Always show suggestions when typing
+    if (value.trim().length > 0) {
+      setShowSuggestions(true);
+    }
 
     // Call debounced search for suggestions
     debouncedSearch(value);
@@ -188,12 +244,43 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
       clearTimeout(debounceTimeoutRef.current);
     }
 
-    const query = suggestion.title || suggestion.description || "";
-    setSearchQuery(query);
+    // Close suggestions immediately
     setShowSuggestions(false);
-    setPage(1);
-    handleSearch(query, activeTab, 1, false);
-    router.push(`/search?q=${encodeURIComponent(query)}&type=${activeTab}`);
+    setIsLoadingSuggestions(false);
+    setSuggestions([]); // Clear suggestions array
+
+    if (suggestion.type === "user") {
+      // Navigate to user profile
+      router.push(`/${suggestion.user_id}`);
+    } else {
+      // For posts, use the title or description as search query
+      let query = "";
+      let postType = "posts";
+
+      // Determine query - prefer title, fall back to description
+      if (suggestion.title && suggestion.title.trim()) {
+        query = suggestion.title.trim();
+      } else if (suggestion.description && suggestion.description.trim()) {
+        query = suggestion.description.trim().substring(0, 50); // Limit length
+      } else {
+        query = searchQuery.trim(); // Use current search query
+      }
+
+      // Determine the correct post type
+      if (suggestion.post_type === "image") {
+        postType = "posts";
+      } else if (suggestion.post_type === "video" && suggestion.is_reel) {
+        postType = "reels";
+      } else if (suggestion.post_type === "video" && !suggestion.is_reel) {
+        postType = "videos";
+      }
+
+      // Update search query state
+      setSearchQuery(query);
+
+      // Navigate with both query and type
+      router.push(`/search?q=${encodeURIComponent(query)}&type=${postType}`);
+    }
   };
 
   // Handle tab change
@@ -248,7 +335,6 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
 
   // Update when props change
   useEffect(() => {
-    console.log("Props changed:", { initialQuery, initialType });
     if (initialQuery !== searchQuery || initialType !== activeTab) {
       setSearchQuery(initialQuery);
       setActiveTab(initialType);
@@ -277,7 +363,7 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
   ];
 
   return (
-    <div className="flex-1 bg-gray-50">
+    <div className="flex-1 bg-white">
       {/* Mobile Search Header - Only show on mobile */}
       {isMobile && (
         <div className="bg-white border-b border-gray-200 sticky top-14 z-10 lg:hidden">
@@ -287,13 +373,13 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
                 onClick={() => router.back()}
                 className="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center"
               >
-                <ArrowLeft size={20} className="text-gray-700" />
+                <ArrowLeft size={20} className="text-neutral-700" />
               </button>
 
               <div className="flex-1 relative">
                 <Search
                   size={18}
-                  className="absolute left-3 top-2.5 text-gray-400 z-10"
+                  className="absolute left-3 top-2.5 text-neutral-700 z-10"
                 />
                 <input
                   ref={searchInputRef}
@@ -303,88 +389,135 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
                   onChange={handleSearchChange}
                   onKeyPress={handleSearchSubmit}
                   onFocus={() => {
-                    if (suggestions.length > 0) {
+                    // Show suggestions if we have any and there's a search query
+                    if (
+                      suggestions.length > 0 &&
+                      searchQuery.trim().length > 0
+                    ) {
                       setShowSuggestions(true);
                     }
                   }}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onBlur={() => {
+                    // Add a small delay to allow for suggestion clicks
+                    setTimeout(() => {
+                      setShowSuggestions(false);
+                    }, 150);
+                  }}
+                  className="w-full pl-10 pr-4 py-2 bg-neutral-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 />
 
                 {/* Mobile Search Suggestions Dropdown */}
-                {showSuggestions && (suggestions.length > 0 || isLoadingSuggestions) && (
-                  <div
-                    ref={suggestionsRef}
-                    className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto no-scrollbar"
-                  >
-                    {isLoadingSuggestions ? (
-                      <div className="p-4 text-center text-gray-500">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
-                        <span className="ml-2">Loading suggestions...</span>
-                      </div>
-                    ) : (
-                      suggestions.map((suggestion) => (
-                        <div
-                          key={suggestion.type === 'user' ? suggestion.user_id : suggestion.post_id}
-                          onClick={() => {
-                            if (suggestion.type === 'user') {
-                              router.push(`/profile/${suggestion.username}`);
-                            } else {
-                              setSearchQuery(suggestion.title || suggestion.description?.substring(0, 50) || '');
-                              setShowSuggestions(false);
-                              handleSearch();
-                            }
-                          }}
-                          className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                        >
-                          {suggestion.type === 'user' ? (
-                            <div className="flex items-center gap-3">
-                              <img
-                                src={suggestion.profile_img_url || "/default-avatar.png"}
-                                alt={suggestion.username}
-                                className="w-8 h-8 rounded-full object-cover"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1">
-                                  <span className="text-sm font-medium text-gray-900 truncate">
-                                    {suggestion.name || suggestion.username}
-                                  </span>
-                                  {suggestion.is_verified && (
-                                    <svg className="w-3 h-3 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                    </svg>
-                                  )}
-                                </div>
-                                <p className="text-xs text-gray-600">@{suggestion.username}</p>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-3">
-                              <div className="flex-shrink-0">
-                                {suggestion.post_type === "video" ? (
-                                  suggestion.is_reel ? (
-                                    <Film className="w-5 h-5 text-purple-500" />
-                                  ) : (
-                                    <Video className="w-5 h-5 text-red-500" />
-                                  )
-                                ) : (
-                                  <Image className="w-5 h-5 text-blue-500" />
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-900 truncate">
-                                  {suggestion.title || "Untitled"}
-                                </p>
-                                <p className="text-xs text-gray-600 truncate">
-                                  by @{suggestion.user?.username}
-                                </p>
-                              </div>
-                            </div>
-                          )}
+                {showSuggestions &&
+                  (suggestions.length > 0 || isLoadingSuggestions) && (
+                    <div
+                      ref={suggestionsRef}
+                      className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-64 overflow-y-auto"
+                      style={{
+                        zIndex: 9999,
+                        position: "absolute",
+                        top: "100%",
+                        left: 0,
+                        right: 0,
+                      }}
+                    >
+                      {isLoadingSuggestions ? (
+                        <div className="p-3 text-gray-600 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                            Loading suggestions...
+                          </div>
                         </div>
-                      ))
-                    )}
-                  </div>
-                )}
+                      ) : suggestions.length > 0 ? (
+                        suggestions.map((suggestion, index) => (
+                          <div
+                            key={`${
+                              suggestion.type === "user"
+                                ? suggestion.user_id
+                                : suggestion.post_id
+                            }-${index}`}
+                            onClick={() => handleSuggestionClick(suggestion)}
+                            className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
+                          >
+                            {/* Your existing suggestion content */}
+                            <div className="flex items-center gap-3">
+                              {suggestion.type === "user" ? (
+                                <>
+                                  <img
+                                    src={
+                                      suggestion.profile_img_url ||
+                                      "/default-avatar.png"
+                                    }
+                                    alt={suggestion.username}
+                                    className="w-8 h-8 rounded-full object-cover"
+                                  />
+                                  <div className="flex-1">
+                                    <div className="font-medium text-sm text-gray-900 line-clamp-1 flex items-center gap-1">
+                                      {suggestion.name || suggestion.username}
+                                      {suggestion.is_verified && (
+                                        <svg
+                                          className="w-3 h-3 text-blue-600"
+                                          fill="currentColor"
+                                          viewBox="0 0 20 20"
+                                        >
+                                          <path
+                                            fillRule="evenodd"
+                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                            clipRule="evenodd"
+                                          />
+                                        </svg>
+                                      )}
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      @{suggestion.username}
+                                    </div>
+                                  </div>
+                                  <div className="text-xs text-gray-400 bg-blue-100 px-2 py-1 rounded">
+                                    User
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                                    {suggestion.post_type === "video" ? (
+                                      suggestion.is_reel ? (
+                                        <div className="w-4 h-4 bg-purple-600 rounded"></div>
+                                      ) : (
+                                        <div className="w-4 h-4 bg-red-600 rounded"></div>
+                                      )
+                                    ) : (
+                                      <div className="w-4 h-4 bg-blue-600 rounded"></div>
+                                    )}
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="font-medium text-sm text-gray-900 line-clamp-1">
+                                      {suggestion.title || "Untitled"}
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      by{" "}
+                                      {suggestion.user?.username || "Unknown"}
+                                    </div>
+                                  </div>
+                                  <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded capitalize">
+                                    {suggestion.is_reel
+                                      ? "Reel"
+                                      : suggestion.post_type}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      ) : searchQuery.trim().length > 0 ? (
+                        <div className="p-3 text-gray-600 text-center">
+                          No suggestions found
+                        </div>
+                      ) : (
+                        <div className="p-3 text-gray-600 text-center">
+                          Start typing to see suggestions
+                        </div>
+                      )}
+                    </div>
+                  )}
               </div>
             </div>
           </div>
@@ -488,12 +621,12 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
             )}
 
             {activeTab === "videos" && (
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 px-3 md:px-0 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                 {searchResults.map((post) => (
                   <div
                     onClick={() => router.push(`/post/${post?.post_id}`)}
                     key={post.post_id}
-                    className="overflow-hidden"
+                    className="overflow-hidden bg-gray-50 rounded-md shadow"
                   >
                     <div className="relative aspect-video bg-gray-300 overflow-hidden group cursor-pointer">
                       {/* Use a placeholder image for the video thumbnail */}
@@ -549,11 +682,15 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
                       </div>
                     </div>
 
-                    <div className="p-1">
+                    <div className="px-3 py-1.5">
                       <div className="">
-                        <h3 className="text-sm font-medium line-clamp-2 mb-1 flex justify-between items-center">
-                          {post.title}
-                          <button variant="ghost" size="sm" className="">
+                        <h3 className="text-sm font-medium mb-1 flex justify-between items-center">
+                          <span className="truncate pr-2">{post.title}</span>
+                          <button
+                            variant="ghost"
+                            size="sm"
+                            className="flex-shrink-0"
+                          >
                             <EllipsisVertical size={18} color="gray" />
                           </button>
                         </h3>
@@ -603,7 +740,7 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
                   <div
                     key={user.user_id}
                     onClick={() => router.push(`/${user.user_id}`)}
-                    className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
+                    className="bg-gray-50 rounded-lg shadow p-4 hover:shadow-md transition-shadow cursor-pointer"
                   >
                     <div className="flex items-center gap-4">
                       <div className="relative">
@@ -659,9 +796,7 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
                         <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                           <span>{user.followers || 0} followers</span>
                           <span>{user.following || 0} following</span>
-                          <span>
-                            Joined {getTimeAgo(user.created_at)}
-                          </span>
+                          <span>Joined {getTimeAgo(user.created_at)}</span>
                         </div>
                       </div>
 
@@ -715,7 +850,9 @@ const SearchComponent = ({ initialQuery = "", initialType = "posts" }) => {
                 <p className="text-gray-600">
                   {!isMobile
                     ? `No ${activeTab} found. Try uploading some content or search for specific ${activeTab}.`
-                    : `Search for ${activeTab === "users" ? "users" : activeTab} and other content`}
+                    : `Search for ${
+                        activeTab === "users" ? "users" : activeTab
+                      } and other content`}
                 </p>
               </>
             )}

@@ -67,8 +67,8 @@ const ReelCarousel = () => {
   };
 
   return (
-    <div className="mb-4 bg-gray-50 md:rounded-lg">
-      <h2 className="font-medium text-lg mb-3 px-1">Suggested reels</h2>
+    <div className="mb-4 bg-gray-50 md:rounded-lg shadow">
+      <h2 className="font-medium text-lg px-3  py-2">Suggested reels</h2>
       <div className="relative">
         <div
           className="flex overflow-x-auto pb-2 scrollbar-hide px-1 space-x-2 no-scrollbar"
