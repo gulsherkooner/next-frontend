@@ -8,7 +8,6 @@ export const setCookie = (name, value, options = {}) => {
 
   try {
     const { 
-      httpOnly = false, 
       secure = false, 
       sameSite = 'Lax', 
       maxAge,
