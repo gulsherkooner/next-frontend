@@ -60,7 +60,7 @@ export default function DatingProfileContent({
 
             {/* Photo Grid */}
             <div className="space-y-3">
-              <PhotoGallery posts={posts || []} />
+              posts && <PhotoGallery posts={posts || []} />
             </div>
           </div>
         </div>

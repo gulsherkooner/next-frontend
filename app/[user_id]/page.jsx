@@ -9,6 +9,7 @@ import ProfileInfo from "../components/profileComponents/ProfileInfo";
 import ProfileContent from "../components/profileComponents/ProfileContent";
 import MobileNav from "../components/MobileNav";
 import { checkFollowUser } from "../features/sub/subslice";
+import { getCookie } from "../lib/utils/cookie";
 
 const UserProfile = () => {
   const { user_id } = useParams();

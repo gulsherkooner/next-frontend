@@ -13,7 +13,7 @@ const PhotoGallery = ({ posts = [] }) => {
   const token = getCookie("accessToken");
 
   useEffect(() => {
-    const initiallyPinned = posts.filter((p) => p.ispinned).map((p) => p._id);
+    const initiallyPinned = posts?.filter((p) => p.ispinned).map((p) => p._id);
     setPinnedPosts(initiallyPinned);
     setLocalPosts(posts);
   }, [posts]);
