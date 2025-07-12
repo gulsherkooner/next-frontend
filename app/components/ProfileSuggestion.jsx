@@ -12,7 +12,7 @@ const ProfileItem = ({ username, followers, onFollow }) => {
       </div>
       <button 
         onClick={onFollow}
-        className="px-4 py-1 text-xs font-medium text-blue-600 hover:text-blue-800"
+        className="px-4 py-1.5 text-sm font-bold text-white bg-teal-500 rounded-full hover:bg-teal-600 cursor-pointer "
       >
         Follow
       </button>
@@ -26,7 +26,7 @@ const ProfileSuggestion = ({ title, profiles }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 mb-4">
+    <div className="bg-gray-50 rounded-lg shadow p-4 mb-4">
       <h2 className="font-medium text-lg mb-3">{title}</h2>
       <div className="divide-y divide-gray-100">
         {profiles.map((profile, index) => (

@@ -5,16 +5,18 @@ import {
   Share2,
   Bookmark,
   MoreHorizontal,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
-import getTimeAgo  from "../../lib/utils/getTimeAgo";
+import getTimeAgo from "../../lib/utils/getTimeAgo";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import {
   likePost,
   unlikePost,
   fetchUserLikeForPost,
+  fetchAllLikesForPost,
 } from "../../features/posts/postsLikesSlice";
-import { fetchPublicPosts } from "../../features/posts/postsSlice";
 
 const Post = ({
   post_id,
@@ -26,11 +28,13 @@ const Post = ({
   post_type,
   user,
   title,
-  user_id
+  user_id,
+  is_reel,
 }) => {
-  const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showFullContent, setShowFullContent] = useState(false);
+  const [allLikes, setAllLikes] = useState([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0); // For carousel
   const videoRef = useRef(null);
   const dispatch = useDispatch();
   const state = useSelector((state) => state?.auth?.user);
@@ -41,6 +45,21 @@ const Post = ({
       dispatch(fetchUserLikeForPost(post_id));
     }
   }, [state?.user_id, post_id, dispatch]);
+
+  // Fetch all likes for this post (public)
+  useEffect(() => {
+    let isMounted = true;
+    fetchAllLikesForPost(post_id)
+      .then((likes) => {
+        if (isMounted) setAllLikes(likes || []);
+      })
+      .catch(() => {
+        if (isMounted) setAllLikes([]);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [post_id, userLikes[post_id]]); // refetch when like status changes
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -57,7 +76,7 @@ const Post = ({
     };
 
     const observer = new window.IntersectionObserver(handleIntersection, {
-      threshold: 0.5, // 50% visible
+      threshold: 0.5,
     });
 
     observer.observe(video);
@@ -65,17 +84,21 @@ const Post = ({
     return () => observer.disconnect();
   }, []);
 
-  const toggleLike = () => setLiked(!liked);
-  const toggleSave = () => setSaved(!saved);
+  const toggleSave = () => setSaved((prev) => !prev);
 
   const router = useRouter();
 
   const shortenedContent =
-  description?.length > 150 ? description?.substring(0, 150) + "..." : description;
+    description?.length > 150
+      ? description?.substring(0, 150) + "..."
+      : description;
 
-  const handleClick = () => {
-    user_id && user_id === state.user_id ? router.push("/profile") : router.push(`/${user_id}`)
-  }
+  const handleClick = (e) => {
+    e.stopPropagation();
+    user_id && user_id === state.user_id
+      ? router.push("/profile")
+      : router.push(`/${user_id}`);
+  };
 
   const handleLike = async () => {
     if (!state?.user_id) return; // Optionally show login prompt
@@ -84,25 +107,63 @@ const Post = ({
     } else {
       await dispatch(likePost(post_id));
     }
-    // Fetch updated posts to get the new likes_count
-    dispatch(fetchPublicPosts());
+    dispatch(fetchUserLikeForPost(post_id));
+    dispatch(fetchAllLikesForPost(post_id));
+  };
+
+  const handlePost = (e) => {
+    e.stopPropagation();
+    if (is_reel) {
+      router.push(`/reels?id=${post_id}`);
+    } else {
+      router.push(`/post/${post_id}`);
+    }
+  };
+
+  // Carousel navigation functions
+  const nextImage = (e) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === url.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const prevImage = (e) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === 0 ? url.length - 1 : prevIndex - 1
+    );
+  };
+
+  const goToImage = (index, e) => {
+    e.stopPropagation();
+    setCurrentImageIndex(index);
   };
 
   return (
-    <div className="bg-white rounded-lg shadow mb-4">
-      <div className="p-4">
+    <div className="bg-gray-50 md:rounded-lg shadow mb-4">
+      <div onClick={(e) => handlePost(e)} className="p-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center cursor-pointer"
-            onClick={()=>handleClick()}
+          <div
+            className="flex items-center cursor-pointer"
+            onClick={handleClick}
           >
             <div className="w-10 h-10 bg-gray-200 rounded-full flex-shrink-0">
-              {user?.profile_img_url && 
-                <img className="rounded-full" src={user.profile_img_url} alt="*" />
-              }
+              {user?.profile_img_url && (
+                <img
+                  className="rounded-full"
+                  src={user.profile_img_url}
+                  alt="*"
+                />
+              )}
             </div>
             <div className="ml-3">
-              <div className="font-medium">{user?.username ? user.username : "Username"}</div>
-              <div className="text-gray-500 text-xs">{getTimeAgo(created_at)}</div>
+              <div className="font-medium">
+                {user?.username ? user.username : "Username"}
+              </div>
+              <div className="text-gray-500 text-xs">
+                {getTimeAgo(created_at)}
+              </div>
             </div>
           </div>
           <button className="text-gray-500 hover:text-gray-700">
@@ -116,40 +177,99 @@ const Post = ({
             {showFullContent ? description : shortenedContent}
             {description?.length > 150 && (
               <button
-                onClick={() => setShowFullContent(!showFullContent)}
+                onClick={() => setShowFullContent((prev) => !prev)}
                 className="text-gray-500 hover:text-gray-700 ml-1 text-xs font-medium"
               >
                 {showFullContent ? "See less" : "See more"}
               </button>
             )}
-            {/* {views && (
-            <div className="absolute bottom-4 left-4 right-4 flex items-center text-white text-xs">
-              <div className="flex-1 h-1 bg-white/30 rounded-full relative">
-                <div className="absolute h-1 w-1/4 bg-white rounded-full"></div>
-              </div>
-              <div className="ml-2">{views} views</div>
-            </div>
-          )} */}
           </p>
         </div>
       </div>
 
-      {post_type == "image" && (
-        <div className="w-full  h-auto   bg-gray-200 flex items-center justify-center" onClick={() => router.push(`/post/${post_id}`)}>
+      {/* Single Image */}
+      {post_type === "image" && (
+        <div
+          className="w-full max-h-[calc(100vh-224px)] bg-gray-200 flex items-center justify-center overflow-hidden"
+          onClick={() => router.push(`/post/${post_id}`)}
+        >
           <img
             src={url[0]}
             alt="Post"
-            className="max-w-full max-h-full object-contain"
+            className="w-full h-full max-h-[calc(100vh-224px)] object-cover"
           />
         </div>
       )}
 
-      {post_type == "video" && (
-        <div className="w-full h-auto bg-gray-200 flex items-center justify-center relative" onClick={() => router.push(`/post/${post_id}`)}>
+      {/* Carousel for multiple images */}
+      {post_type === "carousel" && url && url.length > 0 && (
+        <div className="relative w-full max-h-[calc(100vh-224px)] bg-gray-200 flex items-center justify-center overflow-hidden">
+          {/* Current Image */}
+          <img
+            src={url[currentImageIndex]}
+            alt={`Post image ${currentImageIndex + 1}`}
+            className="w-full h-full max-h-[calc(100vh-224px)] object-cover"
+            onClick={() => router.push(`/post/${post_id}`)}
+          />
+
+          {/* Navigation buttons - only show if more than 1 image */}
+          {url.length > 1 && (
+            <>
+              {/* Previous Button */}
+              <button
+                onClick={prevImage}
+                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-neutral-300 bg-opacity-50 hover:bg-opacity-75 text-teal-600 rounded-full p-2 transition-all duration-200"
+              >
+                <ChevronLeft size={20} />
+              </button>
+
+              {/* Next Button */}
+              <button
+                onClick={nextImage}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-neutral-300 bg-opacity-50 hover:bg-opacity-75 text-teal-600 rounded-full p-2 transition-all duration-200"
+              >
+                <ChevronRight size={20} />
+              </button>
+
+              {/* Image counter */}
+              <div className="absolute top-2 right-2 bg-neutral-300 bg-opacity-50 text-teal-600 text-xs px-2 py-1 rounded">
+                {currentImageIndex + 1} / {url.length}
+              </div>
+            </>
+          )}
+
+          {/* Dots indicator - only show if more than 1 image */}
+          {url.length > 1 && (
+            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
+              {url.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={(e) => goToImage(index, e)}
+                  className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                    index === currentImageIndex
+                      ? "bg-white"
+                      : "bg-white bg-opacity-50"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Video */}
+      {post_type === "video" && (
+        <div
+          className="w-full max-h-[calc(100vh-224px)] bg-gray-200 flex items-center justify-center relative overflow-hidden"
+          onClick={() => is_reel && router.push(`/reels?id=${post_id}`)}
+        >
           <video
             ref={videoRef}
             src={url[0]}
-            className="max-w-full max-h-full object-contain"
+            className={`w-full h-full object-cover ${
+              is_reel ? "max-h-[calc(100vh-224px)]" : "aspect-video"
+            }`}
+            controls={!is_reel}
           ></video>
         </div>
       )}
@@ -166,7 +286,7 @@ const Post = ({
               size={18}
               className={`mr-1 ${userLikes[post_id] ? "fill-red-500" : ""}`}
             />{" "}
-            {likes_count}
+            {allLikes.length}
           </button>
 
           <button className="flex items-center text-sm font-medium text-gray-500">

@@ -36,7 +36,6 @@ const CreatePost = () => {
   const dispatch = useDispatch();
 
   const handlePostSubmit = () => {
-    console.log("Post submitted:", postText);
     dispatch(createPost(postText)).unwrap();
     setPostText({
       title: "",
@@ -68,7 +67,7 @@ const CreatePost = () => {
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow mb-4">
+    <div className="bg-gray-50 p-4 rounded-lg shadow mb-4">
       <form onSubmit={handlePostSubmit}>
         <div className="flex items-center justify-start mb-3">
           <div className="w-10 h-10 bg-gray-200 rounded-full flex-shrink-0">
@@ -135,7 +134,7 @@ const CreatePost = () => {
             onChange={(e) =>
               setPostText({ ...postText, title: e.target.value })
             }
-            className="ml-2 p-2 w-full bg-gray-100 rounded-full text-sm focus:outline-none"
+            className="ml-2 p-2 w-full bg-gray-50 rounded-full text-sm focus:outline-none"
             placeholder="What's on your mind ?"
           />
         </div>
@@ -156,7 +155,7 @@ const CreatePost = () => {
           <div className="flex space-x-1">
             <button
               type="button"
-              className="flex items-center px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 rounded-md"
+              className="flex items-center px-3 py-1.5 text-sm text-teal-600 hover:bg-gray-100 rounded-md"
               onClick={() => setOpenImageDialog(!openImageDialog)}
             >
               <Image size={18} className="mr-2" />
@@ -164,7 +163,7 @@ const CreatePost = () => {
             </button>
             <button
               type="button"
-              className="flex items-center px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 rounded-md"
+              className="flex items-center px-3 py-1.5 text-sm text-teal-600 hover:bg-gray-100 rounded-md"
               onClick={() => setOpenVideoDialog(!openVideoDialog)}
             >
               <Video size={18} className="mr-2" />
@@ -172,7 +171,7 @@ const CreatePost = () => {
             </button>
             <button
               type="button"
-              className="flex items-center px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 rounded-md"
+              className="flex items-center px-3 py-1.5 text-sm text-teal-600 hover:bg-gray-100 rounded-md"
               onClick={() => setOpenVideoDialog(!openVideoDialog)}
             >
               <Heart size={18} className="mr-2" />
@@ -180,14 +179,14 @@ const CreatePost = () => {
             </button>
             <button
               type="button"
-              className="flex items-center px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 rounded-md"
+              className="flex items-center px-3 py-1.5 text-sm text-teal-600 hover:bg-gray-100 rounded-md"
             >
               <BarChart size={18} className="mr-2" />
               <span className="hidden sm:inline">Poll</span>
             </button>
             <button
               type="button"
-              className="flex items-center px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 rounded-md"
+              className="flex items-center px-3 py-1.5 text-sm text-teal-600 hover:bg-gray-100 rounded-md"
             >
               <Smile size={18} className="mr-2" />
               <span className="hidden sm:inline">Emoji</span>
@@ -196,10 +195,10 @@ const CreatePost = () => {
           <button
             type="submit"
             disabled={!postText.title.trim()}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium ${
+            className={`px-4 py-1.5 rounded-full text-sm font-bold ${
               postText.title.trim()
-                ? "bg-gray-800 text-white"
-                : "bg-gray-200 text-gray-500"
+                ? "bg-teal-500 text-white"
+                : "bg-neutral-300 text-neutral-600 cursor-not-allowed"
             }`}
           >
             Post

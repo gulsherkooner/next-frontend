@@ -104,18 +104,22 @@ const authSlice = createSlice({
       state.refreshToken = action.payload.refreshToken || null;
       state.status = "succeeded";
       state.error = null;
+      
       if (action.payload.accessToken) {
         setCookie("accessToken", action.payload.accessToken, {
-          secure: false,
+          secure: process.env.NODE_ENV === 'production', // Use secure in production
           sameSite: "Strict",
-          maxAge: 24 * 60 * 60,
+          maxAge: 15 * 60, // 15 minutes
+          path: '/'
         });
       }
+      
       if (action.payload.refreshToken) {
         setCookie("refreshToken", action.payload.refreshToken, {
-          secure: false,
+          secure: process.env.NODE_ENV === 'production', // Use secure in production
           sameSite: "Strict",
-          maxAge: 7 * 24 * 60 * 60,
+          maxAge: 7 * 24 * 60 * 60, // 7 days
+          path: '/'
         });
       }
     },

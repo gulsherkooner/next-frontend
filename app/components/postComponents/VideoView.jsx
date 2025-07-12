@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Maximize2,
   Pause,
@@ -21,7 +21,16 @@ import {
   likePost,
   unlikePost,
   fetchUserLikeForPost,
+  fetchAllLikesForPost,
 } from "../../features/posts/postsLikesSlice";
+import { getCookie } from "../../lib/utils/cookie";
+import {
+  fetchUserData,
+  updateAccessToken,
+} from "../../features/auth/authSlice";
+import { recordView } from "../../features/views/viewsslice";
+import { useRouter } from "next/navigation";
+import getCount from "../../lib/utils/getCount";
 
 const VideoView = ({ post }) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -35,16 +44,21 @@ const VideoView = ({ post }) => {
   const [likeTimeouts, setLikeTimeouts] = useState({});
   const [moreMenuOpen, setMoreMenuOpen] = useState({});
   const [isMuted, setIsMuted] = useState(false);
-  const [volume, setVolume] = useState(0.5);
+  const [volume, setVolume] = useState(0.8);
   const [showControls, setShowControls] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [allLikes, setAllLikes] = useState([]);
+  const [viewRecorded, setViewRecorded] = useState(false);
+  const viewTimerRef = useRef(null);
+  const videoEndedRef = useRef(false);
   const hideControlsTimeout = useRef(null);
   const videoRef = useRef(null);
   const videoContainerRef = useRef(null);
   const self = useSelector((state) => state.auth?.user);
   const dispatch = useDispatch();
   const userLikes = useSelector((state) => state.postLikes.userLikes);
+  const router = useRouter();
 
   const suggestedVideos = [
     {
@@ -134,12 +148,112 @@ const VideoView = ({ post }) => {
     },
   ];
 
-  // Play/pause logic
+  useEffect(() => {
+    const fetchData = async () => {
+      const accessToken = getCookie("accessToken");
+      if (!accessToken) {
+        const refreshToken = getCookie("refreshToken");
+        if (!refreshToken) {
+          router.push("/login");
+        }
+        try {
+          const apiGatewayUrl =
+            process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://localhost:3001";
+          const res = await fetch(`${apiGatewayUrl}/auth/refresh`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refreshToken }),
+            credentials: "include",
+          });
+          const data = await res.json();
+          if (res.ok) {
+            dispatch(
+              updateAccessToken({
+                accessToken: data.accessToken,
+                refreshToken: data.refreshToken,
+              })
+            );
+            router.push("/");
+          } else {
+          }
+        } catch (err) {
+          console.error("Login error:", err);
+        }
+      } else {
+        dispatch(fetchUserData());
+      }
+    };
+    fetchData();
+  }, [self?.user_id, dispatch, router]);
+
+  // Play/pause logic - separate from view timer to avoid clearing timer on every change
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    isPlaying ? video.play() : video.pause();
+    
+    if (isPlaying) {
+      video.play();
+      videoEndedRef.current = false; // Reset ended flag when playing
+    } else {
+      video.pause();
+      // Only clear timer when video is paused by user, not when it ends naturally
+      if (viewTimerRef.current && !videoEndedRef.current) {
+        clearTimeout(viewTimerRef.current);
+        viewTimerRef.current = null;
+      }
+    }
   }, [isPlaying]);
+
+  // Function to record view
+  const recordVideoView = useCallback(() => {
+    if (!viewRecorded && post?.post_id && self?.user_id) {
+      
+      dispatch(recordView(post.post_id))
+        .unwrap()
+        .then((result) => {
+          setViewRecorded(true);
+        })
+        .catch((error) => {
+          console.error('Failed to record view:', error);
+        });
+    }
+  }, [viewRecorded, post?.post_id, self?.user_id, dispatch]);
+
+  // View timer logic - using a more stable approach
+  useEffect(() => {
+    // Only start timer if video is playing and we haven't recorded a view yet
+    if (isPlaying && !viewRecorded && duration > 0 && post?.post_id && self?.user_id) {
+      // Clear any existing timer first
+      if (viewTimerRef.current) {
+        clearTimeout(viewTimerRef.current);
+        viewTimerRef.current = null;
+      }
+      
+      const viewThreshold = duration < 30 ? duration * 1000 : 30000; // Convert to milliseconds
+      viewTimerRef.current = setTimeout(() => {
+        recordVideoView();
+        // Clear the timer reference
+        viewTimerRef.current = null;
+      }, viewThreshold);
+      
+      // Test timer to verify setTimeout is working
+      setTimeout(() => {
+      }, 2000);
+      
+      // For testing purposes, also create a shorter timer to verify the fix
+      setTimeout(() => {
+      }, 5000);
+    }
+  }, [isPlaying, duration, post?.post_id, self?.user_id]); // Removed viewRecorded and dispatch from deps
+
+  // Separate effect to handle view recording state changes
+  useEffect(() => {
+    // If view gets recorded, clear the timer
+    if (viewRecorded && viewTimerRef.current) {
+      clearTimeout(viewTimerRef.current);
+      viewTimerRef.current = null;
+    }
+  }, [viewRecorded]);
 
   // Volume/mute logic
   useEffect(() => {
@@ -153,15 +267,46 @@ const VideoView = ({ post }) => {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+    
     const handleTimeUpdate = () => setCurrentTime(video.currentTime);
-    const handleLoadedMetadata = () => setDuration(video.duration);
+    const handleLoadedMetadata = () => {
+      setDuration(video.duration);
+      setViewRecorded(false); // Reset view recorded status when new video loads
+      videoEndedRef.current = false; // Reset ended flag
+    };
+    const handleCanPlay = () => {
+      if (video.duration && !duration) {
+        setDuration(video.duration);
+      }
+    };
+    const handleEnded = () => {
+      videoEndedRef.current = true;
+      // Record view when video ends (if not already recorded)
+      recordVideoView();
+      // Clear the timer since video ended
+      if (viewTimerRef.current) {
+        clearTimeout(viewTimerRef.current);
+        viewTimerRef.current = null;
+      }
+    };
+    
     video.addEventListener("timeupdate", handleTimeUpdate);
     video.addEventListener("loadedmetadata", handleLoadedMetadata);
+    video.addEventListener("canplay", handleCanPlay);
+    video.addEventListener("ended", handleEnded);
+    
+    // Set duration immediately if available
+    if (video.duration && !isNaN(video.duration)) {
+      setDuration(video.duration);
+    }
+    
     return () => {
       video.removeEventListener("timeupdate", handleTimeUpdate);
       video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      video.removeEventListener("canplay", handleCanPlay);
+      video.removeEventListener("ended", handleEnded);
     };
-  }, []);
+  }, [duration, recordVideoView]);
 
   // Format time helper
   const formatTime = (time) => {
@@ -185,6 +330,18 @@ const VideoView = ({ post }) => {
 
   // Play/pause button
   const handlePlayPause = () => setIsPlaying((p) => !p);
+
+  // Clean up timers on component unmount
+  useEffect(() => {
+    return () => {
+      if (viewTimerRef.current) {
+        clearTimeout(viewTimerRef.current);
+      }
+      if (hideControlsTimeout.current) {
+        clearTimeout(hideControlsTimeout.current);
+      }
+    };
+  }, []);
 
   const handleSubscribe = () => {
     setIsSubscribed(!isSubscribed);
@@ -289,6 +446,23 @@ const VideoView = ({ post }) => {
     }
   }, [self?.user_id, post?.post_id, dispatch]);
 
+  // Fetch all likes for this post (public)
+  useEffect(() => {
+    let isMounted = true;
+    if (post?.post_id) {
+      fetchAllLikesForPost(post.post_id)
+        .then((likes) => {
+          if (isMounted) setAllLikes(likes || []);
+        })
+        .catch(() => {
+          if (isMounted) setAllLikes([]);
+        });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [post?.post_id, userLikes[post?.post_id]]); // refetch when like status changes
+
   // Utility to debounce actions per comment/reply
   const debounceAction = (id, action) => {
     if (likeTimeouts[id]) return;
@@ -329,7 +503,8 @@ const VideoView = ({ post }) => {
       await dispatch(likePost(post.post_id));
     }
     // Optionally, fetch updated post data if you want to update likes_count
-    // dispatch(fetchPublicPosts());
+    dispatch(fetchUserLikeForPost(post.post_id));
+    dispatch(fetchAllLikesForPost(post_id));
   };
 
   const handleComment = (parent_comment_id = null) => {
@@ -528,7 +703,9 @@ const VideoView = ({ post }) => {
                   <button
                     onClick={handlePostLike}
                     className={`px-4 py-2 hover:bg-gray-200 transition-colors flex items-center gap-2 ${
-                      userLikes[post.post_id] ? "text-blue-600" : "text-gray-500"
+                      userLikes[post.post_id]
+                        ? "text-blue-600"
+                        : "text-gray-500"
                     }`}
                   >
                     <ThumbsUp
@@ -536,7 +713,7 @@ const VideoView = ({ post }) => {
                         userLikes[post.post_id] ? "fill-blue-600" : ""
                       }`}
                     />
-                    {post.likes_count || 0}
+                    {allLikes.length}
                   </button>
                 </div>
 
@@ -566,7 +743,7 @@ const VideoView = ({ post }) => {
 
             {/* Video Stats */}
             <div className="text-sm text-gray-600 mb-4">
-              1.2M views • {getTimeAgo(post.created_at)}
+              {getCount(post?.views_count)} views • {getTimeAgo(post.created_at)}
             </div>
 
             {/* Video Description */}
@@ -611,7 +788,9 @@ const VideoView = ({ post }) => {
                   />
                   <div className="flex justify-end gap-2 mt-3">
                     <button
-                      onClick={() => setReplyText((prev) => ({ ...prev, main: "" }))}
+                      onClick={() =>
+                        setReplyText((prev) => ({ ...prev, main: "" }))
+                      }
                       className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
                     >
                       Cancel
@@ -629,231 +808,241 @@ const VideoView = ({ post }) => {
 
               {/* Comments List */}
               <div className="space-y-6">
-                {comments && comments
-                  ?.filter(
-                    (comment) =>
-                      comment.parent_comment_id === null && !comment.is_deleted
-                  )
-                  .map((comment) => (
-                    <div key={comment.comment_id} className="flex gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                        {comment.username?.charAt(0)}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold text-sm">
-                            {comment.username}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            • {getTimeAgo(comment.created_at)}
-                          </span>
-                          <div className="relative ml-auto">
+                {comments &&
+                  comments
+                    ?.filter(
+                      (comment) =>
+                        comment.parent_comment_id === null &&
+                        !comment.is_deleted
+                    )
+                    .map((comment) => (
+                      <div key={comment.comment_id} className="flex gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                          {comment.username?.charAt(0)}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold text-sm">
+                              {comment.username}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              • {getTimeAgo(comment.created_at)}
+                            </span>
+                            <div className="relative ml-auto">
+                              <button
+                                onClick={() =>
+                                  setMoreMenuOpen((prev) => ({
+                                    ...prev,
+                                    [comment.comment_id]:
+                                      !prev[comment.comment_id],
+                                  }))
+                                }
+                              >
+                                <MoreHorizontal className="w-4 h-4 text-gray-500" />
+                              </button>
+                              {moreMenuOpen[comment.comment_id] && (
+                                <div className="absolute right-0 mt-2 bg-white border rounded shadow z-10">
+                                  <button
+                                    className="block px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-left"
+                                    onClick={() => {
+                                      setMoreMenuOpen({});
+                                      handleDeleteComment(comment.comment_id);
+                                    }}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-700 mb-2 leading-relaxed">
+                            {comment.text}
+                          </p>
+                          <div className="flex items-center gap-4">
                             <button
+                              onClick={() => handleLike(comment.comment_id)}
+                              className={`flex items-center gap-1 ${
+                                commentLikes[comment.comment_id]?.includes(
+                                  self?.user_id
+                                )
+                                  ? "text-black"
+                                  : "text-gray-600 hover:text-gray-800"
+                              }`}
+                              disabled={!!likeTimeouts[comment.comment_id]}
+                            >
+                              <ThumbsUp
+                                className={`w-4 h-4 ${
+                                  commentLikes[comment.comment_id]?.includes(
+                                    self?.user_id
+                                  )
+                                    ? "fill-black"
+                                    : ""
+                                }`}
+                              />
+                              <span className="text-xs">
+                                {comment.likes_count}
+                              </span>
+                            </button>
+                            <button
+                              className="text-xs text-gray-600 hover:text-gray-800 font-medium"
                               onClick={() =>
-                                setMoreMenuOpen((prev) => ({
+                                setReplyOpen((prev) => ({
                                   ...prev,
                                   [comment.comment_id]:
                                     !prev[comment.comment_id],
                                 }))
                               }
                             >
-                              <MoreHorizontal className="w-4 h-4 text-gray-500" />
-                            </button>
-                            {moreMenuOpen[comment.comment_id] && (
-                              <div className="absolute right-0 mt-2 bg-white border rounded shadow z-10">
-                                <button
-                                  className="block px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-left"
-                                  onClick={() => {
-                                    setMoreMenuOpen({});
-                                    handleDeleteComment(comment.comment_id);
-                                  }}
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <p className="text-sm text-gray-700 mb-2 leading-relaxed">
-                          {comment.text}
-                        </p>
-                        <div className="flex items-center gap-4">
-                          <button
-                            onClick={() => handleLike(comment.comment_id)}
-                            className={`flex items-center gap-1 ${
-                              commentLikes[comment.comment_id]?.includes(
-                                self?.user_id
-                              )
-                                ? "text-black"
-                                : "text-gray-600 hover:text-gray-800"
-                            }`}
-                            disabled={!!likeTimeouts[comment.comment_id]}
-                          >
-                            <ThumbsUp
-                              className={`w-4 h-4 ${
-                                commentLikes[comment.comment_id]?.includes(
-                                  self?.user_id
-                                )
-                                  ? "fill-black"
-                                  : ""
-                              }`}
-                            />
-                            <span className="text-xs">
-                              {comment.likes_count}
-                            </span>
-                          </button>
-                          <button
-                            className="text-xs text-gray-600 hover:text-gray-800 font-medium"
-                            onClick={() =>
-                              setReplyOpen((prev) => ({
-                                ...prev,
-                                [comment.comment_id]: !prev[comment.comment_id],
-                              }))
-                            }
-                          >
-                            Reply
-                          </button>
-                        </div>
-                        {/* Reply input */}
-                        {replyOpen[comment.comment_id] && (
-                          <div className="flex gap-3 items-center py-3 px-4 bg-gray-100 rounded-xl mt-2 w-full max-w-full">
-                            <img
-                              src={self?.profile_img_url}
-                              alt="User avatar"
-                              className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                            />
-                            <textarea
-                              placeholder="Write a reply"
-                              className="flex-1 bg-gray-100 border-none outline-none resize-none text-sm px-3 py-2 placeholder-gray-500 no-scrollbar"
-                              value={replyText[comment.comment_id] || ""}
-                              onChange={(e) =>
-                                setReplyText((prev) => ({
-                                  ...prev,
-                                  [comment.comment_id]: e.target.value,
-                                }))
-                              }
-                            />
-                            <button
-                              disabled={
-                                !(replyText[comment.comment_id] || "").trim()
-                              }
-                              onClick={() => handleComment(comment.comment_id)}
-                              className="bg-blue-600 text-white px-5 py-2 rounded-full font-semibold text-sm transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                            >
                               Reply
                             </button>
                           </div>
-                        )}
-                        {/* Replies */}
-                        {getReplies(comment.comment_id).length > 0 && (
-                          <button
-                            onClick={() =>
-                              setShowReplies((prev) => ({
-                                ...prev,
-                                [comment.comment_id]: !prev[comment.comment_id],
-                              }))
-                            }
-                            className="flex items-center gap-2 mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                clipRule="evenodd"
+                          {/* Reply input */}
+                          {replyOpen[comment.comment_id] && (
+                            <div className="flex gap-3 items-center py-3 px-4 bg-gray-100 rounded-xl mt-2 w-full max-w-full">
+                              <img
+                                src={self?.profile_img_url}
+                                alt="User avatar"
+                                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                               />
-                            </svg>
-                            {getReplies(comment.comment_id).length} Replies
-                          </button>
-                        )}
-                        {showReplies[comment.comment_id] &&
-                          getReplies(comment.comment_id).map((reply) => (
-                            <div
-                              key={reply.comment_id}
-                              className="ml-8 flex gap-3 mt-3"
+                              <textarea
+                                placeholder="Write a reply"
+                                className="flex-1 bg-gray-100 border-none outline-none resize-none text-sm px-3 py-2 placeholder-gray-500 no-scrollbar"
+                                value={replyText[comment.comment_id] || ""}
+                                onChange={(e) =>
+                                  setReplyText((prev) => ({
+                                    ...prev,
+                                    [comment.comment_id]: e.target.value,
+                                  }))
+                                }
+                              />
+                              <button
+                                disabled={
+                                  !(replyText[comment.comment_id] || "").trim()
+                                }
+                                onClick={() =>
+                                  handleComment(comment.comment_id)
+                                }
+                                className="bg-blue-600 text-white px-5 py-2 rounded-full font-semibold text-sm transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                              >
+                                Reply
+                              </button>
+                            </div>
+                          )}
+                          {/* Replies */}
+                          {getReplies(comment.comment_id).length > 0 && (
+                            <button
+                              onClick={() =>
+                                setShowReplies((prev) => ({
+                                  ...prev,
+                                  [comment.comment_id]:
+                                    !prev[comment.comment_id],
+                                }))
+                              }
+                              className="flex items-center gap-2 mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium"
                             >
-                              <div className="w-8 h-8 bg-gray-300 rounded-full flex-shrink-0">
-                                <img
-                                  src={reply.profile_img_url}
-                                  alt="User avatar"
-                                  className="w-full h-full rounded-full object-cover"
+                              <svg
+                                className="w-4 h-4"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                  clipRule="evenodd"
                                 />
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="font-semibold text-sm">
-                                    {reply.username}
-                                  </span>
-                                  <span className="text-xs text-gray-500">
-                                    • {getTimeAgo(reply.created_at)}
-                                  </span>
-                                  <div className="relative ml-auto">
+                              </svg>
+                              {getReplies(comment.comment_id).length} Replies
+                            </button>
+                          )}
+                          {showReplies[comment.comment_id] &&
+                            getReplies(comment.comment_id).map((reply) => (
+                              <div
+                                key={reply.comment_id}
+                                className="ml-8 flex gap-3 mt-3"
+                              >
+                                <div className="w-8 h-8 bg-gray-300 rounded-full flex-shrink-0">
+                                  <img
+                                    src={reply.profile_img_url}
+                                    alt="User avatar"
+                                    className="w-full h-full rounded-full object-cover"
+                                  />
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="font-semibold text-sm">
+                                      {reply.username}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      • {getTimeAgo(reply.created_at)}
+                                    </span>
+                                    <div className="relative ml-auto">
+                                      <button
+                                        onClick={() =>
+                                          setMoreMenuOpen((prev) => ({
+                                            ...prev,
+                                            [reply.comment_id]:
+                                              !prev[reply.comment_id],
+                                          }))
+                                        }
+                                      >
+                                        <MoreHorizontal className="w-4 h-4 text-gray-500" />
+                                      </button>
+                                      {moreMenuOpen[reply.comment_id] && (
+                                        <div className="absolute right-0 mt-2 bg-white border rounded shadow z-10">
+                                          <button
+                                            className="block px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-left"
+                                            onClick={() => {
+                                              setMoreMenuOpen({});
+                                              handleDeleteComment(
+                                                reply.comment_id
+                                              );
+                                            }}
+                                          >
+                                            Delete
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <p className="text-sm text-gray-700 mb-2 leading-relaxed">
+                                    {reply.text}
+                                  </p>
+                                  <div className="flex items-center gap-4">
                                     <button
                                       onClick={() =>
-                                        setMoreMenuOpen((prev) => ({
-                                          ...prev,
-                                          [reply.comment_id]:
-                                            !prev[reply.comment_id],
-                                        }))
+                                        handleLike(reply.comment_id)
                                       }
-                                    >
-                                      <MoreHorizontal className="w-4 h-4 text-gray-500" />
-                                    </button>
-                                    {moreMenuOpen[reply.comment_id] && (
-                                      <div className="absolute right-0 mt-2 bg-white border rounded shadow z-10">
-                                        <button
-                                          className="block px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-left"
-                                          onClick={() => {
-                                            setMoreMenuOpen({});
-                                            handleDeleteComment(
-                                              reply.comment_id
-                                            );
-                                          }}
-                                        >
-                                          Delete
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                                <p className="text-sm text-gray-700 mb-2 leading-relaxed">
-                                  {reply.text}
-                                </p>
-                                <div className="flex items-center gap-4">
-                                  <button
-                                    onClick={() => handleLike(reply.comment_id)}
-                                    className={`flex items-center gap-1 ${
-                                      commentLikes[reply.comment_id]?.includes(
-                                        self?.user_id
-                                      )
-                                        ? "text-black"
-                                        : "text-gray-600 hover:text-gray-800"
-                                    }`}
-                                    disabled={!!likeTimeouts[reply.comment_id]}
-                                  >
-                                    <ThumbsUp
-                                      className={`w-4 h-4 ${
+                                      className={`flex items-center gap-1 ${
                                         commentLikes[
                                           reply.comment_id
                                         ]?.includes(self?.user_id)
-                                          ? "fill-black"
-                                          : ""
+                                          ? "text-black"
+                                          : "text-gray-600 hover:text-gray-800"
                                       }`}
-                                    />
-                                    <span className="text-xs">
-                                      {reply.likes_count}
-                                    </span>
-                                  </button>
+                                      disabled={
+                                        !!likeTimeouts[reply.comment_id]
+                                      }
+                                    >
+                                      <ThumbsUp
+                                        className={`w-4 h-4 ${
+                                          commentLikes[
+                                            reply.comment_id
+                                          ]?.includes(self?.user_id)
+                                            ? "fill-black"
+                                            : ""
+                                        }`}
+                                      />
+                                      <span className="text-xs">
+                                        {reply.likes_count}
+                                      </span>
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
               </div>
             </div>
           </div>
@@ -964,7 +1153,11 @@ const VideoView = ({ post }) => {
               {/* Comment Input */}
               <div className="flex gap-3 mb-6">
                 <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
-                  Y
+                  <img
+                    src={self?.profile_img_url}
+                    alt="User avatar"
+                    className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                  />
                 </div>
                 <div className="flex-1">
                   <textarea
@@ -1002,7 +1195,11 @@ const VideoView = ({ post }) => {
                   .map((comment) => (
                     <div key={comment.comment_id} className="flex gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                        {comment.username?.charAt(0)}
+                        <img
+                          src={comment.profile_img_url}
+                          alt="User avatar"
+                          className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                        />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">

@@ -1,24 +1,64 @@
-import { useIsMobile } from '@/app/hooks/use-mobile';
-import { BadgeCheck } from 'lucide-react';
-import React from 'react';
+import { useIsMobile } from "@/app/hooks/use-mobile";
+import { BadgeCheck } from "lucide-react";
+import React from "react";
 
-const TabNavigation = ({ activeTab, setActiveTab, tabs = [] }) => {
+const TabNavigation = ({ activeTab, setActiveTab, showDating }) => {
   const isMobile = useIsMobile();
 
   return (
     <div className="border-b border-gray-200">
-      <div className={`flex ${isMobile ? 'space-x-0' : 'space-x-8'} overflow-x-auto`}>
-        {tabs.map((tab) => (
+      <div
+        className={`flex overflow-y-scroll no-scrollbar ${
+          isMobile ? "space-x-1" : "md:space-x-4 lg:space-x-8"
+        }`}
+      >
+        {showDating && (
           <TabButton
-            key={tab}
-            label={tab.charAt(0).toUpperCase() + tab.slice(1)}
-            active={activeTab === tab}
-            onClick={() => setActiveTab(tab)}
+            label="Dating&nbsp;profile"
+            active={activeTab === "dating"}
+            onClick={() => setActiveTab("dating")}
           />
-        ))}
-        <div className={`ml-auto ${isMobile ? 'pr-0' : 'pr-4'} flex items-center`}>
+        )}
+        <TabButton
+          label="Posts"
+          active={activeTab === "posts"}
+          onClick={() => setActiveTab("posts")}
+        />
+        <TabButton
+          label="Reels"
+          active={activeTab === "reels"}
+          onClick={() => setActiveTab("reels")}
+        />
+        <TabButton
+          label="Videos"
+          active={activeTab === "videos"}
+          onClick={() => setActiveTab("videos")}
+        />
+        <TabButton
+          label="Collections"
+          active={activeTab === "collections"}
+          onClick={() => setActiveTab("collections")}
+        />
+        <TabButton
+          label="Account"
+          active={activeTab === "account"}
+          onClick={() => setActiveTab("account")}
+        />
+        <div
+          className={`ml-auto ${isMobile ? "pr-0" : "pr-4"} flex items-center`}
+        >
           <button className="p-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <circle cx="11" cy="11" r="8"></circle>
               <path d="m21 21-4.3-4.3"></path>
             </svg>

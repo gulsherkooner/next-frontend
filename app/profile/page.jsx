@@ -50,42 +50,66 @@ export default function profile() {
   useEffect(() => {
     const fetchData = async () => {
       const accessToken = getCookie("accessToken");
+
       if (!accessToken) {
         const refreshToken = getCookie("refreshToken");
+
         if (!refreshToken) {
+          console.log("No refresh token found, redirecting to login");
           router.push("/login");
+          return;
         }
+
         try {
-          const apiGatewayUrl = process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://localhost:3001";
+          const apiGatewayUrl =
+            process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://localhost:3001";
+
+          console.log("Attempting to refresh token...");
+
           const res = await fetch(`${apiGatewayUrl}/auth/refresh`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+            },
             body: JSON.stringify({ refreshToken }),
             credentials: "include",
           });
+
+
+          if (!res.ok) {
+            const errorText = await res.text();
+            console.error("Refresh failed:", errorText);
+            router.push("/login");
+            return;
+          }
+
           const data = await res.json();
-          if (res.ok) {
-            dispatch(updateAccessToken({
+
+          // Update Redux store - this will also set cookies via the reducer
+          dispatch(
+            updateAccessToken({
               accessToken: data.accessToken,
               refreshToken: data.refreshToken,
-            }));
-            router.push("/");
-          } else {
-            setError(data.error || "Login failed");
-          }
+            })
+          );
+
+          // Fetch user data with new token
+          dispatch(fetchUserData());
         } catch (err) {
-          console.error("Login error:", err);
-          setError("An unexpected error occurred");
+          console.error("Refresh error:", err);
+          router.push("/login");
         }
       } else {
+        // We have an access token, fetch user data
         dispatch(fetchUserData());
       }
     };
+
     fetchData();
   }, []);
 
   useEffect(() => {
-    dispatch(fetchUserPosts(data?.user_id));
+    data?.user_id && dispatch(fetchUserPosts(data?.user_id));
   }, [data?.user_id]);
 
   return (
@@ -94,21 +118,8 @@ export default function profile() {
       <Sidebar setMenu={setMenu} menu={menu} />
 
       <div className="pt-14 pr-2 md:pl-58 md:flex-row flex-1">
-        <ProfileInfo
-          data={data}
-          profile={true}
-          activeTab={activeTab} // ✅ pass current tab
-          onAddPhotoClick={() => setShowPostModal(true)} // ✅ trigger modal
-        />
-        <ProfileContent
-          userPosts={userPosts}
-          datingProfile={datingProfile}
-          datingPosts={datingPosts}
-          activeTab={activeTab} // ✅ pass down
-          setActiveTab={setActiveTab} // ✅ pass setter
-          showPostModal={showPostModal}
-          setShowPostModal={setShowPostModal}
-        />
+        <ProfileInfo data={data} profile={true} />
+        <ProfileContent userPosts={userPosts} data={data} />
       </div>
 
       <MobileNav />

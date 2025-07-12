@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import ReelItem from "./ReelItem";
 import { Pause, VolumeX, X } from "lucide-react";
 import {
@@ -10,8 +10,12 @@ import {
   ThumbsUp,
 } from "lucide-react";
 import { useIsMobile } from "../../hooks/use-mobile";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchPublicReels } from "../../features/posts/postsSlice";
+import { recordView } from "../../features/views/viewsslice";
+import getCount from "../../lib/utils/getCount";
 
-const ReelsModal = ({ onClose }) => {
+const ReelsModal = ({ onClose, id }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollRef = useRef(null);
   const isScrolling = useRef(false);
@@ -19,114 +23,137 @@ const ReelsModal = ({ onClose }) => {
   const [isSaved, setIsSaved] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const isMobile = useIsMobile();
+  const [hasFetchedFirstPage, setHasFetchedFirstPage] = useState(false);
 
-  // Sample reel data
-  const reels = [
-    {
-      id: 1,
-      username: "user_name_1",
-      description:
-        "Amazing sunset timelapse from the mountains! Nature is absolutely beautiful 🌅",
-      likes: 1234,
-      comments: 89,
-      shares: 45,
-      videoUrl:
-        "https://videos.pexels.com/video-files/4830364/4830364-uhd_1440_2732_25fps.mp4",
-      backgroundSound: "Original Audio",
-      location: "Mountain View",
-    },
-    {
-      id: 2,
-      username: "creative_artist",
-      description:
-        "Digital art creation process in 60 seconds ✨ Follow for more art content!",
-      likes: 2567,
-      comments: 156,
-      shares: 78,
-      videoUrl:
-        "https://videos.pexels.com/video-files/4830364/4830364-uhd_1440_2732_25fps.mp4",
-      backgroundSound: "Trending Audio",
-      location: "Art Studio",
-    },
-    {
-      id: 3,
-      username: "fitness_guru",
-      description:
-        "Quick 5-minute morning workout routine 💪 Start your day right!",
-      likes: 3421,
-      comments: 234,
-      shares: 123,
-      videoUrl:
-        "https://videos.pexels.com/video-files/4830364/4830364-uhd_1440_2732_25fps.mp4",
-      backgroundSound: "Workout Beats",
-      location: "Home Gym",
-    },
-    {
-      id: 4,
-      username: "food_lover",
-      description:
-        "Perfect chocolate chip cookies recipe 🍪 Save this for later!",
-      likes: 4567,
-      comments: 345,
-      shares: 189,
-      videoUrl:
-        "https://videos.pexels.com/video-files/4830364/4830364-uhd_1440_2732_25fps.mp4",
-      backgroundSound: "Cooking Vibes",
-      location: "Kitchen",
-    },
-    {
-      id: 5,
-      username: "travel_enthusiast",
-      description:
-        "Hidden gems in Tokyo you must visit! 🇯🇵 Which one is your favorite?",
-      likes: 5678,
-      comments: 456,
-      shares: 234,
-      videoUrl:
-        "https://videos.pexels.com/video-files/4830364/4830364-uhd_1440_2732_25fps.mp4",
-      backgroundSound: "Tokyo Nights",
-      location: "Tokyo, Japan",
-    },
-    {
-      id: 6,
-      username: "travel_enthusiast",
-      description:
-        "Hidden gems in Tokyo you must visit! 🇯🇵 Which one is your favorite?",
-      likes: 5678,
-      comments: 456,
-      shares: 234,
-      videoUrl:
-        "https://videos.pexels.com/video-files/4830364/4830364-uhd_1440_2732_25fps.mp4",
-      backgroundSound: "Tokyo Nights",
-      location: "Tokyo, Japan",
-    },
-    {
-      id: 7,
-      username: "travel_enthusiast",
-      description:
-        "Hidden gems in Tokyo you must visit! 🇯🇵 Which one is your favorite?",
-      likes: 5678,
-      comments: 456,
-      shares: 234,
-      videoUrl:
-        "https://videos.pexels.com/video-files/4830364/4830364-uhd_1440_2732_25fps.mp4",
-      backgroundSound: "Tokyo Nights",
-      location: "Tokyo, Japan",
-    },
-    {
-      id: 8,
-      username: "travel_enthusiast",
-      description:
-        "Hidden gems in Tokyo you must visit! 🇯🇵 Which one is your favorite?",
-      likes: 5678,
-      comments: 456,
-      shares: 234,
-      videoUrl:
-        "https://videos.pexels.com/video-files/4830364/4830364-uhd_1440_2732_25fps.mp4",
-      backgroundSound: "Tokyo Nights",
-      location: "Tokyo, Japan",
-    },
-  ];
+  // PAGINATED REELS STATE
+  const [reels, setReels] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [seed] = useState(() => Math.random().toString(36).slice(2));
+  const [isFetching, setIsFetching] = useState(false);
+  
+  // View tracking state
+  const [viewedReels, setViewedReels] = useState(new Set());
+  const viewTimerRef = useRef(null);
+
+  const dispatch = useDispatch();
+  const self = useSelector((state) => state.auth?.user);
+
+  // Function to record reel view
+  const recordReelView = useCallback((reelId) => {
+    if (!viewedReels.has(reelId) && reelId && self?.user_id) {
+      console.log('Recording reel view for post:', reelId);
+      
+      dispatch(recordView(reelId))
+        .unwrap()
+        .then((result) => {
+          setViewedReels(prev => new Set([...prev, reelId]));
+          console.log('Reel view recorded successfully:', result);
+        })
+        .catch((error) => {
+          console.error('Failed to record reel view:', error);
+        });
+    } else {
+      console.log('Reel view recording skipped:', {
+        already_viewed: viewedReels.has(reelId),
+        has_reel_id: !!reelId,
+        has_user_id: !!self?.user_id
+      });
+    }
+  }, [viewedReels, self?.user_id, dispatch]);
+
+  // Effect to start view timer when current reel changes
+  useEffect(() => {
+    const currentReel = reels[currentIndex];
+    
+    if (currentReel && self?.user_id && !viewedReels.has(currentReel.post_id)) {
+      console.log('Starting reel view timer for 3 seconds, reel:', currentReel.post_id);
+      
+      // Clear any existing timer
+      if (viewTimerRef.current) {
+        clearTimeout(viewTimerRef.current);
+        viewTimerRef.current = null;
+      }
+      
+      // Start 3-second timer for reel view
+      viewTimerRef.current = setTimeout(() => {
+        console.log('Reel view timer completed, recording view...');
+        recordReelView(currentReel.post_id);
+        viewTimerRef.current = null;
+      }, 3000); // 3 seconds for reel views
+      
+      // Test timer to verify setTimeout is working
+      setTimeout(() => {
+        console.log('Reel test timer (1s) executed - setTimeout is working!');
+      }, 1000);
+    } else {
+      console.log('Reel view timer not started:', {
+        has_current_reel: !!currentReel,
+        has_user_id: !!self?.user_id,
+        already_viewed: currentReel ? viewedReels.has(currentReel.post_id) : false,
+        current_reel_id: currentReel?.post_id
+      });
+    }
+    
+    // Cleanup timer when reel changes or component unmounts
+    return () => {
+      if (viewTimerRef.current) {
+        console.log('Cleaning up reel view timer');
+        clearTimeout(viewTimerRef.current);
+        viewTimerRef.current = null;
+      }
+    };
+  }, [currentIndex, reels, self?.user_id, viewedReels, recordReelView]);
+
+  // Fetch reels (first page: include id, next pages: don't include id)
+  useEffect(() => {
+    setIsFetching(true);
+    dispatch(
+      fetchPublicReels({
+        page: 1,
+        limit: 5,
+        seed,
+        id:id, // only on first page
+      })
+    ).then((action) => {
+      if (action.payload) {
+        setReels(action.payload.reels || []);
+        setTotalPages(action.payload.totalPages || 1);
+        setPage(1);
+        setHasFetchedFirstPage(true);
+      }
+      setIsFetching(false);
+    });
+    // eslint-disable-next-line
+  }, [id, seed, dispatch]);
+
+  // Fetch next page when user scrolls to last reel
+  useEffect(() => {
+    // Only run if first page has been fetched and not on initial mount
+    if (
+      hasFetchedFirstPage &&
+      currentIndex === reels.length - 1 &&
+      page < totalPages &&
+      !isFetching
+    ) {
+      setIsFetching(true);
+      dispatch(
+        fetchPublicReels({
+          page: page + 1,
+          limit: 5,
+          seed,
+          // Do NOT include id on next pages
+        })
+      ).then((action) => {
+        if (action.payload) {
+          setReels((prev) => [...prev, ...(action.payload.reels || [])]);
+          setPage(action.payload.page);
+        }
+        setIsFetching(false);
+      });
+    }
+    // eslint-disable-next-line
+  }, [currentIndex, page, totalPages, isFetching, dispatch, seed]);
 
   const scrollToIndex = (index) => {
     if (scrollRef.current && !isScrolling.current) {
@@ -178,21 +205,16 @@ const ReelsModal = ({ onClose }) => {
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown);
     const container = scrollRef.current;
-    container.addEventListener("scroll", handleScroll);
+    if (container) container.addEventListener("scroll", handleScroll);
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      container.removeEventListener("scroll", handleScroll);
+      if (container) container.removeEventListener("scroll", handleScroll);
     };
   }, [currentIndex]);
 
   const formatCount = (count) => {
-    if (count >= 1000000) {
-      return (count / 1000000).toFixed(1) + "M";
-    } else if (count >= 1000) {
-      return (count / 1000).toFixed(1) + "K";
-    }
-    return count.toString();
+    return getCount(count);
   };
 
   return (
@@ -204,11 +226,11 @@ const ReelsModal = ({ onClose }) => {
       >
         {reels.map((reel, index) => (
           <div
-            key={reel.id}
+            key={reel.post_id}
             className="reel-item-container relative w-screen md:w-md md:h-[796] h-[calc(100vh-112px)] md:max-h-[calc(100vh-112px)] snap-start rounded-lg"
           >
             {/* Header with close button */}
-            <div className="absolute top-0 left-0 right-0 z-10 flex justify-between items-center p-4 bg-gradient-to-b from-black/50 to-transparent rounded-t-lg">
+            <div className="absolute top-0 left-0 right-0 z-10 flex justify-between items-center p-4 px-2">
               <div className="text-white font-semibold text-lg">
                 <Pause size={24} className="inline-block mr-2" />
                 <VolumeX size={24} className="inline-block mr-2" />
@@ -251,7 +273,7 @@ const ReelsModal = ({ onClose }) => {
                       <ThumbsUp size={20} />
                     </button>
                     <span className="text-gray-600 text-xs mt-1 font-medium">
-                      {formatCount(reel.likes + (isLiked ? 1 : 0))}
+                      {formatCount(reel.likes_count + (isLiked ? 1 : 0))}
                     </span>
                   </div>
 
@@ -264,19 +286,19 @@ const ReelsModal = ({ onClose }) => {
                       <MessageSquareText size={20} />
                     </button>
                     <span className="text-gray-600 text-xs mt-1 font-medium">
-                      {formatCount(reel.comments)}
+                      {formatCount(reel.comments_count)}
                     </span>
                   </div>
 
                   {/* Share Button */}
-                  <div className="flex flex-col items-center">
+                  {/* <div className="flex flex-col items-center">
                     <button className="p-2 rounded-full bg-black/30 text-gray-600 hover:bg-black/50 transition-all duration-200 backdrop-blur-sm">
                       <Share2 size={20} />
                     </button>
                     <span className="text-gray-600 text-xs mt-1 font-medium">
                       {formatCount(reel.shares)}
                     </span>
-                  </div>
+                  </div> */}
 
                   {/* Save Button */}
                   <div className="flex flex-col items-center">
@@ -326,6 +348,11 @@ const ReelsModal = ({ onClose }) => {
             </div>
           </div>
         ))}
+        {isFetching && (
+          <div className="text-center text-gray-500 py-4">
+            Loading more reels...
+          </div>
+        )}
       </div>
 
       {/* Navigation Controls */}

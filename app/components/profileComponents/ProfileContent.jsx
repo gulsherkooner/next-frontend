@@ -6,6 +6,7 @@ import ReelsGrid from "./ReelsGrid";
 import VideosGrid from "./VideosGrid";
 import CollectionsGrid from "./CollectionsGrid";
 import AboutTab from "./AboutTab";
+import DatingTab from "./DatingTab"; // Import the new DatingTab component
 import DatingProfileContent from "../datingComponents/DatingProfileContent";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -25,7 +26,9 @@ const ProfileContent = ({
   useEffect(() => {
     if (userPosts) {
       const img = userPosts.filter((post) => post.post_type === "image");
-      const video = userPosts.filter((post) => post.post_type === "video");
+      const video = userPosts.filter(
+        (post) => post.post_type === "video" && post.is_reel === false
+      );
       const reel = userPosts.filter(
         (post) => post.post_type === "video" && post.is_reel === true
       );
@@ -37,6 +40,8 @@ const ProfileContent = ({
 
   const renderTabContent = () => {
     switch (activeTab) {
+      case "dating":
+        return <DatingTab data={data} />; // Render the DatingTab component
       case "posts":
         return <PostsGrid imgPosts={imgPosts} />;
       case "reels":
@@ -46,7 +51,7 @@ const ProfileContent = ({
       case "collections":
         return <CollectionsGrid />;
       case "account":
-        return <AboutTab />;
+        return <AboutTab data={data} />;
       case "dating":
         return (
           <DatingProfileContent
