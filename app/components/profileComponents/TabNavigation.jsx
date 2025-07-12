@@ -12,13 +12,11 @@ const TabNavigation = ({ activeTab, setActiveTab, showDating }) => {
           isMobile ? "space-x-1" : "md:space-x-4 lg:space-x-8"
         }`}
       >
-        {showDating && (
-          <TabButton
-            label="Dating&nbsp;profile"
-            active={activeTab === "dating"}
-            onClick={() => setActiveTab("dating")}
-          />
-        )}
+        <TabButton
+          label="Dating&nbsp;profile"
+          active={activeTab === "dating"}
+          onClick={() => setActiveTab("dating")}
+        />
         <TabButton
           label="Posts"
           active={activeTab === "posts"}
