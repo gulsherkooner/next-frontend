@@ -12,6 +12,7 @@ import { useIsMobile } from "../../hooks/use-mobile";
 import { useDispatch, useSelector } from "react-redux";
 import getTimeAgo from "../../lib/utils/getTimeAgo";
 import EditImage from "./EditImage";
+import { useRouter } from "next/navigation";
 import {
   fetchUserData,
   updateAccessToken,
@@ -339,16 +340,23 @@ useEffect(() => {
             {profile ? (
               <>
                 <button
-                  className={`${
-                    isMobile ? "py-2 px-3" : "py-1 px-4"
-                  } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
+                  onClick={() => router.push("/settings")}
+                  className={`${isMobile ? "py-2 px-3" : "py-1 px-4"} rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
                 >
                   {isMobile ? <Pencil size={16} /> : "Edit profile"}
                 </button>
+                {activeTab === "dating" && (
+                  <button
+                    onClick={onAddPhotoClick}
+                    className={`${isMobile ? "py-2 px-3" : "py-1 px-4"} rounded-full bg-white border border-gray-300`}
+                  >
+                    {isMobile ? <Plus size={16} /> : "+ Add Photo"}
+                  </button>
+                )}
+
                 <button
-                  className={`px-3 ${
-                    isMobile ? "py-2" : "py-1"
-                  } rounded-full bg-white border border-gray-300`}
+                  className={`px-3 ${isMobile ? "py-2" : "py-1"
+                    } rounded-full bg-white border border-gray-300`}
                 >
                   <div className="flex items-center justify-center">
                     <Plus size={16} />
@@ -384,18 +392,16 @@ useEffect(() => {
               <>
                 {isFollowing ? (
                   <button
-                    className={`${
-                      isMobile ? "py-2 px-3" : "py-1 px-4"
-                    } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
+                    className={`${isMobile ? "py-2 px-3" : "py-1 px-4"
+                      } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
                     onClick={() => handleUnfollow()}
                   >
                     {isMobile ? <Pencil size={16} /> : "Following"}
                   </button>
                 ) : (
                   <button
-                    className={`${
-                      isMobile ? "py-2 px-3" : "py-1 px-4"
-                    } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
+                    className={`${isMobile ? "py-2 px-3" : "py-1 px-4"
+                      } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
                     onClick={() => handleFollow()}
                   >
                     {isMobile ? <Pencil size={16} /> : "Follow"}

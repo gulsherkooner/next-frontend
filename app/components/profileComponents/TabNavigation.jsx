@@ -66,12 +66,14 @@ const TabNavigation = ({ activeTab, setActiveTab, showDating }) => {
         </div>
       </div>
 
-      <div className="px-4 py-2 flex space-x-2 overflow-x-auto">
-        <FilterButton label="Latest" active={true} />
-        <FilterButton label="Popular" active={false} />
-        <FilterButton label="Oldest" active={false} />
-        <FilterButton label={<BadgeCheck size={18} />} active={false} />
-      </div>
+      {activeTab !== 'dating' && (
+        <div className="px-4 py-2 flex space-x-2 overflow-x-auto">
+          <FilterButton label="Latest" active={true} />
+          <FilterButton label="Popular" active={false} />
+          <FilterButton label="Oldest" active={false} />
+          <FilterButton label={<BadgeCheck size={18} />} active={false} />
+        </div>
+      )}
     </div>
   );
 };
@@ -81,8 +83,8 @@ const TabButton = ({ label, active, onClick }) => {
   return (
     <button
       onClick={onClick}
-      className={`${isMobile ? "p-2" : "p-4"} font-medium text-sm relative ${
-        active ? "text-black" : "text-gray-500 hover:text-gray-700"
+      className={`${isMobile ? 'p-2' : 'p-4'} font-medium text-sm relative ${
+        active ? 'text-black' : 'text-gray-500 hover:text-gray-700'
       }`}
     >
       {label}
@@ -98,8 +100,8 @@ const FilterButton = ({ label, active }) => {
     <button
       className={`py-1 px-3 rounded-full text-xs ${
         active
-          ? "bg-black text-white"
-          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          ? 'bg-black text-white'
+          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
       }`}
     >
       {label}
