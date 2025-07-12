@@ -30,6 +30,7 @@ import CreateMembership4 from "../../components/membershipComponents/CreateMembe
 import CreateMembership5 from "../../components/membershipComponents/CreateMembership5";
 import ViewMembership from "../../components/membershipComponents/ViewMembership";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 const countryCurrencyMap = {
   US: { currency: "USD", symbol: "$" },
@@ -56,7 +57,10 @@ const ProfileInfo = ({
   isFollowing,
   setIsFollowing,
   fetchData,
+  activeTab,
+  onAddPhotoClick,
 }) => {
+  const router = useRouter();
   const isMobile = useIsMobile();
   const dispatch = useDispatch();
   const [userData, setUserData] = useState({});
@@ -125,18 +129,18 @@ const ProfileInfo = ({
     });
   }, [data]);
 
-useEffect(() => {
-  if (data?.user_id) {
-    dispatch(fetchMembershipByUser(data.user_id))
-      .unwrap()
-      .then((result) => {
-        setMembership(result);
-      })
-      .catch(() => {
-        setMembership(undefined);
-      });
-  }
-}, [data?.user_id, dispatch]);
+  useEffect(() => {
+    if (data?.user_id) {
+      dispatch(fetchMembershipByUser(data.user_id))
+        .unwrap()
+        .then((result) => {
+          setMembership(result);
+        })
+        .catch(() => {
+          setMembership(undefined);
+        });
+    }
+  }, [data?.user_id, dispatch]);
 
   const handleInputChange = (e) => {
     // const { name, value } = e.target;
@@ -339,12 +343,23 @@ useEffect(() => {
             {profile ? (
               <>
                 <button
+                  onClick={() => router.push("/settings")}
                   className={`${
                     isMobile ? "py-2 px-3" : "py-1 px-4"
                   } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
                 >
                   {isMobile ? <Pencil size={16} /> : "Edit profile"}
                 </button>
+                {activeTab === "dating" && (
+                  <button
+                    onClick={onAddPhotoClick}
+                    className={`${
+                      isMobile ? "py-2 px-3" : "py-1 px-4"
+                    } rounded-full bg-white border border-gray-300`}
+                  >
+                    {isMobile ? <Plus size={16} /> : "+ Add Photo"}
+                  </button>
+                )}
                 <button
                   className={`px-3 ${
                     isMobile ? "py-2" : "py-1"

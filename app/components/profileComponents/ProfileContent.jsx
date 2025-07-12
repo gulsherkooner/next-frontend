@@ -7,8 +7,19 @@ import VideosGrid from "./VideosGrid";
 import CollectionsGrid from "./CollectionsGrid";
 import AboutTab from "./AboutTab";
 import DatingTab from "./DatingTab"; // Import the new DatingTab component
+import DatingProfileContent from "../datingComponents/DatingProfileContent";
+import { AnimatePresence, motion } from "framer-motion";
 
-const ProfileContent = ({ userPosts, data }) => {
+const ProfileContent = ({
+  userPosts,
+  datingProfile,
+  datingPosts,
+  activeTab,
+  setActiveTab,
+  showPostModal,
+  setShowPostModal,
+  data,
+}) => {
   const [activeTab, setActiveTab] = useState("posts");
   const [imgPosts, setImgPosts] = useState(null);
   const [videoPosts, setVideoPosts] = useState(null);
@@ -34,7 +45,14 @@ const ProfileContent = ({ userPosts, data }) => {
   const renderTabContent = () => {
     switch (activeTab) {
       case "dating":
-        return <DatingTab data={data} />; // Render the DatingTab component
+        return (
+          <DatingProfileContent
+            profile={datingProfile}
+            posts={datingPosts}
+            showPostModal={showPostModal}
+            setShowPostModal={setShowPostModal}
+          />
+        ); // Render the DatingTab component
       case "posts":
         return <PostsGrid imgPosts={imgPosts} />;
       case "reels":
@@ -52,8 +70,23 @@ const ProfileContent = ({ userPosts, data }) => {
 
   return (
     <div>
-      <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
-      {renderTabContent()}
+      <TabNavigation
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        tabs={["posts", "reels", "videos", "collections", "account", "dating"]}
+      />
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.3 }}
+        >
+          {renderTabContent()}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 };

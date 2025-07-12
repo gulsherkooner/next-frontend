@@ -21,6 +21,37 @@ export default function profile() {
   const router = useRouter();
   const { userPosts } = useSelector((state) => state.posts);
   const data = useSelector((state) => state.auth?.user);
+  const [activeTab, setActiveTab] = useState("posts"); // ✅ Add this
+  const [datingProfile, setDatingProfile] = useState(null);
+  const [datingPosts, setDatingPosts] = useState([]);
+  const [showPostModal, setShowPostModal] = useState(false);
+
+  useEffect(() => {
+    const fetchDatingProfile = async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/dating-profile/${data?.user_id}`
+      );
+      const profileData = await res.json();
+      setDatingProfile(profileData);
+    };
+
+    const fetchDatingPosts = async () => {
+      const token = getCookie("accessToken");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/dating-posts/me`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const postData = await res.json();
+      setDatingPosts(postData);
+    };
+
+    if (data?.user_id) {
+      fetchDatingProfile();
+      fetchDatingPosts();
+    }
+  }, [data?.user_id]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,7 +80,6 @@ export default function profile() {
             body: JSON.stringify({ refreshToken }),
             credentials: "include",
           });
-
 
           if (!res.ok) {
             const errorText = await res.text();
@@ -93,8 +123,22 @@ export default function profile() {
       <Sidebar setMenu={setMenu} menu={menu} />
       {/* Main content column */}
       <div className="pt-14 pr-2 md:pl-58 md:flex-row flex-1">
-        <ProfileInfo data={data} profile={true} />
-        <ProfileContent userPosts={userPosts} data={data} />
+        <ProfileInfo
+          data={data}
+          profile={true}
+          activeTab={activeTab} // ✅ pass current tab
+          onAddPhotoClick={() => setShowPostModal(true)} // ✅ trigger modal
+        />
+        <ProfileContent
+          userPosts={userPosts}
+          datingProfile={datingProfile}
+          datingPosts={datingPosts}
+          activeTab={activeTab} // ✅ pass down
+          setActiveTab={setActiveTab} // ✅ pass setter
+          showPostModal={showPostModal}
+          setShowPostModal={setShowPostModal}
+          data={data}
+        />
       </div>
       <MobileNav />
     </div>
