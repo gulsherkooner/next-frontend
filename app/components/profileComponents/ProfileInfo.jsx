@@ -5,6 +5,7 @@ import { useIsMobile } from "../../hooks/use-mobile";
 import { useDispatch, useSelector } from "react-redux";
 import getTimeAgo from "../../lib/utils/getTimeAgo";
 import EditImage from "./EditImage";
+import { useRouter } from "next/navigation";
 import {
   fetchUserData,
   updateAccessToken,
@@ -13,12 +14,13 @@ import {
 import { getCookie } from "@/app/lib/utils/cookie";
 import { followUser, unfollowUser } from "../../features/sub/subslice";
 
-const ProfileInfo = ({ data, profile, isFollowing, setIsFollowing, fetchData }) => {
+const ProfileInfo = ({ data, profile, isFollowing, setIsFollowing, fetchData, activeTab, onAddPhotoClick }) => {
   const isMobile = useIsMobile();
   const dispatch = useDispatch();
   const [userData, setUserData] = useState({});
   const [imgBox, setImgBox] = useState(false);
   const [bannerBox, setBannerBox] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setUserData({
@@ -165,16 +167,23 @@ const ProfileInfo = ({ data, profile, isFollowing, setIsFollowing, fetchData }) 
             {profile ? (
               <>
                 <button
-                  className={`${
-                    isMobile ? "py-2 px-3" : "py-1 px-4"
-                  } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
+                  onClick={() => router.push("/settings")}
+                  className={`${isMobile ? "py-2 px-3" : "py-1 px-4"} rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
                 >
                   {isMobile ? <Pencil size={16} /> : "Edit profile"}
                 </button>
+                {activeTab === "dating" && (
+                  <button
+                    onClick={onAddPhotoClick}
+                    className={`${isMobile ? "py-2 px-3" : "py-1 px-4"} rounded-full bg-white border border-gray-300`}
+                  >
+                    {isMobile ? <Plus size={16} /> : "+ Add Photo"}
+                  </button>
+                )}
+
                 <button
-                  className={`px-3 ${
-                    isMobile ? "py-2" : "py-1"
-                  } rounded-full bg-white border border-gray-300`}
+                  className={`px-3 ${isMobile ? "py-2" : "py-1"
+                    } rounded-full bg-white border border-gray-300`}
                 >
                   <div className="flex items-center justify-center">
                     <Plus size={16} />
@@ -186,9 +195,8 @@ const ProfileInfo = ({ data, profile, isFollowing, setIsFollowing, fetchData }) 
                   </div>
                 </button>
                 <button
-                  className={`${
-                    isMobile ? "py-2 px-3" : "py-1 px-4"
-                  } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
+                  className={`${isMobile ? "py-2 px-3" : "py-1 px-4"
+                    } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
                 >
                   {isMobile ? <BadgeCheck size={16} /> : "Create memberships"}
                 </button>
@@ -197,27 +205,24 @@ const ProfileInfo = ({ data, profile, isFollowing, setIsFollowing, fetchData }) 
               <>
                 {isFollowing ? (
                   <button
-                    className={`${
-                      isMobile ? "py-2 px-3" : "py-1 px-4"
-                    } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
+                    className={`${isMobile ? "py-2 px-3" : "py-1 px-4"
+                      } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
                     onClick={() => handleUnfollow()}
                   >
                     {isMobile ? <Pencil size={16} /> : "Following"}
                   </button>
                 ) : (
                   <button
-                    className={`${
-                      isMobile ? "py-2 px-3" : "py-1 px-4"
-                    } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
+                    className={`${isMobile ? "py-2 px-3" : "py-1 px-4"
+                      } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
                     onClick={() => handleFollow()}
                   >
                     {isMobile ? <Pencil size={16} /> : "Follow"}
                   </button>
                 )}
                 <button
-                  className={`${
-                    isMobile ? "py-2 px-3" : "py-1 px-4"
-                  } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
+                  className={`${isMobile ? "py-2 px-3" : "py-1 px-4"
+                    } rounded-full bg-gray-200 text-sm font-medium cursor-pointer`}
                 >
                   {isMobile ? <BadgeCheck size={16} /> : "Subscribe"}
                 </button>
