@@ -20,7 +20,6 @@ const ProfileContent = ({
   setShowPostModal,
   data,
 }) => {
-  const [activeTab, setActiveTab] = useState("posts");
   const [imgPosts, setImgPosts] = useState(null);
   const [videoPosts, setVideoPosts] = useState(null);
   const [reelPosts, setReelPosts] = useState(null);

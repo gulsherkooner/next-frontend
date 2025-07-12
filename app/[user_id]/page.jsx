@@ -17,6 +17,10 @@ const UserProfile = () => {
   const [data, setData] = useState(null);
   const [userPosts, setUserPosts] = useState([]);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [activeTab, setActiveTab] = useState("posts"); // ✅ Add this
+  const [datingProfile, setDatingProfile] = useState(null);
+  const [datingPosts, setDatingPosts] = useState([]);
+  const [showPostModal, setShowPostModal] = useState(false);
   const apiGatewayUrl =
     process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://localhost:3001";
 
@@ -50,6 +54,33 @@ const UserProfile = () => {
     fetchData(user_id);
   }, [user_id, apiGatewayUrl]);
 
+  useEffect(() => {
+      const fetchDatingProfile = async () => {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/dating-profile/${user_id}`
+        );
+        const profileData = await res.json();
+        setDatingProfile(profileData);
+      };
+  
+      const fetchDatingPosts = async () => {
+        const token = getCookie("accessToken");
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/dating-posts/me`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const postData = await res.json();
+        setDatingPosts(postData);
+      };
+  
+      if (user_id) {
+        fetchDatingProfile();
+        fetchDatingPosts();
+      }
+    }, [user_id]);
+
   // Use effect for checking follow status
   useEffect(() => {
     const fetchFollow = async () => {
@@ -71,8 +102,19 @@ const UserProfile = () => {
           isFollowing={isFollowing}
           setIsFollowing={setIsFollowing}
           fetchData={fetchData} // Now `fetchData` is properly passed
+          activeTab={activeTab} // ✅ pass current tab
+          onAddPhotoClick={() => setShowPostModal(true)} // ✅ trigger modal
         />
-        <ProfileContent userPosts={userPosts} data={data} />
+        <ProfileContent
+          userPosts={userPosts}
+          datingProfile={datingProfile}
+          datingPosts={datingPosts}
+          activeTab={activeTab} // ✅ pass down
+          setActiveTab={setActiveTab} // ✅ pass setter
+          showPostModal={showPostModal}
+          setShowPostModal={setShowPostModal}
+          data={data}
+        />
       </div>
       <MobileNav />
     </div>
