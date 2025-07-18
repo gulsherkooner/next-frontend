@@ -9,7 +9,7 @@ import FiltersBox from "../components/datingComponents/FiltersBox";
 import TaskCompletedBox from "../components/datingComponents/ProfileList";
 import WalletCard from "../components/walletComponents/WalletCard";
 import { getCookie } from '../lib/utils/cookie';
-import {CircleUserRound} from 'lucide-react';
+import { CircleUserRound } from 'lucide-react';
 export default function DatingPage() {
   const [filters, setFilters] = useState({
     gender: "Female",
@@ -61,7 +61,7 @@ export default function DatingPage() {
         if (!response.ok) throw new Error('Profile check failed');
 
         const { exists } = await response.json();
-        setHasProfile(exists);
+        setHasProfile(null);
       } catch (error) {
         console.error("Profile check error:", error);
       } finally {
@@ -78,13 +78,7 @@ export default function DatingPage() {
     // Optional: You might want to refetch the profile here
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center py-8 text-gray-500">Loading your dating profile...</div>
-      </div>
-    );
-  }
+
 
   // Main rendering logic
   return (
@@ -95,64 +89,65 @@ export default function DatingPage() {
 
       <div className="pt-16 px-4 flex flex-col lg:flex-row justify-center gap-6 md:pl-56">
         <main className="flex-1 max-w-full md:max-w-2xl xl:max-w-2xl 2xl:max-w-2xl mx-auto p-2 sm:p-4">
-          
-            <>
-              {/* Filters Button - Top Left under Header */}
-              <div className="pt-2 -mx-3 lg:hidden">
-                <button
-                  onClick={() => setShowFilters(true)}
-                  className="flex items-center space-x-1 px-3 py-1 text-sm bg-gray-200 text-gray-800 rounded-full shadow"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                      d="M3 4a1 1 0 012 0h14a1 1 0 110 2H5a1 1 0 01-2 0zM3 12a1 1 0 012 0h10a1 1 0 110 2H5a1 1 0 01-2 0zM3 20a1 1 0 012 0h6a1 1 0 110 2H5a1 1 0 01-2 0z" />
-                  </svg>
-                  <span>Filters</span>
-                </button>
-              </div>
-
-              {/* Mobile Sidebar for Filters */}
-              <div
-                className={`fixed inset-0 z-50 bg-opacity-50 backdrop-blur-sm flex justify-end transition-opacity duration-300 ${showFilters ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-                  }`}
-                onClick={() => setShowFilters(false)}
+          {!forceShowCreateForm && <>
+            {/* Filters Button - Top Left under Header */}
+            <div className="pt-2 md:-mx-21 lg:hidden">
+              <button
+                onClick={() => setShowFilters(true)}
+                className="flex items-center space-x-2 px-4 py-2 text-sm font-medium 
+               bg-teal-500 text-white rounded-full shadow 
+               hover:bg-teal-600 active:scale-95 transition-all duration-200"
               >
-                <div
-                  onClick={(e) => e.stopPropagation()}
-                  className={`bg-white w-4/5 max-w-sm h-full p-4 overflow-auto shadow-lg transform transition-transform duration-300 ${showFilters ? 'translate-x-0' : 'translate-x-full'
-                    }`}
-                >
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-bold">Filters</h2>
-                    <button
-                      onClick={() => setShowFilters(false)}
-                      className="text-gray-600 text-xl font-bold"
-                    >
-                      &times;
-                    </button>
-                  </div>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none"
+                  viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M3 4a1 1 0 012 0h14a1 1 0 110 2H5a1 1 0 01-2 0zM3 12a1 1 0 012 0h10a1 1 0 110 2H5a1 1 0 01-2 0zM3 20a1 1 0 012 0h6a1 1 0 110 2H5a1 1 0 01-2 0z" />
+                </svg>
+                <span>Filters</span>
+              </button>
+            </div>
 
-                  <FiltersBox
-                    gender={filters.gender}
-                    setGender={(val) => setFilters({ ...filters, gender: val })}
-                    ageRange={filters.ageRange}
-                    setAgeRange={(val) => setFilters({ ...filters, ageRange: val })}
-                    distance={filters.distance}
-                    setDistance={(val) => setFilters({ ...filters, distance: val })}
-                    selectedLocations={filters.locations}
-                    setSelectedLocations={(val) => setFilters({ ...filters, locations: val })}
-                    selectedLanguages={filters.languages}
-                    setSelectedLanguages={(val) => setFilters({ ...filters, languages: val })}
-                    lookingFor={filters.lookingFor}
-                    setLookingFor={(val) => setFilters({ ...filters, lookingFor: val })}
-                    likes={filters.likes}
-                    setLikes={(val) => setFilters({ ...filters, likes: val })}
-                  />
+            {/* Mobile Sidebar for Filters */}
+            <div
+              className={`fixed inset-0 z-50 bg-opacity-50 backdrop-blur-sm flex justify-end transition-opacity duration-300 ${showFilters ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                }`}
+              onClick={() => setShowFilters(false)}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className={`bg-white w-4/5 max-w-sm h-full p-4 overflow-auto shadow-lg transform transition-transform duration-300 ${showFilters ? 'translate-x-0' : 'translate-x-full'
+                  }`}
+              >
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-bold">Filters</h2>
+                  <button
+                    onClick={() => setShowFilters(false)}
+                    className="text-gray-600 text-xl font-bold"
+                  >
+                    &times;
+                  </button>
                 </div>
+
+                <FiltersBox
+                  gender={filters.gender}
+                  setGender={(val) => setFilters({ ...filters, gender: val })}
+                  ageRange={filters.ageRange}
+                  setAgeRange={(val) => setFilters({ ...filters, ageRange: val })}
+                  distance={filters.distance}
+                  setDistance={(val) => setFilters({ ...filters, distance: val })}
+                  selectedLocations={filters.locations}
+                  setSelectedLocations={(val) => setFilters({ ...filters, locations: val })}
+                  selectedLanguages={filters.languages}
+                  setSelectedLanguages={(val) => setFilters({ ...filters, languages: val })}
+                  lookingFor={filters.lookingFor}
+                  setLookingFor={(val) => setFilters({ ...filters, lookingFor: val })}
+                  likes={filters.likes}
+                  setLikes={(val) => setFilters({ ...filters, likes: val })}
+                />
               </div>
-            </>
-          
+            </div>
+          </>}
+
           {forceShowCreateForm ? (
             <CreateProfileBox onComplete={() => {
               handleProfileComplete();
@@ -174,8 +169,8 @@ export default function DatingPage() {
         </main>
 
         {/* Sidebar - only shown when profile exists and not on mobile */}
-        {!isMobile && !forceShowCreateForm &&(
-          <aside className="hidden lg:block w-56 fixed right-0 h-[calc(100vh-160px)] overflow-y-auto border-r border-gray-200 top-14">
+        {!isMobile && !forceShowCreateForm && (
+          <aside className="hidden lg:block  fixed right-5 h-[calc(90vh)] overflow-y-auto border-r border-gray-200 top-18">
             <WalletCard />
             <FiltersBox
               gender={filters.gender}
@@ -197,8 +192,8 @@ export default function DatingPage() {
         )}
         {/* Step 1 & 2: Sign Up modal + MultiStepWizard handled by CreateProfileBox */}
         {showSignUpPrompt && (
-          <div className="fixed inset-0 z-50 bg-opacity-50 backdrop-blur-sm flex items-center justify-center">
-            <div className="bg-white max-w-md w-full rounded-2xl p-6 sm:p-8 shadow-lg text-center relative">
+          <div className="fixed inset-0 z-50 bg-opacity-40 backdrop-blur-sm flex items-center justify-center">
+            <div className="bg-white max-w-md w-full rounded-2xl p-6 sm:p-8 shadow-2xl text-center relative">
               <button
                 onClick={() => setShowSignUpPrompt(false)}
                 className="absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-xl"
@@ -207,12 +202,12 @@ export default function DatingPage() {
               </button>
               <div className="flex flex-col items-center">
                 <div className="mb-4">
-                  <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-2xl">
+                  <div className="w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 text-2xl">
                     <CircleUserRound />
                   </div>
                 </div>
-                <h2 className="text-lg font-semibold mb-2">Create your profile</h2>
-                <p className="text-gray-500 text-sm mb-5">
+                <h2 className="text-lg font-semibold text-teal-600 mb-2">Create your profile</h2>
+                <p className="text-gray-600 text-sm mb-5">
                   In order to access the complete profile of this user, please create and set up your own dating profile first.
                 </p>
                 <button
@@ -220,7 +215,7 @@ export default function DatingPage() {
                     setShowSignUpPrompt(false);
                     setForceShowCreateForm(true); // 👈 show form in main content
                   }}
-                  className="bg-gray-400 text-white px-5 py-2 rounded-full hover:bg-blue-700 transition-all"
+                  className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-2 rounded-full transition-all"
                 >
                   Sign up
                 </button>
@@ -228,6 +223,7 @@ export default function DatingPage() {
             </div>
           </div>
         )}
+
       </div>
       <MobileNav />
     </div>

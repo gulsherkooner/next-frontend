@@ -49,7 +49,7 @@ const MessagesList = ({ contacts, currentChat, setCurrentChat, typingUsers }) =>
       {contacts.map((contact) => (
         <div
           key={contact.user_id}
-          className={`p-4 border-b border-gray-200 flex items-center cursor-pointer hover:bg-gray-50 ${currentChat?.user_id === contact.user_id ? 'bg-blue-50' : ''
+          className={`p-4 border-b border-gray-200 flex items-center cursor-pointer hover:bg-teal-50 ${currentChat?.user_id === contact.user_id ? 'bg-teal-100' : ''
             }`}
           onClick={() => setCurrentChat(contact)}
         >
