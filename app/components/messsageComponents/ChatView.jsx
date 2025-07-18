@@ -260,18 +260,18 @@ const ChatView = ({ contact,setMessages, messages, onSendMessage, isTyping, typi
           <button
             onClick={() => handleStartCall('audio')}
             disabled={activeCall}
-            className={`p-2 rounded-full ${activeCall ? 'bg-gray-200' : 'bg-blue-100 hover:bg-blue-200'} text-blue-600 transition`}
+            className={`p-2 rounded-full ${activeCall ? 'bg-gray-200' : ' hover:bg-teal-200'} text-teal-600 transition`}
             title={activeCall ? 'Call in progress' : 'Voice Call'}
           >
-            <Phone size={20} />
+            <Phone size={20} className='text-teal-400' />
           </button>
           <button
             onClick={() => handleStartCall('video')}
             disabled={activeCall}
-            className={`p-2 rounded-full ${activeCall ? 'bg-gray-200' : 'bg-blue-100 hover:bg-blue-200'} text-blue-600 transition`}
+            className={`p-2 rounded-full ${activeCall ? 'bg-gray-200' : ' hover:bg-teal-200'} text-teal-600 transition`}
             title={activeCall ? 'Call in progress' : 'Video Call'}
           >
-            <Video size={20} />
+            <Video size={20}  className='text-teal-400'/>
           </button>
         </div>
       </div>
@@ -301,8 +301,8 @@ const ChatView = ({ contact,setMessages, messages, onSendMessage, isTyping, typi
                 <div
                   className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg transition-all duration-200
       ${msg.sender === contact.user_id
-                      ? 'bg-white border border-gray-200 rounded-tl-none'
-                      : 'bg-blue-500 text-white rounded-tr-none'
+                      ? 'bg-teal-100 border border-gray-200 rounded-tl-none'
+                      : 'bg-teal-500 text-white rounded-tr-none'
                     }`}
                   onMouseEnter={() => setHoveredMessageId(msg.id)}
                   onMouseLeave={() => {
@@ -479,7 +479,7 @@ const ChatView = ({ contact,setMessages, messages, onSendMessage, isTyping, typi
           <button
             type="button"
             onClick={() => setShowEmojiPicker((prev) => !prev)}
-            className="text-gray-500 hover:text-blue-600"
+            className="text-gray-500 hover:text-teal-600"
           >
             <Smile size={22} />
           </button>
@@ -491,7 +491,7 @@ const ChatView = ({ contact,setMessages, messages, onSendMessage, isTyping, typi
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 min-w-[10px] px-4 py-2 rounded-full bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 min-w-[10px] px-4 py-2 rounded-full bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
           {/* Audio Record Button */}
           <div className="flex items-center gap-2">
@@ -499,7 +499,7 @@ const ChatView = ({ contact,setMessages, messages, onSendMessage, isTyping, typi
               <button
                 type="button"
                 onClick={startAudioRecording}
-                className="text-red-500 hover:text-red-600"
+                className="text-teal-500 hover:text-teal-600"
                 title="Start Recording"
               >
                 <Mic />
@@ -508,7 +508,7 @@ const ChatView = ({ contact,setMessages, messages, onSendMessage, isTyping, typi
               <button
                 type="button"
                 onClick={stopAudioRecording}
-                className="text-blue-500 hover:text-blue-600"
+                className="text-teal-500 hover:text-teal-600"
                 title="Stop Recording"
               >
                 <CirclePause />
@@ -582,7 +582,7 @@ const ChatView = ({ contact,setMessages, messages, onSendMessage, isTyping, typi
 
           {/* Direct Image Upload Button */}
           <label htmlFor="imageUpload" className="cursor-pointer text-gray-500 hover:text-blue-600">
-            <ImageIcon size={22} />
+            <ImageIcon size={22} className='text-teal-500' />
           </label>
 
           {/* Plus Icon with Popover */}
@@ -592,13 +592,13 @@ const ChatView = ({ contact,setMessages, messages, onSendMessage, isTyping, typi
               onClick={() => setShowOptions((prev) => !prev)}
               className="text-gray-500 hover:text-blue-600"
             >
-              <Plus size={22} />
+              <Plus size={22} className='text-teal-500'/>
             </button>
 
             {showOptions && (
               <div className="absolute bottom-10 right-8 bg-white border rounded-lg shadow p-2 space-y-2 z-10 w-32">
                 {/* Photo Upload */}
-                <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-600 hover:text-blue-600">
+                <label className="flex items-center gap-2 text-sm cursor-pointer text-teal-600 hover:text-teal-600">
                   <ImageIcon size={18} />
                   Photo
                   <input
@@ -610,7 +610,7 @@ const ChatView = ({ contact,setMessages, messages, onSendMessage, isTyping, typi
                 </label>
 
                 {/* Video Upload */}
-                <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-600 hover:text-blue-600">
+                <label className="flex items-center gap-2 text-sm cursor-pointer text-teal-600 hover:text-teal-600">
                   <Video size={18} />
                   Video
                   <input
@@ -627,9 +627,9 @@ const ChatView = ({ contact,setMessages, messages, onSendMessage, isTyping, typi
           {/* Send Button */}
           <button
             type="submit"
-            className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600"
+            className="p-2 bg-teal-500 text-white rounded-full hover:bg-teal-600"
           >
-            <SendHorizonal size={18} />
+            <SendHorizonal size={18} className='text-white'/>
           </button>
         </form>
 

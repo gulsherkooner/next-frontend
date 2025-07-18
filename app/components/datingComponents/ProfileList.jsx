@@ -63,6 +63,7 @@ const tagEmojis = {
   "Wildlife": "🐅",
   "Ski Resort Lover": "🎿"
 };
+
 const ProfileCard = ({
   id,
   firstName,
@@ -72,35 +73,36 @@ const ProfileCard = ({
   profile_img_url,
   hasProfile,
   onViewRestrictedProfile,
-  index,
 }) => (
-  <div className="bg-white border border-gray-300 rounded-xl w-full flex flex-col md:flex-row overflow-hidden shadow-sm">
-    {/* Left gray section (profile placeholder or image) */}
-    <div className="w-full md:w-2/5 bg-gray-300">
+  <div className="bg-white border border-gray-200 rounded-2xl w-full shadow-md overflow-hidden flex flex-col md:flex-row transition-all duration-300">
+    {/* Profile Image Section */}
+    <div className="w-full md:w-1/3 h-64 md:h-auto bg-gray-200">
       <img
-        src={girlProfilePics[1]}
+        src={girlProfilePics[0]}
         alt={gender}
-        className="w-full h-full rounded object-cover cursor-pointer"
+        className="w-full h-full object-cover"
       />
     </div>
 
-    {/* Right section */}
-    <div className="w-full md:w-3/4 p-4 flex flex-col gap-2">
+    {/* Content Section */}
+    <div className="w-full md:w-3/5 p-4 flex flex-col justify-between gap-3">
+      {/* Name & Bio */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900">{firstName}</h3>
-        <p className="text-sm text-gray-600 mt-1">
+        <h3 className="text-xl font-bold text-gray-900">{firstName}</h3>
+        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
           {describeSelf || "No bio provided."}
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2 text-xs mt-3">
+      {/* Likes */}
+      <div className="flex flex-wrap gap-2 mt-2">
         {Array.isArray(likes) && likes.length > 0 ? (
           likes.map((tag, idx) => (
             <span
               key={idx}
-              className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full border flex items-center gap-1"
+              className="flex items-center gap-1 bg-teal-50 text-teal-700 border border-teal-200 text-xs px-3 py-1 rounded-full font-medium"
             >
-              {tagEmojis[tag]}{tag}
+              {tagEmojis[tag]} {tag}
             </span>
           ))
         ) : (
@@ -108,6 +110,7 @@ const ProfileCard = ({
         )}
       </div>
 
+      {/* View Profile Button */}
       <button
         onClick={(e) => {
           e.preventDefault();
@@ -117,10 +120,10 @@ const ProfileCard = ({
             window.location.href = `/dating/profile/${id}`;
           }
         }}
-        className="text-sm text-gray-700 font-medium hover:underline mt-1 text-left"
+        className="text-sm text-teal-600 font-semibold hover:underline flex items-center gap-1 mt-2"
       >
         View profile
-        <ArrowRight className="inline mx-2 w-4" />
+        <ArrowRight className="w-4 h-4" />
       </button>
     </div>
   </div>
@@ -180,17 +183,17 @@ const ProfileList = ({
   ]);
   const randomIndex = Math.floor(Math.random() * girlProfilePics.length);
   return (
-    <div className="max-w-lg -mx-7 p-4">
+    <div className=" md:max-w-lg [@media(min-width:1220px)]:max-w-full md:-mx-25 p-4">
       {/* Filters UI Display */}
       <div className="flex flex-wrap gap-2 mb-4">
         {genderFilter && genderFilter !== "Both" && (
-          <div className="bg-gray-100 px-3 py-1 rounded-full text-sm flex items-center border">
+          <div className="bg-teal-500 text-white px-3 py-1 rounded-full text-sm flex items-center border border-teal-500">
             {genderFilter}
           </div>
         )}
 
         {ageRangeFilter && (
-          <div className="bg-gray-100 px-3 py-1 rounded-full text-sm flex items-center border">
+          <div className="bg-teal-500 text-white px-3 py-1 rounded-full text-sm flex items-center border border-teal-500">
             Age: {ageRangeFilter[0]}–{ageRangeFilter[1]}
           </div>
         )}
@@ -198,7 +201,7 @@ const ProfileList = ({
         {locationFilters.map((filter, idx) => (
           <div
             key={idx}
-            className="bg-gray-100 px-3 py-1 rounded-full text-sm flex items-center border"
+            className="bg-teal-500 text-white px-3 py-1 rounded-full text-sm flex items-center border border-teal-500"
           >
             {filter}
           </div>
@@ -208,16 +211,24 @@ const ProfileList = ({
       {/* Profiles List */}
       <div className="flex flex-col gap-4">
         {profiles?.length > 0 ? (
-          profiles.map((profile) => <ProfileCard key={profile.id} {...profile} hasProfile={hasProfile}
-            onViewRestrictedProfile={onViewRestrictedProfile} randomIndex />)
+          profiles.map((profile) => (
+            <ProfileCard
+              key={profile.id}
+              {...profile}
+              hasProfile={hasProfile}
+              onViewRestrictedProfile={onViewRestrictedProfile}
+              randomIndex
+            />
+          ))
         ) : (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-400">
             No profiles match your current filters
           </div>
         )}
       </div>
     </div>
   );
+
 };
 
 export default ProfileList;

@@ -26,10 +26,10 @@ export default function WalletCard() {
   return (
     <div className="max-w-xs bg-white p-4 rounded-xl shadow-sm mb-5">
       <div className="flex items-center gap-2">
-        <Wallet className="w-5 h-5" />
+        <Wallet className="w-5 h-5 text-teal-500" />
         <h2 className="text-lg font-semibold">Wallet</h2>
       </div>
-      <p className="text-sm text-gray-500 mt-1">Available balance</p>
+      <p className="text-md text-gray-500 mt-1">Available balance</p>
       <p className="text-3xl font-bold mt-1">
         {balance !== null ? `$ ${balance.toFixed(2)}` : "Loading..."}
       </p>

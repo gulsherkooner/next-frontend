@@ -29,7 +29,7 @@ export default function WalletPage() {
   ];
 
   return (
-    <div className="bg-gray-100 min-h-screen w-full pb-14 md:pb-0">
+    <div className="bg-white min-h-screen w-full pb-14 md:pb-0">
       <Header />
       <Sidebar />
 

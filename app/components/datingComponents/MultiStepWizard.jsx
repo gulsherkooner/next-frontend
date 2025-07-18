@@ -1,52 +1,72 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
-import { Search } from "lucide-react";
 import { locationSuggestions, professionSuggestions } from '../../features/suggestionsData';
 import { getCookie } from "../../lib/utils/cookie";
+import { Search, Dumbbell, MapPin, Briefcase, Camera } from "lucide-react";
+
 const FirstNameForm = ({ firstName, setFirstName, onValidation }) => {
+    const [touched, setTouched] = useState(false);
+
+    const isTooLong = firstName.length > 50;
+    const isEmpty = !firstName.trim();
+    const isValid = !isEmpty && !isTooLong;
+
     useEffect(() => {
-        // Auto-validate when firstName changes
-        const isValid = firstName.trim() && firstName.length <= 50;
+        // Notify parent only when valid or invalid
         onValidation(isValid);
-    }, [firstName, onValidation]);
+    }, [firstName, isValid, onValidation]);
 
     return (
-        <div className="max-w-xl mx-auto p-1 bg-gray-200 rounded-md font-sans">
-            <h2 className="text-lg font-semibold mb-1">What's your first name?</h2>
+        <div className="max-w-xl mx-auto p-1 rounded-md font-sans">
+            <h2 className="text-lg font-bold mb-1">What's your first name?</h2>
             <p className="text-sm text-gray-600 mb-4">
                 Let others know what to call you! Enter your first name to personalize your profile.
             </p>
-            <input
-                type="text"
-                placeholder="Add your first name"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className="bg-white w-full p-2 rounded-xl border border-gray-300 mb-1"
-            />
-            {!firstName.trim() && (
-                <p className="text-blue-500 text-sm mb-3">First name is required</p>
+
+            <div className="mb-4">
+                <input
+                    type="text"
+                    placeholder="Add your first name"
+                    className={`w-full px-4 py-2 rounded-md border focus:outline-none focus:ring-1
+            ${touched && isEmpty ? "border-yellow-500 focus:ring-yellow-500" : ""}
+            ${touched && isTooLong ? "border-red-500 focus:ring-red-500" : ""}
+            ${touched && isValid ? "border-teal-500 focus:ring-teal-500" : ""}
+          `}
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    onBlur={() => setTouched(true)}
+                />
+            </div>
+
+            {touched && isEmpty && (
+                <p className="text-yellow-600 text-sm mb-3">First name is required</p>
             )}
-            {firstName.length > 50 && (
-                <p className="text-red-500 text-sm mb-3">First name must be less than 50 characters</p>
+            {touched && isTooLong && (
+                <p className="text-red-600 text-sm mb-3">First name must be less than 50 characters</p>
             )}
         </div>
     );
 };
 
 const GenderStep = ({ gender, setGender, onValidation }) => {
+    const [touched, setTouched] = useState(false);
+
     useEffect(() => {
-        // Auto-validate when gender changes
         onValidation(gender.length > 0);
     }, [gender, onValidation]);
 
     const handleChange = (option) => {
+        setTouched(true);
         setGender([option]);
     };
 
     return (
         <div>
             <h2 className="text-xl font-semibold mb-2">What's your gender?</h2>
-            <p className="text-sm text-gray-600 mb-4">Select the gender you identify with to help personalize your experience.</p>
+            <p className="text-sm text-gray-600 mb-4">
+                Select the gender you identify with to help personalize your experience.
+            </p>
+
             <div className="space-y-2 mb-4">
                 {['Male', 'Female', 'Other'].map((option) => (
                     <label key={option} className="flex items-center space-x-2">
@@ -55,33 +75,41 @@ const GenderStep = ({ gender, setGender, onValidation }) => {
                             name="gender"
                             checked={gender.includes(option)}
                             onChange={() => handleChange(option)}
-                            className="form-radio"
+                            className="accent-teal-500"
                         />
                         <span>{option}</span>
                     </label>
                 ))}
             </div>
-            {gender.length === 0 && (
-                <p className="text-blue-500 text-sm mb-3">Please select your gender</p>
+
+            {touched && gender.length === 0 && (
+                <p className="text-teal-500 text-sm mb-3">Please select your gender</p>
             )}
         </div>
     );
 };
 
 const InterestStep = ({ interestedIn, setInterestedIn, onValidation }) => {
+    const [touched, setTouched] = useState(false);
+
     useEffect(() => {
-        // Auto-validate when interestedIn changes
-        onValidation(interestedIn.length > 0);
-    }, [interestedIn, onValidation]);
+        if (touched) {
+            onValidation(interestedIn.length > 0);
+        }
+    }, [interestedIn, touched, onValidation]);
 
     const handleChange = (option) => {
+        if (!touched) setTouched(true);
         setInterestedIn([option]);
     };
 
     return (
         <div>
             <h2 className="text-xl font-semibold mb-2">Who are you interested in seeing?</h2>
-            <p className="text-sm text-gray-600 mb-4">Let us know who you're interested in connecting with so we can show you the right profiles.</p>
+            <p className="text-sm text-gray-600 mb-4">
+                Let us know who you're interested in connecting with so we can show you the right profiles.
+            </p>
+
             <div className="space-y-2 mb-4">
                 {['Men', 'Women', 'Anyone'].map((option) => (
                     <label key={option} className="flex items-center space-x-2">
@@ -90,14 +118,16 @@ const InterestStep = ({ interestedIn, setInterestedIn, onValidation }) => {
                             name="interest"
                             checked={interestedIn.includes(option)}
                             onChange={() => handleChange(option)}
-                            className="form-radio"
+                            className="accent-teal-500"
+
                         />
                         <span>{option}</span>
                     </label>
                 ))}
             </div>
-            {interestedIn.length === 0 && (
-                <p className="text-blue-500 text-sm mb-3">Please select who you are interested in</p>
+
+            {touched && interestedIn.length === 0 && (
+                <p className="text-teal-500 text-sm mb-3">Please select who you are interested in</p>
             )}
         </div>
     );
@@ -110,6 +140,7 @@ const LookingForStep = ({ lookingFor, setLookingFor, onValidation }) => {
     }, [lookingFor, onValidation]);
 
     const handleChange = (option) => {
+        setTouched(true);
         if (lookingFor.includes(option)) {
             setLookingFor(lookingFor.filter(item => item !== option));
         } else {
@@ -117,32 +148,46 @@ const LookingForStep = ({ lookingFor, setLookingFor, onValidation }) => {
         }
     };
 
+    const [touched, setTouched] = useState(false);
+
+    const options = [
+        "Serious relationship",
+        "Open to both long-term and casual connections",
+        "Casual, maybe more",
+        "Just for fun",
+        "Hoping to meet new friends",
+        "Still exploring my options"
+    ];
+
     return (
         <div>
             <h2 className="text-xl font-semibold mb-2">What are you looking for?</h2>
-            <p className="text-sm text-gray-600 mb-4">Let others know what you're here for—friendship, dating, or something more serious.</p>
-            <div className="space-y-2 mb-4">
-                {[
-                    "Serious relationship",
-                    "Open to both long-term and casual connections",
-                    "Casual, maybe more",
-                    "Just for fun",
-                    "Hoping to meet new friends",
-                    "Still exploring my options"
-                ].map((option) => (
-                    <label key={option} className="flex items-center space-x-2">
-                        <input
-                            type="checkbox"
-                            checked={lookingFor.includes(option)}
-                            onChange={() => handleChange(option)}
-                            className="form-checkbox"
-                        />
-                        <span>{option}</span>
-                    </label>
-                ))}
+            <p className="text-sm text-gray-600 mb-4">
+                Let others know what you're here for—friendship, dating, or something more serious.
+            </p>
+
+            <div className="flex flex-wrap gap-2 mb-4">
+                {options.map((option) => {
+                    const isSelected = lookingFor.includes(option);
+                    return (
+                        <button
+                            key={option}
+                            onClick={() => handleChange(option)}
+                            type="button"
+                            className={`px-4 py-2 text-sm rounded-full border transition
+                                ${isSelected
+                                    ? "bg-teal-500 text-white border-teal-500"
+                                    : "bg-white text-gray-800 border-gray-300 hover:bg-gray-100"
+                                }`}
+                        >
+                            {option}
+                        </button>
+                    );
+                })}
             </div>
-            {lookingFor.length === 0 && (
-                <p className="text-blue-500 text-sm mb-3">Please select at least one option</p>
+
+            {touched && lookingFor.length === 0 && (
+                <p className="text-teal-500 text-sm mb-3">Please select at least one option</p>
             )}
         </div>
     );
@@ -183,19 +228,19 @@ const BasicsForm = ({ age, setAge, height, setHeight, drinkFreq = [], setDrinkFr
     ];
 
     return (
-        <div className="p-6 bg-gray-200 rounded-lg max-w-full">
-            <div className="flex justify-between items-center mb-1">
+        <div className="p-6  rounded-lg max-w-full">
+            <div className="flex justify-between items-center mb-3">
                 <h2 className="text-xl font-semibold">Basics</h2>
                 <span className="text-sm text-gray-600">1/3</span>
             </div>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-gray-600 mb-8">
                 Get to know the essentials—where you're from, how you live, and what makes you, you. These details help others see a glimpse of your world at a glance!
             </p>
 
             <label className="block mb-6 font-bold text-gray-700">Select your age</label>
             <div className="relative mb-5">
                 <div
-                    className="absolute -top-5 text-sm font-semibold text-black"
+                    className="absolute -top-5 text-sm font-semibold text-teal-600"
                     style={{
                         left: `calc(${((age - 18) / (99 - 18)) * 100}% - 12px)`
                     }}
@@ -210,9 +255,9 @@ const BasicsForm = ({ age, setAge, height, setHeight, drinkFreq = [], setDrinkFr
                     value={age}
                     onChange={(e) => setAge(Number(e.target.value))}
 
-                    className="w-full h-4 appearance-none bg-gradient-to-r from-gray-800 to-gray-300 rounded-full outline-none"
+                    className="w-full accent-teal-500 cursor-pointer h-2 rounded-lg bg-gradient-to-r from-teal-500 to-teal-800"
                     style={{
-                        height: "5px",
+                        height: "3px",
                         background: `linear-gradient(to right, #333 ${(age - 18) / (99 - 18) * 100}%, #ccc ${(age - 18) / (99 - 18) * 100}%)`
                     }}
                 />
@@ -230,39 +275,47 @@ const BasicsForm = ({ age, setAge, height, setHeight, drinkFreq = [], setDrinkFr
                 <p className="text-red-500 text-sm mb-3">Height must be a number</p>
             )}
 
-            <fieldset className="mb-4">
-                <legend className="font-bold mb-2">🧃 How often do you drink?</legend>
-                {drinkOptions.map((opt) => (
-                    <label key={opt} className="block mb-1">
-                        <input
-                            type="checkbox"
-                            checked={safeDrinkFreq.includes(opt)}
-                            onChange={() => handleCheckboxChange(opt, setDrinkFreq, safeDrinkFreq)}
-                            className="mr-2"
-                        />
-                        {opt}
-                    </label>
-                ))}
+            <fieldset className="mb-6 mt-8">
+                <legend className="font-bold mb-2 text-gray-800 text-lg">🧃 How often do you drink?</legend>
+
+                <div className="space-y-2">
+                    {drinkOptions.map((opt) => (
+                        <label key={opt} className="block text-sm text-gray-700">
+                            <input
+                                type="checkbox"
+                                checked={safeDrinkFreq.includes(opt)}
+                                onChange={() => handleCheckboxChange(opt, setDrinkFreq, safeDrinkFreq)}
+                                className="mr-2 w-4 h-4 accent-teal-500"
+                            />
+                            {opt}
+                        </label>
+                    ))}
+                </div>
+
                 {drinkFreq.length === 0 && (
-                    <p className="text-blue-500 text-sm mb-3">Please select at least one option</p>
+                    <p className="text-teal-500 text-sm mt-2">Please select at least one option</p>
                 )}
             </fieldset>
 
-            <fieldset className="mb-4">
-                <legend className="font-bold mb-2">🚬 How often do you smoke?</legend>
-                {smokeOptions.map((opt) => (
-                    <label key={opt} className="block mb-1">
-                        <input
-                            type="checkbox"
-                            checked={safeSmokeFreq.includes(opt)}
-                            onChange={() => handleCheckboxChange(opt, setSmokeFreq, safeSmokeFreq)}
-                            className="mr-2"
-                        />
-                        {opt}
-                    </label>
-                ))}
+
+            <fieldset className="mb-6 mt-8">
+
+                <legend className="font-bold mb-2 text-gray-800 text-lg">🚬 How often do you smoke?</legend>
+                <div className="space-y-2">
+                    {smokeOptions.map((opt) => (
+                        <label key={opt} className="block text-sm text-gray-700">
+                            <input
+                                type="checkbox"
+                                checked={safeSmokeFreq.includes(opt)}
+                                onChange={() => handleCheckboxChange(opt, setSmokeFreq, safeSmokeFreq)}
+                                className="mr-2 w-4 h-4 accent-teal-500"
+                            />
+                            {opt}
+                        </label>
+                    ))}
+                </div>
                 {smokeFreq.length === 0 && (
-                    <p className="text-blue-500 text-sm mb-3">Please select at least one option</p>
+                    <p className="text-teal-500 text-sm mt-2">Please select at least one option</p>
                 )}
             </fieldset>
         </div>
@@ -278,11 +331,9 @@ const BasicsStepTwo = ({
     setProfessions,
     onValidation
 }) => {
-    // State for input fields
-    const [newLocation, setNewLocation] = useState('');
-    const [newProfession, setNewProfession] = useState('');
+    const [newLocation, setNewLocation] = useState("");
+    const [newProfession, setNewProfession] = useState("");
 
-    // Suggestion data
     const locationSuggestions = [
         "New York", "London", "Paris", "Tokyo", "Berlin",
         "Los Angeles", "Chicago", "Toronto", "Sydney", "Mumbai"
@@ -293,18 +344,23 @@ const BasicsStepTwo = ({
         "Marketing Manager", "Student", "Entrepreneur", "Artist"
     ];
 
-    // Suggestion visibility states
     const [locationSuggestionsVisible, setLocationSuggestionsVisible] = useState(false);
     const [professionSuggestionsVisible, setProfessionSuggestionsVisible] = useState(false);
     const [filteredLocationSuggestions, setFilteredLocationSuggestions] = useState(locationSuggestions);
     const [filteredProfessionSuggestions, setFilteredProfessionSuggestions] = useState(professionSuggestions);
 
-    // Ensure arrays are never undefined
     const safeWorkoutOptions = Array.isArray(workoutOptions) ? workoutOptions : [];
     const safeLocations = Array.isArray(locations) ? locations : [];
     const safeProfessions = Array.isArray(professions) ? professions : [];
 
-    // Handle workout option selection
+    useEffect(() => {
+        const isValid =
+            safeWorkoutOptions.length > 0 &&
+            safeLocations.length > 0 &&
+            safeProfessions.length > 0;
+        onValidation(isValid);
+    }, [safeWorkoutOptions, safeLocations, safeProfessions, onValidation]);
+
     const handleWorkoutToggle = (option) => {
         const newOptions = safeWorkoutOptions.includes(option)
             ? safeWorkoutOptions.filter(item => item !== option)
@@ -312,79 +368,58 @@ const BasicsStepTwo = ({
         setWorkoutOptions(newOptions);
     };
 
-    // Handle location input change
     const handleLocationInputChange = (e) => {
         const value = e.target.value;
         setNewLocation(value);
-
-        if (value.trim() === '') {
-            setFilteredLocationSuggestions(locationSuggestions);
-        } else {
-            setFilteredLocationSuggestions(
-                locationSuggestions.filter(loc =>
+        setFilteredLocationSuggestions(
+            value.trim() === ""
+                ? locationSuggestions
+                : locationSuggestions.filter(loc =>
                     loc.toLowerCase().includes(value.toLowerCase())
                 )
-            );
-        }
+        );
     };
 
-    // Handle adding new location
     const handleAddLocation = (e) => {
         e.preventDefault();
-        const trimmedLocation = newLocation.trim();
-        if (trimmedLocation && !safeLocations.includes(trimmedLocation)) {
-            setLocations([...safeLocations, trimmedLocation]);
-            setNewLocation('');
+        const trimmed = newLocation.trim();
+        if (trimmed && !safeLocations.includes(trimmed)) {
+            setLocations([...safeLocations, trimmed]);
+            setNewLocation("");
         }
     };
 
-    // Handle profession input change
     const handleProfessionInputChange = (e) => {
         const value = e.target.value;
         setNewProfession(value);
-
-        if (value.trim() === '') {
-            setFilteredProfessionSuggestions(professionSuggestions);
-        } else {
-            setFilteredProfessionSuggestions(
-                professionSuggestions.filter(prof =>
+        setFilteredProfessionSuggestions(
+            value.trim() === ""
+                ? professionSuggestions
+                : professionSuggestions.filter(prof =>
                     prof.toLowerCase().includes(value.toLowerCase())
                 )
-            );
-        }
+        );
     };
 
-    // Handle adding new profession
     const handleAddProfession = (e) => {
         e.preventDefault();
-        const trimmedProfession = newProfession.trim();
-        if (trimmedProfession && !safeProfessions.includes(trimmedProfession)) {
-            setProfessions([...safeProfessions, trimmedProfession]);
-            setNewProfession('');
+        const trimmed = newProfession.trim();
+        if (trimmed && !safeProfessions.includes(trimmed)) {
+            setProfessions([...safeProfessions, trimmed]);
+            setNewProfession("");
         }
     };
 
-    // Handle removing location
-    const handleRemoveLocation = (location) => {
-        setLocations(safeLocations.filter(loc => loc !== location));
+    const handleRemoveLocation = (loc) => {
+        setLocations(safeLocations.filter(l => l !== loc));
     };
 
-    // Handle removing profession
-    const handleRemoveProfession = (profession) => {
-        setProfessions(safeProfessions.filter(prof => prof !== profession));
+    const handleRemoveProfession = (prof) => {
+        setProfessions(safeProfessions.filter(p => p !== prof));
     };
-
-    // Validate form
-    useEffect(() => {
-        const isValid = safeWorkoutOptions.length > 0 &&
-            safeLocations.length > 0 &&
-            safeProfessions.length > 0;
-        onValidation(isValid);
-    }, [safeWorkoutOptions, safeLocations, safeProfessions, onValidation]);
 
     return (
-        <div className="p-6 bg-gray-200 rounded-lg max-w-full">
-            {/* Header and intro text */}
+        <div className="p-6  rounded-lg max-w-full">
             <div className="flex justify-between items-center mb-2">
                 <h2 className="text-xl font-semibold">Basics</h2>
                 <span className="text-sm text-gray-600">2/3</span>
@@ -393,259 +428,241 @@ const BasicsStepTwo = ({
                 Get to know the essentials—where you're from, how you live, and what makes you, you.
             </p>
 
-            {/* Workout Options */}
-            <fieldset className="mb-4">
-                <legend className="font-bold mb-2">💪 Do you workout?</legend>
+            {/* Workout */}
+            <fieldset className="mb-6 mt-8">
+                <legend className="font-bold flex items-center gap-2 mb-5 text-sm">
+                    <Dumbbell className="text-teal-500" size={18} />
+                    Do you workout?
+                </legend>
                 {["Not very active", "Sometimes", "Regularly", "Almost every day"].map((option) => (
-                    <label key={option} className="flex items-center space-x-2 mb-1">
+                    <label key={option} className="flex items-center space-x-2 mb-2 text-sm">
                         <input
                             type="checkbox"
                             checked={safeWorkoutOptions.includes(option)}
                             onChange={() => handleWorkoutToggle(option)}
-                            className="form-checkbox text-black h-5 w-5"
+                            className=" accent-teal-500 h-5 w-5"
                         />
                         <span>{option}</span>
                     </label>
                 ))}
                 {safeWorkoutOptions.length === 0 && (
-                    <p className="text-blue-500 text-sm mb-3">Please select at least one option</p>
+                    <p className="text-teal-500 text-sm mt-1">Please select at least one option</p>
                 )}
             </fieldset>
 
-            {/* Locations */}
-            <div className="mb-4">
-                <label className="block font-bold mb-1">📍 Where are you from?</label>
-                <form onSubmit={handleAddLocation} className="relative w-full mb-2">
+            {/* Location */}
+            <div className="mb-10">
+                <label className="font-bold mb-1 text-sm flex items-center gap-2">
+                    <MapPin className="text-teal-500" size={18} />
+                    Where are you from?
+                </label>
+
+                {/* Input Field */}
+                <div className="relative w-full mb-4">
                     <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
                     <input
                         type="text"
                         placeholder="Search location"
                         value={newLocation}
                         onChange={handleLocationInputChange}
-                        onFocus={() => setLocationSuggestionsVisible(true)}
-                        onBlur={() => setTimeout(() => setLocationSuggestionsVisible(false), 200)}
                         className="bg-gray-100 pl-10 pr-4 py-2 rounded-full text-sm w-full focus:outline-none focus:ring-1 focus:ring-gray-300"
                     />
-                </form>
-
-                {locationSuggestionsVisible && filteredLocationSuggestions.length > 0 && (
-                    <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
-                        {filteredLocationSuggestions.map((suggestion) => (
-                            <div
-                                key={suggestion}
-                                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                onMouseDown={(e) => {
-                                    e.preventDefault(); // Prevent input blur
-                                    setLocations([...safeLocations, suggestion]);
-                                    setNewLocation('');
-                                    setLocationSuggestionsVisible(false);
-                                }}
-                            >
-                                {suggestion}
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                <div className="flex flex-wrap gap-2 mt-2">
-                    {safeLocations.map((location) => (
-                        <span
-                            key={location}
-                            className="bg-gray-300 text-black px-2 py-1 rounded-full text-sm flex items-center space-x-1"
-                        >
-                            <span>{location}</span>
-                            <button
-                                type="button"
-                                onClick={() => handleRemoveLocation(location)}
-                                className="ml-1 text-gray-600 hover:text-black"
-                            >
-                                &times;
-                            </button>
-                        </span>
-                    ))}
                 </div>
+
+                {/* Always visible options */}
+                <div className="flex flex-wrap gap-2">
+                    {filteredLocationSuggestions.map((loc) => {
+                        const isSelected = safeLocations.includes(loc);
+                        return (
+                            <button
+                                key={loc}
+                                onClick={() => {
+                                    if (isSelected) {
+                                        handleRemoveLocation(loc);
+                                    } else {
+                                        setLocations([...safeLocations, loc]);
+                                    }
+                                }}
+                                type="button"
+                                className={`px-4 py-1.5 text-sm rounded-full border transition ${isSelected
+                                    ? "bg-teal-500 text-white border-teal-500"
+                                    : "bg-white text-gray-800 border-gray-300 hover:bg-gray-100"
+                                    }`}
+                            >
+                                {loc}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Validation message */}
                 {safeLocations.length === 0 && (
-                    <p className="text-blue-500 text-sm mb-3">Please add at least one location</p>
+                    <p className="text-teal-500 text-sm mt-3">Please select at least one location</p>
                 )}
             </div>
 
-            {/* Professions */}
+
+            {/* Profession */}
             <div className="mb-4">
-                <label className="block font-bold mb-1">
-                    🎓 What's your current grind—career, college, or a bit of both?
+                <label className="font-bold mb-1 text-sm flex items-center gap-2">
+                    <Briefcase className="text-teal-500" size={18} />
+                    What's your current grind—career, college, or both?
                 </label>
-                <form onSubmit={handleAddProfession} className="relative w-full mb-2">
+
+                {/* Search input */}
+                <div className="relative w-full mb-4">
                     <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
                     <input
                         type="text"
-                        placeholder="Search profession, college"
+                        placeholder="Search profession or college"
                         value={newProfession}
                         onChange={handleProfessionInputChange}
-                        onFocus={() => setProfessionSuggestionsVisible(true)}
-                        onBlur={() => setTimeout(() => setProfessionSuggestionsVisible(false), 200)}
                         className="bg-gray-100 pl-10 pr-4 py-2 rounded-full text-sm w-full focus:outline-none focus:ring-1 focus:ring-gray-300"
                     />
-                </form>
-
-                {professionSuggestionsVisible && filteredProfessionSuggestions.length > 0 && (
-                    <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
-                        {filteredProfessionSuggestions.map((suggestion) => (
-                            <div
-                                key={suggestion}
-                                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                onMouseDown={(e) => {
-                                    e.preventDefault(); // Prevent input blur
-                                    setProfessions([...safeProfessions, suggestion]);
-                                    setNewProfession('');
-                                    setProfessionSuggestionsVisible(false);
-                                }}
-                            >
-                                {suggestion}
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                <div className="flex flex-wrap gap-2 mt-2">
-                    {safeProfessions.map((profession) => (
-                        <span
-                            key={profession}
-                            className="bg-gray-300 text-black px-2 py-1 rounded-full text-sm flex items-center space-x-1"
-                        >
-                            <span>{profession}</span>
-                            <button
-                                type="button"
-                                onClick={() => handleRemoveProfession(profession)}
-                                className="ml-1 text-gray-600 hover:text-black"
-                            >
-                                &times;
-                            </button>
-                        </span>
-                    ))}
                 </div>
+
+                {/* Always visible suggestions as buttons */}
+                <div className="flex flex-wrap gap-2">
+                    {filteredProfessionSuggestions.map((item) => {
+                        const isSelected = safeProfessions.includes(item);
+                        return (
+                            <button
+                                key={item}
+                                onClick={() => {
+                                    if (isSelected) {
+                                        handleRemoveProfession(item);
+                                    } else {
+                                        setProfessions([...safeProfessions, item]);
+                                    }
+                                }}
+                                type="button"
+                                className={`px-4 py-1.5 text-sm rounded-full border transition ${isSelected
+                                    ? "bg-teal-500 text-white border-teal-500"
+                                    : "bg-white text-gray-800 border-gray-300 hover:bg-gray-100"
+                                    }`}
+                            >
+                                {item}
+                            </button>
+                        );
+                    })}
+                </div>
+
                 {safeProfessions.length === 0 && (
-                    <p className="text-blue-500 text-sm mb-3">Please add at least one profession or education</p>
+                    <p className="text-teal-500 text-sm mt-3">
+                        Please add at least one profession or education
+                    </p>
                 )}
             </div>
+
         </div>
     );
 };
-const BasicsStepThree = ({ languages, setLanguages, describeSelf, setDescribeSelf, idealDate, setIdealDate, greatPartner, setGreatPartner, onValidation }) => {
+
+const BasicsStepThree = ({
+    languages,
+    setLanguages,
+    describeSelf,
+    setDescribeSelf,
+    idealDate,
+    setIdealDate,
+    greatPartner,
+    setGreatPartner,
+    onValidation,
+}) => {
+    const safeLanguages = Array.isArray(languages) ? languages : [];
+
     const languageSuggestions = [
         "English", "Spanish", "French", "German", "Mandarin",
         "Hindi", "Arabic", "Portuguese", "Russian", "Japanese"
     ];
 
-    // Suggestion states
-    const [languageSuggestionsVisible, setLanguageSuggestionsVisible] = useState(false);
-    const [filteredLanguageSuggestions, setFilteredLanguageSuggestions] = useState(languageSuggestions);
-    const [languageInputValue, setLanguageInputValue] = useState('');
+    const [languageInputValue, setLanguageInputValue] = useState("");
 
     useEffect(() => {
-        // Auto-validate when relevant fields change
-        const isLanguagesValid = languages.length > 0;
+        const isLanguagesValid = safeLanguages.length > 0;
         const isDescribeValid = describeSelf.trim().length >= 20;
         const isIdealDateValid = idealDate.trim().length >= 20;
         const isPartnerValid = greatPartner.trim().length >= 20;
         onValidation(isLanguagesValid && isDescribeValid && isIdealDateValid && isPartnerValid);
-    }, [languages, describeSelf, idealDate, greatPartner, onValidation]);
+    }, [safeLanguages, describeSelf, idealDate, greatPartner, onValidation]);
 
     const handleAddLanguage = (value) => {
-        if (value && !languages.includes(value)) {
-            setLanguages([...languages, value]);
+        if (value && !safeLanguages.includes(value)) {
+            setLanguages([...safeLanguages, value]);
         }
     };
 
     const handleRemoveLanguage = (lang) => {
         setLanguages((prev) => prev.filter((l) => l !== lang));
     };
-    const handleLanguageInputChange = (e) => {
-        const value = e.target.value;
-        setLanguageInputValue(value);
 
-        if (value.trim() === '') {
-            setFilteredLanguageSuggestions(languageSuggestions);
-        } else {
-            setFilteredLanguageSuggestions(
-                languageSuggestions.filter(lang =>
-                    lang.toLowerCase().includes(value.toLowerCase())
-                )
-            );
-        }
+    const handleLanguageInputChange = (e) => {
+        setLanguageInputValue(e.target.value);
     };
 
     const handleAddLanguageFromInput = (e) => {
         e.preventDefault();
         const value = languageInputValue.trim();
-        if (value && !languages.includes(value)) {
-            setLanguages([...languages, value]);
-            setLanguageInputValue('');
+        if (value && !safeLanguages.includes(value)) {
+            setLanguages([...safeLanguages, value]);
+            setLanguageInputValue("");
         }
     };
 
     return (
-        <div className="p-6 bg-gray-200 rounded-lg max-w-full">
+        <div className="p-6 rounded-lg max-w-full">
             <div className="flex justify-between items-center mb-2">
                 <h2 className="text-xl font-semibold">Basics</h2>
                 <span className="text-sm text-gray-600">3/3</span>
             </div>
             <p className="text-sm text-gray-600 mb-4">
-                Get to know the essentials—where you're from, how you live, and what makes you, you. These details help others see a glimpse of your world at a glance!
+                Get to know the essentials—where you're from, how you live, and what makes you, you.
+                These details help others see a glimpse of your world at a glance!
             </p>
 
-            <div className="mb-4">
+            <div className="mb-8">
                 <label className="block font-bold mb-1">🌐 Which languages do you speak?</label>
+
                 <form onSubmit={handleAddLanguageFromInput} className="relative w-full mb-2">
                     <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
                     <input
                         type="text"
-                        placeholder="Search language"
+                        placeholder="Add a custom language"
                         value={languageInputValue}
                         onChange={handleLanguageInputChange}
-                        onFocus={() => setLanguageSuggestionsVisible(true)}
-                        onBlur={() => setTimeout(() => setLanguageSuggestionsVisible(false), 200)}
-                        className="bg-gray-100 pl-10 pr-4 py-2 rounded-full text-sm w-full focus:outline-none focus:ring-1 focus:ring-gray-300"
+                        className="bg-gray-100 pl-10 pr-4 py-2 rounded-full text-sm w-full focus:outline-none focus:ring-1 focus:ring-teal-400"
                     />
                 </form>
 
-                {languageSuggestionsVisible && filteredLanguageSuggestions.length > 0 && (
-                    <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
-                        {filteredLanguageSuggestions.map((suggestion) => (
-                            <div
-                                key={suggestion}
-                                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                onMouseDown={() => {
-                                    handleAddLanguage(suggestion);
-                                    setLanguageInputValue('');
-                                    setLanguageSuggestionsVisible(false);
-                                }}
-                            >
-                                {suggestion}
-                            </div>
-                        ))}
-                    </div>
-                )}
-
                 <div className="flex flex-wrap gap-2 mt-2">
-                    {languages.map((lang) => (
-                        <span
-                            key={lang}
-                            className="bg-gray-300 text-black px-2 py-1 rounded-full text-sm flex items-center space-x-1"
-                        >
-                            <span>{lang}</span>
+                    {languageSuggestions.map((option) => {
+                        const isSelected = safeLanguages.includes(option);
+                        return (
                             <button
-                                onClick={() => handleRemoveLanguage(lang)}
-                                className="ml-1 text-gray-600 hover:text-black"
+                                key={option}
+                                type="button"
+                                onClick={() =>
+                                    isSelected
+                                        ? setLanguages(safeLanguages.filter((lang) => lang !== option))
+                                        : setLanguages([...safeLanguages, option])
+                                }
+                                className={`px-4 py-1.5 text-sm rounded-full border transition 
+            ${isSelected
+                                        ? "bg-teal-500 text-white border-teal-500 hover:bg-teal-600"
+                                        : "bg-white text-gray-800 border-gray-300 hover:bg-gray-100"
+                                    }`}
                             >
-                                &times;
+                                {option}
                             </button>
-                        </span>
-                    ))}
+                        );
+                    })}
                 </div>
-                {languages.length === 0 && (
-                    <p className="text-blue-500 text-sm mb-3">Please add at least one language</p>
+
+                {safeLanguages.length === 0 && (
+                    <p className="text-teal-500 text-sm mt-2">Please add at least one language</p>
                 )}
             </div>
+
 
             <div className="mb-4">
                 <label className="block font-bold mb-1">
@@ -661,7 +678,7 @@ const BasicsStepThree = ({ languages, setLanguages, describeSelf, setDescribeSel
                 />
                 <p className="text-xs text-gray-500 text-right">{describeSelf.length}/200</p>
                 {describeSelf.trim().length < 20 && (
-                    <p className="text-blue-500 text-sm mb-3">Description should be at least 20 characters</p>
+                    <p className="text-teal-500 text-sm mb-3">Description should be at least 20 characters</p>
                 )}
             </div>
 
@@ -679,7 +696,7 @@ const BasicsStepThree = ({ languages, setLanguages, describeSelf, setDescribeSel
                 />
                 <p className="text-xs text-gray-500 text-right">{idealDate.length}/200</p>
                 {idealDate.trim().length < 20 && (
-                    <p className="text-blue-500 text-sm mb-3">Description should be at least 20 characters</p>
+                    <p className="text-teal-500 text-sm mb-3">Description should be at least 20 characters</p>
                 )}
             </div>
 
@@ -697,7 +714,7 @@ const BasicsStepThree = ({ languages, setLanguages, describeSelf, setDescribeSel
                 />
                 <p className="text-xs text-gray-500 text-right">{greatPartner.length}/200</p>
                 {greatPartner.trim().length < 20 && (
-                    <p className="text-blue-500 text-sm mb-3">Description should be at least 20 characters</p>
+                    <p className="text-teal-500 text-sm mb-3">Description should be at least 20 characters</p>
                 )}
             </div>
         </div>
@@ -788,37 +805,90 @@ const LikesForm = ({ likes, setLikes, onValidation }) => {
     };
 
     return (
-        <div className="p-6 bg-gray-200 rounded-lg max-w-xl">
+        <div className="p-6 rounded-lg max-w-xl">
             <h2 className="text-xl font-bold mb-1">Likes</h2>
             <p className="text-sm text-gray-600 mb-2">
                 Highlight what brings you joy! Whether it's your favorite hobbies, go-to activities, or passions, select the ones that define you best.
             </p>
             <p className="text-sm font-bold mb-4">Pick at least 5 to continue! ({likes.length}/5 selected)</p>
-            {likes.length < 5 && (
-                <p className="text-blue-500 text-sm mb-3">Please select at least 5 likes</p>
-            )}
+
 
             {Object.entries(categories).map(([category, tags]) => (
-                <div key={category} className="mb-5">
-                    <label className="block font-bold mb-1">
+                <div key={category} className="mb-8">
+                    <label className="block font-bold mb-3">
                         {categoryEmojis[category] || "📌"} {category}
                     </label>
                     <div className="flex flex-wrap gap-2 mb-2">
-                        {tags.map(tag => (
-                            <button
-                                key={tag}
-                                onClick={() => toggleTag(tag)}
-                                className={`px-3 py-1 rounded-full text-sm border ${(Array.isArray(likes) ? likes : []).includes(tag)
-                                    ? "bg-black text-white border-black"
-                                    : "bg-gray-200 text-black"
-                                    }`}
-                            >
-                                {tagEmojis[tag]} {tag}
-                            </button>
-                        ))}
+                        {tags.map(tag => {
+                            const isSelected = safeLikes.includes(tag);
+                            return (
+                                <button
+                                    key={tag}
+                                    onClick={() => toggleTag(tag)}
+                                    className={`px-3 py-1.5 text-sm rounded-full border transition
+              ${isSelected
+                                            ? "bg-teal-500 text-white border-teal-500 hover:bg-teal-600"
+                                            : "bg-white text-gray-800 border-gray-300 hover:bg-gray-100"
+                                        }`}
+                                >
+                                    {tagEmojis[tag]} {tag}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             ))}
+
+        </div>
+    );
+};
+
+const PhotoVerificationStep = ({ onValidation }) => {
+    const [photoFile, setPhotoFile] = useState(null);
+    const [previewURL, setPreviewURL] = useState(null);
+
+    useEffect(() => {
+        // Validate only when photo is selected
+        onValidation(!!photoFile);
+    }, [photoFile, onValidation]);
+
+    const handlePhotoChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setPhotoFile(file);
+            setPreviewURL(URL.createObjectURL(file));
+        }
+    };
+
+    return (
+        <div className="p-6 rounded-lg max-w-xl">
+            <h2 className="text-xl font-bold mb-1">Upload a Photo to Verify Your Identity</h2>
+            <p className="text-sm text-gray-600 mb-6">
+                To keep our community safe and authentic, we require a clear photo of you for identity confirmation. This photo won’t be shown on your profile — it’s only used for verification purposes.
+            </p>
+
+            <div className="flex flex-col items-start gap-4 mb-4">
+                <label className="bg-teal-500 hover:bg-teal-600 text-white font-medium py-2 px-4 rounded-full flex items-center gap-2 cursor-pointer">
+                    <Camera /> Upload Photo
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoChange}
+                        className="hidden"
+                    />
+                </label>
+
+                {previewURL && (
+                    <div className="mt-2">
+                        <p className="text-sm font-semibold mb-1">Preview:</p>
+                        <img
+                            src={previewURL}
+                            alt="Uploaded Preview"
+                            className="w-40 h-40 object-cover rounded-md border border-gray-300"
+                        />
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
@@ -982,6 +1052,11 @@ export default function MultiStepForm({ onComplete }) {
                 setLikes={(val) => updateFormData('likes', val)}
                 onValidation={(valid) => setIsValid(valid)}
             />
+        }, {
+            label: "Verify Identity",
+            component: <PhotoVerificationStep
+                onValidation={(valid) => setIsValid(valid)}
+            />
         }
     ];
 
@@ -989,27 +1064,34 @@ export default function MultiStepForm({ onComplete }) {
     const totalSteps = steps.length;
 
     return (
-        <div className="max-w-2xl mx-auto mt-10 p-6 bg-gray-200 shadow rounded-lg">
-            <div className="w-full bg-gray-200 h-1 rounded-full mb-6">
+        <div className="max-w-2xl mx-auto mt-10 p-6 bg-white shadow rounded-2xl border border-teal-100">
+            {/* Progress Bar */}
+            <div className="w-full bg-teal-100 h-1 rounded-full mb-6">
                 <div
-                    className="bg-black h-full rounded-full transition-all duration-300"
+                    className="bg-teal-500 h-full rounded-full transition-all duration-300"
                     style={{ width: `${(currentStep / (totalSteps - 1)) * 100}%` }}
                 ></div>
             </div>
 
+            {/* Step Component */}
             {steps[currentStep].component}
 
-            <div className="inline-flex gap-3 mt-3">
+            {/* Navigation Buttons */}
+            <div className="inline-flex gap-3 mt-4">
                 <button
                     onClick={handleBack}
-                    className="bg-gray-400 text-white px-4 py-2 rounded-full"
+                    className={`px-4 py-2 rounded-full text-white ${currentStep === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-teal-400 hover:bg-teal-500'
+                        }`}
                     disabled={currentStep === 0}
                 >
                     Back
                 </button>
                 <button
                     onClick={handleNext}
-                    className={`px-4 py-2 rounded-full ${isValid ? 'bg-black text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                    className={`px-4 py-2 rounded-full transition-all ${isValid
+                        ? 'bg-teal-500 hover:bg-teal-600 text-white'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
                     disabled={!isValid}
                 >
                     {currentStep === steps.length - 1 ? 'Submit' : 'Next'}
