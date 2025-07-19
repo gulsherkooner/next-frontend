@@ -221,10 +221,8 @@ const WalletBox = () => {
               className="flex items-center text-sm text-teal-600 font-semibold hover:underline"
             >
               <PlusCircle className="mr-1 w-4 h-4 stroke-teal-500" />
-              Add Card
+              Add Bank
             </button>
-
-
           </div>
         </div>
 

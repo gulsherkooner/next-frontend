@@ -61,7 +61,7 @@ export default function DatingPage() {
         if (!response.ok) throw new Error('Profile check failed');
 
         const { exists } = await response.json();
-        setHasProfile(null);
+        setHasProfile(exists);
       } catch (error) {
         console.error("Profile check error:", error);
       } finally {

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { getCookie } from '../../lib/utils/cookie';
 const api_url = process.env.NEXT_PUBLIC_API_GATEWAY_URL;
 const FirstNameForm = ({ value, onChange }) => (
-  <div className="max-w-full p-1 bg-gray-200 rounded-md font-sans mt-2 mb-10">
+  <div className="max-w-full p-1  rounded-md font-sans mt-2 mb-10">
     <h2 className="text-xl font-bold mb-1">Your Name</h2>
     <p className="text-lg text-gray-600 mb-4">
       Let others know what to call you! Enter your first name to personalize your profile.
@@ -28,7 +28,7 @@ const GenderStep = ({ value, onChange }) => (
           <input
             type="radio"
             name="gender"
-            className="scale-150 accent-gray-800"
+            className="scale-150 accent-teal-300"
             checked={value === option}
             onChange={() => onChange(option)}
           />
@@ -49,7 +49,7 @@ const InterestStep = ({ value, onChange }) => (
           <input
             type="radio"
             name="interest"
-            className="scale-150 accent-gray-800"
+            className="scale-150 accent-teal-300"
             checked={value === option}
             onChange={() => onChange(option)}
           />
@@ -79,7 +79,7 @@ const LookingForStep = ({ value, onChange }) => {
               type="checkbox"
               checked={value.includes(option)}
               onChange={() => toggleOption(option)}
-              className="scale-150 accent-gray-800"
+              className="scale-150 accent-teal-300"
             />
             <span className='text-xl'>{option}</span>
           </label>
@@ -99,7 +99,7 @@ const BasicsForm = ({ age, setAge, height, setHeight, drinks, setDrinks, smokes,
   };
 
   return (
-    <div className="bg-gray-200 rounded-lg max-w-full mb-10 mt-10">
+    <div className=" rounded-lg max-w-full mb-10 mt-10">
       <h2 className="text-xl font-bold mb-2">Basics</h2>
       <label className="block mb-6 font-bold text-gray-700 text-xl">Select your age</label>
       <div className="relative mb-5">
@@ -115,7 +115,7 @@ const BasicsForm = ({ age, setAge, height, setHeight, drinks, setDrinks, smokes,
           max="99"
           value={age}
           onChange={(e) => setAge(Number(e.target.value))}
-          className="w-full h-4 bg-gradient-to-r from-gray-800 to-gray-300 rounded-full accent-gray-400"
+          className="w-full h-4 bg-gradient-to-r from-teal-400 to-teal-500 rounded-full accent-teal-400"
         />
       </div>
       <label className="block mb-3 font-bold text-xl">📏Enter your height (Optional)</label>
@@ -134,7 +134,7 @@ const BasicsForm = ({ age, setAge, height, setHeight, drinks, setDrinks, smokes,
               type="checkbox"
               checked={drinks.includes(opt)}
               onChange={() => toggle(opt, drinks, setDrinks)}
-              className="mr-2 accent-gray-400"
+              className="mr-2 accent-teal-300"
             />
             {opt}
           </label>
@@ -148,7 +148,7 @@ const BasicsForm = ({ age, setAge, height, setHeight, drinks, setDrinks, smokes,
               type="checkbox"
               checked={smokes.includes(opt)}
               onChange={() => toggle(opt, smokes, setSmokes)}
-              className="mr-2 accent-gray-400"
+              className="mr-2 accent-teal-300"
             />
             {opt}
           </label>
@@ -178,18 +178,18 @@ const BasicsStepTwo = ({
   };
 
   return (
-    <div className="bg-gray-200 rounded-lg max-w-full">
+    <div className=" rounded-lg max-w-full">
       <h2 className="text-xl font-bold mb-4">Basics - Step 2</h2>
 
       <fieldset className="mb-6">
         <legend className="font-bold mb-2 text-xl">💪 Do you workout?</legend>
         {["Not very active", "Sometimes", "Regularly", "Almost every day"].map((option) => (
-          <label key={option} className="flex items-center space-x-2 mb-2">
+          <label key={option} className="flex items-center space-x-2 mb-4">
             <input
               type="checkbox"
               checked={workoutOptions.includes(option)}
               onChange={() => handleToggle(option, workoutOptions, setWorkoutOptions)}
-              className="form-checkbox text-black h-5 w-5"
+              className="form-checkbox text-black h-5 w-5 accent-teal-300"
             />
             <span>{option}</span>
           </label>
@@ -216,7 +216,7 @@ const BasicsStepTwo = ({
         />
         <div className="flex flex-wrap gap-2 mt-2">
           {locations.map((loc) => (
-            <span key={loc} className="bg-gray-300 px-2 py-1 rounded-full text-sm">
+            <span key={loc} className="bg-teal-300 px-2 py-1 rounded-full text-sm">
               {loc}
               <button onClick={() => setLocations(locations.filter((l) => l !== loc))} className="ml-1">×</button>
             </span>
@@ -244,7 +244,7 @@ const BasicsStepTwo = ({
         />
         <div className="flex flex-wrap gap-2 mt-2">
           {professions.map((prof) => (
-            <span key={prof} className="bg-gray-300 px-2 py-1 rounded-full text-sm">
+            <span key={prof} className="bg-teal-300 px-2 py-1 rounded-full text-sm">
               {prof}
               <button onClick={() => setProfessions(professions.filter((p) => p !== prof))} className="ml-1">×</button>
             </span>
@@ -280,7 +280,7 @@ const BasicsStepThree = ({
   };
 
   return (
-    <div className="p-6 bg-gray-200 rounded-lg max-w-full">
+    <div className="p-6  rounded-lg max-w-full">
       <h2 className="text-xl font-bold mb-4">Basics - Step 3</h2>
 
       <form onSubmit={handleAddLanguage} className="mb-4">
@@ -294,7 +294,7 @@ const BasicsStepThree = ({
         />
         <div className="flex flex-wrap gap-2 mt-2">
           {languages.map((lang) => (
-            <span key={lang} className="bg-gray-300 px-2 py-1 rounded-full text-sm">
+            <span key={lang} className="bg-teal-300 px-2 py-1 rounded-full text-sm">
               {lang}
               <button onClick={() => handleRemoveLanguage(lang)} className="ml-1">×</button>
             </span>
@@ -416,7 +416,7 @@ const LikesForm = ({ likes, setLikes }) => {
   };
 
   return (
-    <div className="p-6 bg-gray-200 rounded-lg max-w-xl">
+    <div className="p-6 rounded-lg max-w-2xl">
       <h2 className="text-xl font-bold mb-1">Likes</h2>
       <p className="text-sm text-gray-600 mb-2">
         Highlight what brings you joy! Whether it's your favorite hobbies, go-to activities, or passions, select the ones that define you best.
@@ -437,7 +437,7 @@ const LikesForm = ({ likes, setLikes }) => {
                 key={tag}
                 onClick={() => toggleTag(tag)}
                 className={`px-3 py-1 rounded-full text-sm border ${(Array.isArray(likes) ? likes : []).includes(tag)
-                  ? "bg-black text-white border-black"
+                  ? "bg-teal-500 text-white border-black"
                   : "bg-gray-200 text-black"
                   }`}
               >
@@ -520,7 +520,7 @@ export const Dating = ({ data }) => {
   };
 
   return (
-    <div className="flex-1 bg-gray-200 rounded-md shadow p-6 text-sm text-gray-800 h-[100vh] overflow-y-scroll">
+    <div className="flex-1 rounded-md shadow p-6 text-sm text-gray-800 h-[100vh] overflow-y-scroll">
       <h2 className="text-xl font-extrabold mb-6">Dating Profile</h2>
       <div className="space-y-4 border-t-1 p-3">
         <FirstNameForm value={firstName} onChange={setFirstName} />
@@ -566,7 +566,7 @@ export const Dating = ({ data }) => {
           <button
             onClick={handleUpdate}
             disabled={loading}
-            className={`px-6 py-2 rounded-lg transition ${loading ? 'bg-gray-500 cursor-not-allowed' : 'bg-black hover:bg-gray-800 text-white'
+            className={`px-6 py-2 rounded-lg transition ${loading ? 'bg-teal-500 cursor-not-allowed' : 'bg-teal-500 hover:bg-teal-400 text-white'
               }`}
           >
             {loading ? (

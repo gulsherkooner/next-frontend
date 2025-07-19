@@ -19,8 +19,16 @@ const LikesForm = ({ likes, setLikes, onSave, type }) => {
   };
 
   return (
-    <div className="bg-gray-200 rounded-lg max-w-xl">
-      <h2 className="text-xl font-extrabold mb-2">{type === 'likes' ? 'Interested In' : 'Show Less Of'}</h2>
+    <div className="rounded-lg max-w-xl">
+      <h2 className="text-xl font-extrabold mb-5">{type === 'likes' ? 'Interested In' : 'Show Less Of'}</h2>
+      <h2 className="text-md font-medium mb-5">{type === 'likes' ? 'Select topics you’d like to see more of in your feed and explore page.' : 'Select topics you’d like to see less of in your feed and explore page.'}</h2>
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="Search tags"
+          className="bg-gray-100 pl-5 pr-4 py-2 rounded-md text-sm w-full focus:outline-none focus:ring-1 focus:ring-gray-300 mb-5"
+        />
+      </div>
       <div className="flex flex-wrap gap-2 mb-2">
         {Object.values(categories).flat().map(tag => (
           <button
@@ -32,7 +40,7 @@ const LikesForm = ({ likes, setLikes, onSave, type }) => {
               setLikes(updated);
               onSave(updated);
             }}
-            className={`px-3 py-1 rounded-full text-sm border ${likes.includes(tag) ? "bg-black text-white border-black" : "bg-gray-200 text-black"
+            className={`px-3 py-1 rounded-full text-sm border ${likes.includes(tag) ? "bg-teal-500 text-white border-black" : "bg-gray-100 text-black"
               }`}
           >
             {tag}
@@ -149,7 +157,7 @@ export const Content = ({ user }) => {
   if (!settings) return null; // Loading
 
   return (
-    <div className="flex-1 bg-gray-200 rounded-md shadow p-6 text-sm text-gray-800 h-[100vh] overflow-scroll">
+    <div className="flex-1 rounded-md shadow p-6 text-sm text-gray-800 h-[100vh] overflow-scroll">
       <h2 className="text-xl font-extrabold mb-6">Content preferences</h2>
       <hr />
       <div className="space-y-4 p-5">
@@ -184,7 +192,7 @@ export const Content = ({ user }) => {
                     name={field}
                     checked={settings?.content?.[field] === option}
                     onChange={() => handleChange(field, option)}
-                    className="scale-150 accent-gray-800"
+                    className="scale-150 accent-teal-400"
                   />
                   <span className="font-bold text-lg">{option}</span>
                 </label>

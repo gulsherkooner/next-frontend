@@ -193,10 +193,10 @@ const ChangePassword = ({ setSection }) => {
         <button
           type="submit"
           onClick={handleChangePassword}
-          className="bg-white text-lg p-2 rounded-xl border border-gray-300"
+          className=" text-lg text-white p-2 rounded-xl bg-teal-500"
           disabled={loading}
         >
-          {loading ? 'Submitting...' : 'Submit'}
+          {loading ? 'Saving...' : 'Save'}
         </button>
       </div>
     </>
@@ -242,18 +242,18 @@ export const Privacy = ({ user }) => {
               name={`${sectionName}-${field}`}
               checked={settings?.privacy?.[sectionName]?.[field] === opt}
               onChange={() => saveSettings(sectionName, field, opt)}
-              className="scale-150 accent-gray-800"
+              className="scale-150 accent-teal-300"
             />
             <span className='font-bold text-lg'>{opt}</span>
           </label>
         ))}
       </div>
-      <hr />
+      <hr className='mb-3' />
     </div>
   );
 
   return (
-    <div className="flex-1 bg-gray-200 rounded-md shadow p-6 text-sm text-gray-800 h-[100vh] overflow-scroll">
+    <div className="flex-1  rounded-md shadow p-6 text-sm text-gray-800 h-[100vh] overflow-scroll">
       {section === 'main' && !isblock && !ismuted && (
         <>
           <h2 className="text-xl font-extrabold mb-6">Privacy & Safety</h2>
@@ -279,14 +279,16 @@ export const Privacy = ({ user }) => {
       )}
 
       {section === 'changePassword' && (
-        <ChangePassword setSection={setSection}/>
+        <ChangePassword setSection={setSection} />
       )}
 
       {section === 'messages' && settings?.privacy.messages && (
         <>
-          <ArrowLeft className='inline mb-2' onClick={() => setSection('main')} />
-          <h2 className="inline text-xl font-extrabold mb-6 ml-3">Messages</h2>
-          <hr />
+          <div className='mb-4'>
+            <ArrowLeft className='inline mb-2' onClick={() => setSection('main')} />
+            <h2 className="inline text-xl font-extrabold mb-6 ml-3">Messages</h2>
+          </div>
+          <hr className='mb-3' />
           {renderOptions('Who can message you?', 'People you follow can always send you a message.', 'whoCanMessage', 'messages', ['No one', 'Verified profiles', 'Dating only', 'Anyone'])}
           {renderOptions('Show read receipts', 'Let others know when you’ve read their messages.', 'readReceipts', 'messages')}
           {renderOptions('Online status', 'Let others know when you’re online and active.', 'onlineStatus', 'messages')}
@@ -306,8 +308,10 @@ export const Privacy = ({ user }) => {
 
       {section === 'restrict' && (
         <>
-          <ArrowLeft className='inline mb-2' onClick={() => setSection('main')} />
-          <h2 className="inline text-xl font-extrabold mb-6 ml-3">Restricted Accounts</h2>
+          <div className='mb-3'>
+            <ArrowLeft className='inline mb-2' onClick={() => setSection('main')} />
+            <h2 className="inline text-xl font-extrabold mb-6 ml-3">Restricted Accounts</h2>
+          </div>
           <hr />
           <div className="space-y-4 border-t-1 p-3">
             <div className='mb-5 p-2' onClick={() => { setisblock(true); setSection('') }}>
@@ -324,11 +328,13 @@ export const Privacy = ({ user }) => {
 
       {isblock && (
         <>
-          <ArrowLeft className='inline mb-2' onClick={() => { setisblock(false); setSection('restrict'); }} />
-          <h2 className="inline text-xl font-extrabold mb-6 ml-3">Blocked Accounts</h2>
+          <div className='mb-5'>
+            <ArrowLeft className='inline mb-2' onClick={() => { setisblock(false); setSection('restrict'); }} />
+            <h2 className="inline text-xl font-extrabold mb-6 ml-3">Blocked Accounts</h2>
+          </div>
           <hr />
           <div className="space-y-4 p-5">
-            <div className="bg-gray-200 rounded-md shadow divide-y ">
+            <div className=" rounded-md  divide-y ">
               {blockedUsers.map((user, index) => (
                 <div
                   key={index}
@@ -343,7 +349,7 @@ export const Privacy = ({ user }) => {
                   </div>
                   <button
                     onClick={() => handleUnblock(index)}
-                    className="text-sm font-semibold px-4 py-1 border rounded-full hover:bg-gray-200 transition"
+                    className="text-sm text-white font-semibold px-4 py-1 border bg-teal-500 rounded-full hover:bg-teal-400 transition"
                   >
                     Unblock
                   </button>
@@ -356,11 +362,14 @@ export const Privacy = ({ user }) => {
 
       {ismuted && (
         <>
-          <ArrowLeft className='inline mb-2' onClick={() => { setismuted(false); setSection('restrict'); }} />
-          <h2 className="inline text-xl font-extrabold mb-6 ml-3">Muted Accounts</h2>
+          <div className='mb-5'>
+
+            <ArrowLeft className='inline mb-2' onClick={() => { setismuted(false); setSection('restrict'); }} />
+            <h2 className="inline text-xl font-extrabold mb-6 ml-3">Muted Accounts</h2>
+          </div>
           <hr />
           <div className="space-y-4 p-5">
-            <div className="bg-gray-200 rounded-md shadow divide-y ">
+            <div className=" rounded-md  divide-y ">
               {blockedUsers.map((user, index) => (
                 <div
                   key={index}
@@ -375,7 +384,7 @@ export const Privacy = ({ user }) => {
                   </div>
                   <button
                     onClick={() => handleUnblock(index)}
-                    className="text-sm font-semibold px-4 py-1 border rounded-full hover:bg-gray-200 transition"
+                    className="text-sm text-white font-semibold px-4 py-1 border bg-teal-500 rounded-full hover:bg-teal-300 transition"
                   >
                     Unmute
                   </button>

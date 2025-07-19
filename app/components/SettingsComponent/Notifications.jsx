@@ -107,7 +107,7 @@ export const Notifications = ({ user }) => {
   const accessToken = getCookie('accessToken');
   const [isEmail, setisEmail] = useState(false);
   const [ispush, setispush] = useState(false);
-  const [settings, saveSettings] = useSettings(user_id,accessToken);
+  const [settings, saveSettings] = useSettings(user_id, accessToken);
 
   const handleEmailChange = (field, value) => {
     saveSettings({
@@ -134,17 +134,23 @@ export const Notifications = ({ user }) => {
   };
 
   return (
-    <div className="flex-1 bg-gray-200 rounded-md shadow p-6 text-sm text-gray-800 h-[100vh] overflow-scroll">
+    <div className="flex-1 rounded-md shadow p-6 text-sm text-gray-800 h-[100vh] overflow-y-auto">
       {!isEmail && !ispush && (
         <>
-          <h2 className="text-xl font-extrabold mb-6">Notifications</h2>
-          <div className="space-y-4 border-t-1 p-3">
-            <div className='mb-5 p-2' onClick={() => setisEmail(true)}>
-              <p className="font-bold mt-3 text-xl">Email Notifications <ChevronRight className='justify-self-end text-gray-900 -mt-5' /></p>
+          <h2 className="text-2xl font-bold mb-6">Notifications</h2>
+          <div className="space-y-6">
+            <div className="p-4 rounded-md hover:bg-gray-100 cursor-pointer" onClick={() => setisEmail(true)}>
+              <div className="flex justify-between items-center">
+                <p className="text-xl font-semibold">Email Notifications</p>
+                <ChevronRight className="text-gray-900" />
+              </div>
             </div>
             <hr />
-            <div className='mb-5 p-2' onClick={() => setispush(true)}>
-              <p className="font-bold mt-3 text-xl">Push Notifications <ChevronRight className='justify-self-end text-gray-900 -mt-5' /></p>
+            <div className="p-4 rounded-md hover:bg-gray-100 cursor-pointer" onClick={() => setispush(true)}>
+              <div className="flex justify-between items-center">
+                <p className="text-xl font-semibold">Push Notifications</p>
+                <ChevronRight className="text-gray-900" />
+              </div>
             </div>
             <hr />
           </div>
@@ -153,73 +159,83 @@ export const Notifications = ({ user }) => {
 
       {isEmail && settings?.notifications?.email && (
         <>
-          <ArrowLeft className='inline mb-2' onClick={() => setisEmail(false)} />
-          <h2 className="inline text-xl font-extrabold mb-6 ml-3">Email Notifications</h2>
-          <hr />
-          {[
-            { label: "Reminder emails", field: "reminders", desc: "Stay updated on messages or matches you might have missed." },
-            { label: "Feature update emails", field: "updates", desc: "Be the first to know about new features and app updates." },
-            { label: "Tips & Insights Emails", field: "tips", desc: "Get helpful insights based on your activity." },
-            { label: "Dating connection emails", field: "connections", desc: "Get notified about dating activity." },
-            { label: "Suggestions emails", field: "suggestions", desc: "Discover recommended profiles and content." }
-          ].map(({ label, field, desc }) => (
-            <div key={field}>
-              <h2 className="text-xl font-extrabold mb-2">{label}</h2>
-              <p className="text-lg text-gray-600 mb-4">{desc}</p>
-              <div className="space-y-2 mb-4">
-                {['On', 'Off'].map(option => (
-                  <label key={option} className="flex items-center space-x-4 transform: scale-100">
-                    <input
-                      type="radio"
-                      name={field}
-                      checked={settings.notifications.email[field] === option}
-                      onChange={() => handleEmailChange(field, option)}
-                      className="scale-150 accent-gray-800"
-                    />
-                    <span className="font-bold text-lg">{option}</span>
-                  </label>
-                ))}
+          <div className="flex items-center mb-6">
+            <ArrowLeft className="cursor-pointer mr-3" onClick={() => setisEmail(false)} />
+            <h2 className="text-2xl font-bold">Email Notifications</h2>
+          </div>
+          <hr className="mb-4" />
+
+          <div className="space-y-8">
+            {[
+              { label: "Reminder emails", field: "reminders", desc: "Stay updated on messages or matches you might have missed." },
+              { label: "Feature update emails", field: "updates", desc: "Be the first to know about new features and app updates." },
+              { label: "Tips & Insights Emails", field: "tips", desc: "Get helpful insights based on your activity." },
+              { label: "Dating connection emails", field: "connections", desc: "Get notified about dating activity." },
+              { label: "Suggestions emails", field: "suggestions", desc: "Discover recommended profiles and content." }
+            ].map(({ label, field, desc }) => (
+              <div key={field} className="space-y-3">
+                <h3 className="text-xl font-semibold">{label}</h3>
+                <p className="text-gray-600">{desc}</p>
+                <div className="flex space-x-6">
+                  {['On', 'Off'].map(option => (
+                    <label key={option} className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        name={field}
+                        checked={settings.notifications.email[field] === option}
+                        onChange={() => handleEmailChange(field, option)}
+                        className="scale-150 accent-teal-300"
+                      />
+                      <span className="text-lg font-medium">{option}</span>
+                    </label>
+                  ))}
+                </div>
+                <hr className="mt-4" />
               </div>
-              <hr />
-            </div>
-          ))}
+            ))}
+          </div>
         </>
       )}
 
       {ispush && settings?.notifications?.push && (
         <>
-          <ArrowLeft className='inline mb-2' onClick={() => setispush(false)} />
-          <h2 className="inline text-xl font-extrabold mb-6 ml-3">Push Notifications</h2>
-          <hr />
-          {[
-            { label: "New message notifications", field: "messages", desc: "Receive alerts when someone sends you a message." },
-            { label: "Trending Profiles", field: "trending", desc: "Discover profiles getting a lot of attention." },
-            { label: "Exclusive drops and offers", field: "offers", desc: "Get notified about premium content and offers." },
-            { label: "App news and announcements", field: "news", desc: "Stay informed about updates and news." },
-            { label: "Comment notifications", field: "comments", desc: "Get notified when someone comments on your post." },
-            { label: "Likes or replies on comments", field: "likes", desc: "Be alerted when someone likes your comment." },
-            { label: "Messages from dating", field: "datingMessages", desc: "Get notified about dating feature messages." }
-          ].map(({ label, field, desc }) => (
-            <div key={field}>
-              <h2 className="text-xl font-extrabold mb-2">{label}</h2>
-              <p className="text-lg text-gray-600 mb-4">{desc}</p>
-              <div className="space-y-2 mb-4">
-                {['On', 'Off'].map(option => (
-                  <label key={option} className="flex items-center space-x-4 transform: scale-100">
-                    <input
-                      type="radio"
-                      name={field}
-                      checked={settings.notifications.push[field] === option}
-                      onChange={() => handlePushChange(field, option)}
-                      className="scale-150 accent-gray-800"
-                    />
-                    <span className="font-bold text-lg">{option}</span>
-                  </label>
-                ))}
+          <div className="flex items-center mb-6">
+            <ArrowLeft className="cursor-pointer mr-3" onClick={() => setispush(false)} />
+            <h2 className="text-2xl font-bold">Push Notifications</h2>
+          </div>
+          <hr className="mb-4" />
+
+          <div className="space-y-8">
+            {[
+              { label: "New message notifications", field: "messages", desc: "Receive alerts when someone sends you a message." },
+              { label: "Trending Profiles", field: "trending", desc: "Discover profiles getting a lot of attention." },
+              { label: "Exclusive drops and offers", field: "offers", desc: "Get notified about premium content and offers." },
+              { label: "App news and announcements", field: "news", desc: "Stay informed about updates and news." },
+              { label: "Comment notifications", field: "comments", desc: "Get notified when someone comments on your post." },
+              { label: "Likes or replies on comments", field: "likes", desc: "Be alerted when someone likes your comment." },
+              { label: "Messages from dating", field: "datingMessages", desc: "Get notified about dating feature messages." }
+            ].map(({ label, field, desc }) => (
+              <div key={field} className="space-y-3">
+                <h3 className="text-xl font-semibold">{label}</h3>
+                <p className="text-gray-600">{desc}</p>
+                <div className="flex space-x-6">
+                  {['On', 'Off'].map(option => (
+                    <label key={option} className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        name={field}
+                        checked={settings.notifications.push[field] === option}
+                        onChange={() => handlePushChange(field, option)}
+                        className="scale-150 accent-teal-300"
+                      />
+                      <span className="text-lg font-medium">{option}</span>
+                    </label>
+                  ))}
+                </div>
+                <hr className="mt-4" />
               </div>
-              <hr />
-            </div>
-          ))}
+            ))}
+          </div>
         </>
       )}
     </div>

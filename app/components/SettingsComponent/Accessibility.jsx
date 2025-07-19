@@ -82,7 +82,7 @@ export const Accessibility = ({ user}) => {
   if (!settings) return null; // Still loading
 
   return (
-    <div className="flex-1 bg-gray-200 rounded-md shadow p-6 text-lg text-gray-800 h-[100vh] overflow-y-scroll">
+    <div className="flex-1  rounded-md shadow p-6 text-lg text-gray-800 h-[100vh] overflow-y-scroll">
       <h2 className="text-xl font-extrabold mb-6">Accessibility & Display</h2>
       <hr />
       <div className="space-y-4 p-5">
@@ -123,7 +123,7 @@ export const Accessibility = ({ user}) => {
                     name={field}
                     checked={settings?.accessibility?.[field] === option}
                     onChange={() => handleChange(field, option)}
-                    className="scale-150 accent-gray-800"
+                    className="scale-150 accent-teal-400"
                   />
                   <span className="font-bold text-lg">{option}</span>
                 </label>

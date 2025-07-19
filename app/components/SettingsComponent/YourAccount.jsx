@@ -84,9 +84,18 @@ export const YourAccount = ({ data, accessToken }) => {
       setLoading(false); // ✅ End loading
     }
   };
+  const isEdited = () => {
+    return (
+      editData.username !== userData.username ||
+      editData.phone !== userData.phone ||
+      editData.email !== userData.email ||
+      editData.website !== userData.website ||
+      editData.bio !== userData.bio
+    );
+  };
 
   return (
-    <div className="flex-1 bg-gray-200 rounded-md shadow p-6 text-sm text-gray-800 h-[100vh] overflow-scroll">
+    <div className="flex-1 rounded-md shadow p-6 text-sm text-gray-800 h-[100vh] overflow-scroll">
       <h2 className="text-xl font-extrabold mb-6">Account information</h2>
 
       {/* Editable Fields */}
@@ -97,7 +106,7 @@ export const YourAccount = ({ data, accessToken }) => {
             name={field}
             value={editData[field] || ''}
             onChange={handleInputChange}
-            className="text-gray-600 text-lg w-full p-2 rounded border"
+            className="text-gray-600 text-lg w-full p-2 rounded onfocus:outline-2"
           />
         </div>
       ))}
@@ -112,13 +121,16 @@ export const YourAccount = ({ data, accessToken }) => {
       </div>
 
       {/* ✅ Button with loading state */}
-      <button
-        className={`bg-gray-600 text-white px-4 py-2 rounded font-semibold ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-        onClick={handleSave}
-        disabled={loading}
-      >
-        {loading ? 'Saving...' : 'Save Changes'}
-      </button>
+      {isEdited() && (
+        <button
+          className={`bg-teal-600 text-white px-4 py-2 rounded font-semibold ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          onClick={handleSave}
+          disabled={loading}
+        >
+          {loading ? 'Saving...' : 'Save Changes'}
+        </button>
+      )}
+
 
       <hr className='my-6' />
       {[

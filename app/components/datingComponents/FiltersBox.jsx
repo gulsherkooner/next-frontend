@@ -76,7 +76,7 @@ const FiltersBox = ({
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-extrabold">Filters</h2>
-                <a href="/dating/profile" className="text-sm inline-flex items-center text-teal-500 font-medium hover:underline">
+                <a href="/profile" className="text-sm inline-flex items-center text-teal-500 font-medium hover:underline">
                     <Pencil className="w-4 h-4 mr-1 text-teal-500" />
                     View profile
                 </a>

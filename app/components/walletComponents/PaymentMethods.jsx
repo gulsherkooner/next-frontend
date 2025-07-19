@@ -16,7 +16,7 @@ const PaymentMethods = ({ onBack, onAddCard }) => {
   ];
 
   return (
-    <div className="bg-gray-200 p-6 rounded-2xl space-y-6 md:-ml-20">
+    <div className="bg-white p-6 rounded-2xl max-w-xl w-md space-y-4 shadow-md md:-ml-19 ">
       <h2 className="text-xl font-bold text-gray-800">Payment methods</h2>
 
       {/* Credit & Debit cards */}
@@ -99,7 +99,7 @@ const PaymentMethods = ({ onBack, onAddCard }) => {
           Cancel
         </button>
         <button
-          className="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-black"
+          className="px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-md hover:bg-teal-500"
           onClick={onBack}
         >
           Done

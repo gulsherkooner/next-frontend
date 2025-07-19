@@ -1,7 +1,7 @@
 import { CreditCard } from "lucide-react";
 const AddCardForm = ({ onBack }) => {
     return (
-        <div className="bg-white p-6 rounded-2xl max-w-md w-full space-y-4 shadow-md sm:ml-15 ">
+        <div className="bg-white p-6 rounded-2xl max-w-md w-full space-y-4 shadow-md sm:ml-15 md:ml-0 ">
             <h2 className="text-xl font-bold text-gray-800">Add card</h2>
 
             <div className="relative">
@@ -55,7 +55,7 @@ const AddCardForm = ({ onBack }) => {
                 >
                     Cancel
                 </button>
-                <button className="px-4 py-2 text-sm font-medium text-white bg-gray-300 rounded-md hover:bg-gray-700" onClick={onBack}>
+                <button className="px-4 py-2 text-sm font-medium text-white bg-teal-500 rounded-md hover:bg-teal-600" onClick={onBack}>
                     Add Card
                 </button>
             </div>

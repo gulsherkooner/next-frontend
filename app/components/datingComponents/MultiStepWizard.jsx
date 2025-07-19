@@ -267,7 +267,7 @@ const BasicsForm = ({ age, setAge, height, setHeight, drinkFreq = [], setDrinkFr
             <input
                 type="text"
                 placeholder="Add your Height in cm"
-                value={height}
+                value={height || ''}
                 onChange={(e) => setHeight(e.target.value)}
                 className="w-full px-3 py-2 mb-1 border rounded"
             />
@@ -903,7 +903,7 @@ export default function MultiStepForm({ onComplete }) {
         interestedIn: [],
         lookingFor: [],
         age: 32,
-        height: '',
+        height: null,
         drinkFreq: [],
         smokeFreq: [],
         workoutOptions: [],
@@ -935,7 +935,8 @@ export default function MultiStepForm({ onComplete }) {
                     const userId = localStorage.getItem('userId'); // <-- get userId
                     const fullFormData = {
                         ...formData,
-                        user_id: userId, // <-- include userId in body
+                        website:null,
+                        phone:null
                     };
                     console.log(fullFormData);
                     const response = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/date/profiles`, {
